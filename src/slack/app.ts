@@ -5,11 +5,13 @@ import { registerModalHandlers } from "./handlers/modalHandlers.js";
 import { registerActionHandlers } from "./handlers/actionHandlers.js";
 import { registerCommandHandlers } from "./handlers/commandHandlers.js";
 import { registerHuddleHandlers } from "./handlers/huddleHandlers.js";
+import { getEnv } from "../config/env.js";
 
 export function createSlackApp(): bolt.App {
+  const env = getEnv();
   const app = new App({
-    token: process.env.SLACK_BOT_TOKEN,
-    appToken: process.env.SLACK_APP_TOKEN,
+    token: env.SLACK_BOT_TOKEN,
+    appToken: env.SLACK_APP_TOKEN,
     socketMode: true,
     logLevel: LogLevel.INFO,
   });

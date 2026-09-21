@@ -7,9 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  build-and-typecheck:
-    name: Build & Typecheck
-    runs-on: [self-hosted, huddle-pace]
+  build-and-test:
+    name: Build, Typecheck & Test
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: '.node-version'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -36,3 +36,8 @@ jobs:
 
       - name: Typecheck & Compile TypeScript
         run: pnpm build
+
+      - name: Run automated test suite
+        run: pnpm test
+        env:
+          DATABASE_URL: "file:./ci.db"
