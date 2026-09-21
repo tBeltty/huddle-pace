@@ -17,7 +17,7 @@ export function buildPacingReportBlocks(stats: PacingReportStats, days = 30): an
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `Summary of team meeting discipline and timebox efficiency for the *last ${days} days*.`,
+        text: `Timebox tracking and meeting duration log for the *last ${days} days*.`,
       },
     },
     {
@@ -87,7 +87,7 @@ export function buildPacingReportBlocks(stats: PacingReportStats, days = 30): an
       elements: [
         {
           type: "mrkdwn",
-          text: "💡 _HuddlePace decouples structured presentation time from casual post-meeting chatter._",
+          text: "💡 _HuddlePace separates presentation agendas from post-meeting discussion._",
         },
       ],
     }

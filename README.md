@@ -1,166 +1,213 @@
 # ⏱️ HuddlePace
 
-> **Slack-native meeting timekeeper and speaker companion to prevent meeting dilation.**
+> **Slack-native meeting timekeeper and speaker companion.**
 
-HuddlePace is an internal Slack app built with **Node.js v26.9.0**, **TypeScript**, and **Slack Socket Mode**. It solves the problem of 45-minute technical talks, knowledge shares, and onboarding sessions drifting into 3–5 hour marathons.
+HuddlePace is a Slack bot built with **Node.js**, **TypeScript**, and **Slack Socket Mode**. It keeps technical presentations, design reviews, and onboarding sessions within their agreed time budgets by tracking modular agendas in real time.
 
-It operates with a **$0 external footprint** (zero external paid LLMs, zero cloud servers required, zero public ingress ports needed).
-
----
-
-## 🌟 Key Features
-
-1. **Slack App Home Tab (Visual Dashboard)**:
-   - A dedicated graphical dashboard inside Slack.
-   - Click **`[ ➕ Schedule New Meetup ]`** to open the interactive configuration modal.
-   - Real-time cards showing active sessions and upcoming scheduled talks.
-
-2. **Modular Percentage Allocator**:
-   - Organizers define custom modules and subtopics (e.g., *Context: 15%*, *Core Demo: 60%*, *Q&A: 25%*).
-   - Dynamically add unlimited subtopic rows with the **`[ ➕ Add Another Subtopic ]`** button.
-   - Enforces 100% time budget alignment before saving.
-
-3. **In-Place Live Huddle Tracker**:
-   - Posts a single message in the target channel or Huddle chat thread.
-   - Updates every 30 seconds with a visual progress bar (`[████████░░░░░░░░] 50%`), active module, and time remaining.
-   - Eliminates notification noise while keeping everyone naturally conscious of elapsed time.
-
-4. **Speaker Pacing Copilot (Private DMs)**:
-   - Sends direct, private notifications to the speaker as each module concludes.
-   - Keeps the speaker on pace without embarrassing public interruptions.
-
-5. **Gentle Social Exit Ramp**:
-   - Automatically posts an official conclusion notice once 100% of the scheduled time is reached.
-   - Releases team members who have subsequent commitments without awkwardness.
+Runs with a zero-cost infrastructure footprint: no external paid LLM calls, no cloud API subscriptions, and no inbound public ports.
 
 ---
 
-## 🛠️ Tech Stack
+## Key Capabilities
 
-- **Runtime**: Node.js v26.9.0 (ESM, TypeScript)
+1. **Slack App Home Dashboard**:
+   - Central graphical dashboard within the Slack workspace.
+   - Live session cards showing elapsed time, module progress, and quick controls.
+   - Schedule new sessions directly using `[ ➕ Schedule New Meetup ]`.
+   - 30-day team pacing analytics and historical session logs.
+
+2. **Modular Agenda & Percentage Budgeting**:
+   - Organizers divide scheduled time into custom segments (e.g., *Context: 15%*, *Demo: 60%*, *Q&A: 25%*).
+   - Dynamic rows allow adding as many modules as needed.
+   - Validates that allocated percentages total exactly 100%.
+
+3. **In-Call Huddle Chat Threading**:
+   - Posts the live tracking card directly into the active Huddle chat thread (`thread_ts`), keeping the public channel free from clutter.
+   - Updates in-place every 30 seconds with a visual progress bar (`[████████░░░░░░░░] 50%`), the active module, and remaining time.
+
+4. **Huddle Destination Selector & Disambiguation**:
+   - The scheduling modal scans the chosen channel for active or recent Huddle calls and lists them explicitly.
+   - Options include linking to a detected Huddle, auto-detecting on start, posting to the channel feed, or specifying a custom message thread link.
+   - If set to auto-detect and multiple active Huddles exist when starting, HuddlePace opens a single-step picker modal so the organizer chooses the correct call.
+
+5. **Automated Huddle Lifecycle Detection**:
+   - Listens for Huddle call conclusion events (`room.has_ended: true`).
+   - When all participants leave the Huddle, HuddlePace stops the background timer, marks the session as concluded, and posts the final duration summary into the thread.
+
+6. **Decoupled Moderator & Multi-Speaker Assignment**:
+   - Moderators can schedule sessions on behalf of one or more presenters via a multi-user picker.
+   - Pacing countdowns and module transition alerts are sent simultaneously via private direct messages to each assigned speaker.
+
+7. **"Just Chatting" Post-Meeting Mode**:
+   - A `[ ☕ Switch to Just Chatting ]` button lets organizers wrap up the formal agenda while keeping the Huddle open.
+   - Freezes formal presentation duration metrics for accurate analytics while tracking informal discussion time.
+   - Updates the tracker card with a casual chat banner so teammates browsing the channel know the meeting transitioned to open discussion.
+
+8. **On-Demand Pacing Reports**:
+   - Run `/pace report [days]` (e.g. `/pace report 14`, default 30) to view timebox compliance rates, formal presentation hours, casual chat hours, and recent session records.
+   - View 30-day summary metrics on the Slack Home Tab or click `[ 📊 View Full Report ]` to open the full modal breakdown.
+
+---
+
+## Tech Stack
+
+- **Runtime**: Node.js (ESM, TypeScript)
 - **Framework**: `@slack/bolt`
 - **Transport**: Slack Socket Mode (WebSocket, zero inbound firewall holes)
-- **Persistence**: SQLite with Prisma ORM (durable file-based store in `prisma/dev.db`)
-- **Cost**: $0 (100% deterministic arithmetic, zero external paid API keys)
+- **Database**: SQLite with Prisma ORM (`prisma/dev.db`)
+- **Cost**: $0 (deterministic calculations, self-hosted, no paid external APIs)
 
 ---
 
-## 🚀 Quick Setup Guide (5 Minutes)
+## Setup Guide
 
 ### 1. Create the Slack App via Manifest
+
 1. Navigate to the [Slack App Management Portal](https://api.slack.com/apps).
 2. Click **Create New App** > **From an app manifest**.
-3. Select your workspace.
-4. Copy and paste the contents of [`manifest.json`](./manifest.json) into the JSON tab and click **Create**.
+3. Select your target workspace.
+4. Paste the contents of [`manifest.json`](./manifest.json) into the JSON editor and confirm.
 
-### 2. Generate Credentials & Tokens
+### 2. Generate Credentials
 
-#### A. App-Level Token (for Socket Mode)
-1. In your app settings under **Basic Information**, scroll down to **App-Level Tokens**.
+#### App-Level Token (Socket Mode)
+1. Under **Basic Information**, scroll to **App-Level Tokens**.
 2. Click **Generate Token and Scopes**.
-3. Name it `socket-token` and add the scope:
-   - `connections:write`
-4. Copy the token starting with `xapp-...`.
+3. Name it `socket-token` and add the `connections:write` scope.
+4. Copy the token (`xapp-...`).
 
-#### B. Install App & Bot Token
+#### Bot User Token & Installation
 1. Go to **Install App** in the left sidebar and click **Install to Workspace**.
-2. Copy the **Bot User OAuth Token** starting with `xoxb-...`.
+2. Copy the **Bot User OAuth Token** (`xoxb-...`).
 
-#### C. Signing Secret
-1. In **Basic Information**, locate **Signing Secret** under *App Credentials* and click **Show**.
-
----
-
-### 3. Configure Local Environment
+### 3. Environment Configuration
 
 Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
 ```
 
-Fill in your Slack credentials in `.env`:
+Set your tokens in `.env`:
 ```env
 SLACK_BOT_TOKEN="xoxb-your-token-here"
 SLACK_APP_TOKEN="xapp-your-token-here"
-SLACK_SIGNING_SECRET="your-signing-secret-here"
 DATABASE_URL="file:./dev.db"
 ```
 
----
+### 4. Database Setup & Start
 
-### 4. Database Setup & Start Application
-
-1. Push the database schema:
+1. Generate Prisma client and sync database schema:
 ```bash
-npm run db:push
+pnpm db:push
 ```
 
-2. Start HuddlePace in development mode:
+2. Build and start the service:
 ```bash
-npm run dev
+pnpm build
+pnpm start
 ```
 
-You should see:
+For development with hot reloading:
+```bash
+pnpm dev
+```
+
+Expected startup log:
 ```text
+⏱️ Timer worker started (interval: 30s).
 ⚡️ HuddlePace is live and connected via Slack Socket Mode!
 ⏱️ Periodic scheduler is tracking active meetups.
+[INFO] socket-mode:SocketModeClient:0 Now connected to Slack
 ```
 
 ---
 
-## 📖 How to Use
+## Slack Commands & Shortcuts
 
-### Method 1: Visual App Home (Recommended)
-1. Open Slack, scroll down the left sidebar to **Apps**, and click **HuddlePace**.
-2. Navigate to the **Home** tab.
-3. Click **`➕ Schedule New Meetup`**.
-4. Fill in your topic, choose the channel, set the duration, and adjust module percentages.
-5. Click **Schedule & Ready**.
-
-### Method 2: Global Shortcut
-- In any channel, click the **`+`** (or ⚡) shortcut button in the message composer.
-- Search for **Schedule Meetup**.
-
-### Method 3: Slash Command
-- Type `/pace` to open the scheduling modal.
-- Type `/pace status` to inspect active meetups in the current channel.
+| Action | Invocation | Description |
+| :--- | :--- | :--- |
+| **Schedule Modal** | `/pace` or Global Shortcut | Opens the interactive meetup scheduling modal. |
+| **Channel Status** | `/pace status` | Lists active sessions running in the current channel. |
+| **Pacing Report** | `/pace report [days]` | Displays timebox compliance and duration stats (default: 30 days). |
+| **Help Guide** | `/pace help` | Shows available commands and usage hints. |
+| **App Home Tab** | Click `HuddlePace` under Apps | Opens the visual dashboard, active sessions, and reports. |
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 huddle-pace/
-├── manifest.json             # 1-Click Slack App definition
-├── package.json              # Node.js 26 dependencies
-├── tsconfig.json             # TypeScript compiler settings
+├── manifest.json                  # Slack App manifest definition
+├── package.json                   # Node.js dependencies and scripts
+├── tsconfig.json                  # TypeScript configuration
 ├── prisma/
-│   └── schema.prisma         # Relational database models
+│   ├── schema.prisma              # Database schema (Meetup, Modules)
+│   └── dev.db                     # SQLite database file
 ├── src/
-│   ├── index.ts              # Bootstrap & process lifecycle
+│   ├── index.ts                   # Application entry point and graceful shutdown
 │   ├── db/
-│   │   └── client.ts         # Prisma client singleton
+│   │   └── client.ts              # Prisma client singleton with WAL mode
 │   ├── services/
-│   │   └── meetupService.ts  # Pacing calculations & state engine
+│   │   └── meetupService.ts       # Business logic, time calculations, and report queries
 │   ├── scheduler/
-│   │   └── timerWorker.ts    # Durable 30s heartbeat updater
+│   │   └── timerWorker.ts         # 30-second heartbeat worker and pacing notifications
 │   ├── utils/
-│   │   └── progressBar.ts    # Visual progress bar generator
+│   │   └── progressBar.ts         # Text-based progress bar generator
 │   └── slack/
-│       ├── app.ts            # Bolt Socket Mode client
+│       ├── app.ts                 # Slack Bolt app initialization
+│       ├── utils/
+│       │   └── huddleDiscovery.ts # Channel history scanner for active and recent Huddles
 │       ├── ui/
-│       │   ├── homeTab.ts        # App Home dashboard builder
-│       │   ├── scheduleModal.ts  # Dynamic Block Kit modal
-│       │   └── trackerBlock.ts   # Live in-channel progress block
+│       │   ├── homeTab.ts         # App Home tab builder
+│       │   ├── scheduleModal.ts   # Interactive schedule modal with Huddle selector
+│       │   ├── huddleSelectModal.ts # Launch-time Huddle disambiguation modal
+│       │   ├── trackerBlock.ts    # In-call live progress block and chatting banner
+│       │   └── reportBlock.ts     # Pacing analytics report builder
 │       └── handlers/
-│           ├── homeHandlers.ts   # App Home events
-│           ├── modalHandlers.ts  # Modal interactions & validation
-│           ├── actionHandlers.ts # Live buttons (Start / Conclude)
-│           └── commandHandlers.ts# Slash commands & shortcuts
+│           ├── homeHandlers.ts    # Home Tab events and report modal triggers
+│           ├── modalHandlers.ts   # Modal submissions and dynamic channel refresh
+│           ├── actionHandlers.ts  # Start, switch to chatting, and conclude buttons
+│           ├── commandHandlers.ts # Slash commands (/pace, status, report, help)
+│           └── huddleHandlers.ts  # Native Huddle lifecycle detection (auto-conclusion)
 └── README.md
 ```
 
 ---
 
-## 📄 License
-MIT. Built for internal engineering team excellence.
+## Production Deployment (systemd)
+
+On a Linux server or VPS, run HuddlePace as a systemd service:
+
+```ini
+# /etc/systemd/system/huddlepace.service
+[Unit]
+Description=HuddlePace Slack Companion
+After=network.target
+
+[Service]
+Type=simple
+User=jhonatan
+WorkingDirectory=/home/jhonatan/huddle-pace
+ExecStart=/usr/bin/node /home/jhonatan/huddle-pace/dist/index.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Commands:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable huddlepace.service
+sudo systemctl restart huddlepace.service
+sudo journalctl -u huddlepace.service -f
+```
+
+---
+
+## License
+
+MIT License.

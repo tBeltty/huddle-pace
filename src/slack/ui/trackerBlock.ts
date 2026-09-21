@@ -35,7 +35,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `☕ *Formal Agenda Complete — Casual Chatting*\n\n• *Formal Duration:* ${data.elapsedMinutes}m (Budget: ${data.totalMinutes}m)\n• *Casual Chatting:* ${chatMinutes}m\n• *Speakers:* ${speakerDisplay}\n\nThe formal presentation has ended! The Huddle remains active for open banter and unstructured Q&A. Anyone is welcome to jump in.`,
+          text: `☕ *Formal Agenda Complete — Casual Chatting*\n\n• *Formal Duration:* ${data.elapsedMinutes}m (Budget: ${data.totalMinutes}m)\n• *Casual Chatting:* ${chatMinutes}m\n• *Speakers:* ${speakerDisplay}\n\nThe scheduled presentation has finished. The Huddle remains open for questions and casual discussion.`,
         },
       },
       {
