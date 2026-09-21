@@ -5,8 +5,7 @@ import { TimerWorker } from "./scheduler/timerWorker.js";
 import { prisma } from "./db/client.js";
 
 async function main() {
-  // Validate runtime environment variables early
-  getEnv();
+  const env = getEnv();
 
   const app = createSlackApp();
   const worker = new TimerWorker(app);
@@ -14,10 +13,17 @@ async function main() {
   // Start background periodic timer loop
   worker.start(30000); // 30-second ticks
 
-  // Connect to Slack via Socket Mode
-  await app.start();
+  if (env.SOCKET_MODE) {
+    await app.start();
+    console.log("⚡️ HuddlePace is live and connected via Slack Socket Mode!");
+  } else {
+    await app.start(env.PORT);
+    console.log(`⚡️ HuddlePace is live on port ${env.PORT} via Slack HTTP OAuth mode!`);
+    console.log(`🔗 Healthcheck endpoint: http://localhost:${env.PORT}/healthz`);
+    console.log(`🔗 Install URL: http://localhost:${env.PORT}/slack/install`);
+    console.log(`🔗 Events endpoint: http://localhost:${env.PORT}/slack/events`);
+  }
 
-  console.log("⚡️ HuddlePace is live and connected via Slack Socket Mode!");
   console.log("⏱️ Periodic scheduler is tracking active meetups.");
 
   // Graceful shutdown handling

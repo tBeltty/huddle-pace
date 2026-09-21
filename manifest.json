@@ -25,6 +25,7 @@
     "slash_commands": [
       {
         "command": "/pace",
+        "url": "https://your-domain.com/slack/events",
         "description": "Open HuddlePace meeting management and scheduling",
         "usage_hint": "[schedule | status]",
         "should_escape": false
@@ -32,6 +33,9 @@
     ]
   },
   "oauth_config": {
+    "redirect_urls": [
+      "https://your-domain.com/slack/oauth_redirect"
+    ],
     "scopes": {
       "bot": [
         "commands",
@@ -48,6 +52,7 @@
   },
   "settings": {
     "event_subscriptions": {
+      "request_url": "https://your-domain.com/slack/events",
       "bot_events": [
         "app_home_opened",
         "message.channels",
@@ -55,10 +60,11 @@
       ]
     },
     "interactivity": {
-      "is_enabled": true
+      "is_enabled": true,
+      "request_url": "https://your-domain.com/slack/events"
     },
     "org_deploy_enabled": false,
-    "socket_mode_enabled": true,
+    "socket_mode_enabled": false,
     "token_rotation_enabled": false
   }
 }

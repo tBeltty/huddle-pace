@@ -6,12 +6,13 @@ import { buildPacingReportBlocks } from "../ui/reportBlock.js";
 
 export function registerHomeHandlers(app: App) {
   // Publish Home tab whenever a user opens the App Home
-  app.event("app_home_opened", async ({ event, client }) => {
+  app.event("app_home_opened", async ({ event, client, context }) => {
     try {
+      const teamId = (event as any).view?.team_id || context.teamId;
       const [active, upcoming, stats] = await Promise.all([
-        MeetupService.getActiveMeetups(),
-        MeetupService.getUpcomingMeetups(),
-        MeetupService.getPacingReportStats(30),
+        MeetupService.getActiveMeetups(teamId),
+        MeetupService.getUpcomingMeetups(teamId),
+        MeetupService.getPacingReportStats(30, teamId),
       ]);
 
       await client.views.publish({
@@ -44,12 +45,13 @@ export function registerHomeHandlers(app: App) {
   });
 
   // Action: Open Detailed Pacing Report Modal
-  app.action("open_report_modal", async ({ ack, body, client }) => {
+  app.action("open_report_modal", async ({ ack, body, client, context }) => {
     await ack();
     try {
       const b = body as any;
       const triggerId = b.trigger_id;
-      const stats = await MeetupService.getPacingReportStats(30);
+      const teamId = b.team?.id || context.teamId;
+      const stats = await MeetupService.getPacingReportStats(30, teamId);
 
       await client.views.open({
         trigger_id: triggerId,

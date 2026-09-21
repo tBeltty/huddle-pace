@@ -25,7 +25,7 @@ export function registerCommandHandlers(app: App) {
       if (subCommand === "report" || subCommand === "stats") {
         const daysArg = parseInt(parts[1], 10);
         const days = !isNaN(daysArg) && daysArg > 0 ? Math.min(daysArg, 365) : 30;
-        const stats = await MeetupService.getPacingReportStats(days);
+        const stats = await MeetupService.getPacingReportStats(days, command.team_id);
         const blocks = buildPacingReportBlocks(stats, days);
 
         await client.chat.postEphemeral({
@@ -38,7 +38,7 @@ export function registerCommandHandlers(app: App) {
       }
 
       if (subCommand === "status") {
-        const active = await MeetupService.getActiveMeetups();
+        const active = await MeetupService.getActiveMeetups(command.team_id);
         const channelMeetups = active.filter((m) => m.channelId === command.channel_id);
 
         if (channelMeetups.length === 0) {

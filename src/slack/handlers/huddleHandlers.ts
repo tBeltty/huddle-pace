@@ -4,7 +4,7 @@ import { formatMinutes } from "../../utils/progressBar.js";
 
 export function registerHuddleHandlers(app: App) {
   // Listen for message changes to detect when a Huddle call ends
-  app.event("message", async ({ event, client }) => {
+  app.event("message", async ({ event, client, context }) => {
     try {
       const e = event as any;
 
@@ -20,9 +20,10 @@ export function registerHuddleHandlers(app: App) {
       if (isHuddle && hasEnded) {
         const channelId = e.channel;
         const threadTs = msg.ts;
+        const teamId = e.team || context.teamId;
 
         // Find active or chatting meetup tracking this Huddle
-        const meetup = await MeetupService.findActiveMeetupByChannelOrThread(channelId, threadTs);
+        const meetup = await MeetupService.findActiveMeetupByChannelOrThread(channelId, threadTs, teamId);
 
         if (meetup) {
           console.info(`Detected Huddle end for channel ${channelId}. Auto-concluding meetup ${meetup.id}.`);

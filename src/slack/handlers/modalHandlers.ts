@@ -194,12 +194,14 @@ export function registerModalHandlers(app: App) {
     await ensureBotInChannel(client, validatedData.channelId, body.user.id);
 
     try {
+      const teamId = body.team?.id || body.user?.team_id || "default";
       await MeetupService.createMeetup({
         title: validatedData.title,
         totalMinutes: validatedData.totalMinutes,
         channelId: validatedData.channelId,
         speakerUserId: validatedData.speakerUserId,
         threadTs: validatedData.threadTs,
+        teamId,
         modules: validatedData.modules,
       });
 
