@@ -1,5 +1,6 @@
 import { View } from "@slack/bolt";
 import { renderProgressBar, formatMinutes } from "../../utils/progressBar.js";
+import { MeetupService, PacingReportStats } from "../../services/meetupService.js";
 
 interface MeetupWithModules {
   id: string;
@@ -18,7 +19,8 @@ interface MeetupWithModules {
 
 export function buildHomeTabView(
   activeMeetups: MeetupWithModules[],
-  upcomingMeetups: MeetupWithModules[]
+  upcomingMeetups: MeetupWithModules[],
+  stats?: PacingReportStats
 ): View {
   const blocks: any[] = [
     {
@@ -79,14 +81,20 @@ export function buildHomeTabView(
         : 0;
       const isOvertime = elapsedMinutes >= meetup.totalMinutes;
       const percent = Math.min(100, Math.round((elapsedMinutes / meetup.totalMinutes) * 100));
-      const statusBadge = isOvertime ? "🔴 *Overtime*" : "🟢 *In Progress*";
+      const statusBadge = meetup.status === "JUST_CHATTING"
+        ? "☕ *Just Chatting*"
+        : isOvertime
+        ? "🔴 *Overtime*"
+        : "🟢 *In Progress*";
+
+      const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
 
       blocks.push(
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*${meetup.title}*  •  ${statusBadge}\nChannel: <#${meetup.channelId}> | Speaker: <@${meetup.speakerUserId}>\nElapsed: *${elapsedMinutes} / ${meetup.totalMinutes} min*\n${renderProgressBar(percent, 16)}`,
+            text: `*${meetup.title}*  •  ${statusBadge}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\nElapsed: *${elapsedMinutes} / ${meetup.totalMinutes} min*\n${renderProgressBar(percent, 16)}`,
           },
           accessory: {
             type: "button",
@@ -129,17 +137,19 @@ export function buildHomeTabView(
         .map((m) => `• *${m.title}* (${m.percentage}% — ${formatMinutes(m.durationMinutes)})`)
         .join("\n");
 
+      const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
+
       blocks.push({
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})\nSpeaker: <@${meetup.speakerUserId}> in <#${meetup.channelId}>\n${breakdownText}`,
+          text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})\nSpeakers: ${speakers} in <#${meetup.channelId}>\n${breakdownText}`,
         },
         accessory: {
           type: "button",
           text: {
             type: "plain_text",
-            text: "🚀 Start Now",
+            text: "🚀 Start in Huddle",
             emoji: true,
           },
           style: "primary",
@@ -148,6 +158,57 @@ export function buildHomeTabView(
         },
       });
     }
+  }
+
+  // 30-Day Pacing Analytics Section
+  if (stats) {
+    const complianceEmoji = stats.complianceRate >= 80 ? "🟢" : stats.complianceRate >= 60 ? "🟡" : "🔴";
+    blocks.push(
+      { type: "divider" },
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: "📊 30-Day Pacing Analytics",
+          emoji: true,
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `🎯 *Compliance Rate*\n${complianceEmoji} *${stats.complianceRate}%* (${stats.completedOnTime} / ${stats.totalSessions})`,
+          },
+          {
+            type: "mrkdwn",
+            text: `⏱️ *Formal Talk Time*\n*${formatMinutes(stats.totalFormalMinutes)}*`,
+          },
+          {
+            type: "mrkdwn",
+            text: `☕ *Casual Chat Time*\n*${formatMinutes(stats.totalChattingMinutes)}*`,
+          },
+          {
+            type: "mrkdwn",
+            text: `👥 *Sessions Tracked*\n*${stats.totalSessions} meetups*`,
+          },
+        ],
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "📊 View Full Report",
+              emoji: true,
+            },
+            action_id: "open_report_modal",
+          },
+        ],
+      }
+    );
   }
 
   return {

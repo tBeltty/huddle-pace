@@ -17,8 +17,9 @@ model Meetup {
   totalMinutes     Int
   startedAt        DateTime?
   scheduledFor     DateTime?
+  formalEndsAt     DateTime?
   endsAt           DateTime?
-  status           String         @default("SCHEDULED") // SCHEDULED, ACTIVE, PAUSED, COMPLETED, CANCELLED
+  status           String         @default("SCHEDULED") // SCHEDULED, ACTIVE, JUST_CHATTING, PAUSED, COMPLETED, CANCELLED
   modules          MeetupModule[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt

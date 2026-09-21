@@ -9,12 +9,50 @@ export interface CreateMeetupDTO {
   title: string;
   totalMinutes: number;
   channelId: string;
-  speakerUserId: string;
+  speakerUserId: string; // Can be a single ID or comma-separated IDs
   scheduledFor?: Date;
   modules: SubtopicInput[];
 }
 
+export interface PacingReportStats {
+  totalSessions: number;
+  completedOnTime: number;
+  complianceRate: number;
+  totalFormalMinutes: number;
+  totalChattingMinutes: number;
+  totalMinutesSpent: number;
+  recentSessions: Array<{
+    id: string;
+    title: string;
+    speakerMentions: string;
+    totalBudgetMin: number;
+    formalDurationMin: number;
+    chattingDurationMin: number;
+    isOnTime: boolean;
+    date: Date;
+  }>;
+}
+
 export class MeetupService {
+  /**
+   * Parses single or comma-separated speaker IDs into a clean array.
+   */
+  static parseSpeakerIds(speakerUserId: string): string[] {
+    return (speakerUserId || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  /**
+   * Formats speaker user IDs into Slack mrkdwn mentions (<@ID1>, <@ID2>).
+   */
+  static formatSpeakerMentions(speakerUserId: string): string {
+    const ids = this.parseSpeakerIds(speakerUserId);
+    if (ids.length === 0) return "Not specified";
+    return ids.map((id) => `<@${id}>`).join(", ");
+  }
+
   /**
    * Validates module percentages and normalizes minute allocations so they sum exactly to totalMinutes.
    */
@@ -60,7 +98,7 @@ export class MeetupService {
   }
 
   /**
-   * Creates a new scheduled or ready meetup with its modules.
+   * Creates a new scheduled meetup with its modules.
    */
   static async createMeetup(data: CreateMeetupDTO) {
     const computedModules = this.calculateModuleAllocations(data.totalMinutes, data.modules);
@@ -117,25 +155,50 @@ export class MeetupService {
   }
 
   /**
-   * Concludes an active meetup.
+   * Switches an active meetup to casual "Just Chatting" mode, freezing formal agenda time.
+   */
+  static async switchToJustChatting(id: string) {
+    const meetup = await prisma.meetup.findUnique({ where: { id } });
+    if (!meetup) throw new Error(`Meetup ${id} not found.`);
+
+    return await prisma.meetup.update({
+      where: { id },
+      data: {
+        status: "JUST_CHATTING",
+        formalEndsAt: new Date(),
+      },
+      include: {
+        modules: { orderBy: { orderIndex: "asc" } },
+      },
+    });
+  }
+
+  /**
+   * Concludes a meetup completely.
    */
   static async concludeMeetup(id: string) {
+    const meetup = await prisma.meetup.findUnique({ where: { id } });
+    const now = new Date();
+
     return await prisma.meetup.update({
       where: { id },
       data: {
         status: "COMPLETED",
-        endsAt: new Date(),
+        formalEndsAt: meetup?.formalEndsAt || now,
+        endsAt: now,
       },
       include: { modules: true },
     });
   }
 
   /**
-   * Returns all active meetups currently being tracked.
+   * Returns all active meetups currently in flight (ACTIVE or JUST_CHATTING).
    */
   static async getActiveMeetups() {
     return await prisma.meetup.findMany({
-      where: { status: "ACTIVE" },
+      where: {
+        status: { in: ["ACTIVE", "JUST_CHATTING"] },
+      },
       include: {
         modules: { orderBy: { orderIndex: "asc" } },
       },
@@ -169,10 +232,96 @@ export class MeetupService {
   }
 
   /**
+   * Finds an active or chatting meetup associated with a channel or thread.
+   */
+  static async findActiveMeetupByChannelOrThread(channelId: string, threadTs?: string) {
+    if (threadTs) {
+      const byThread = await prisma.meetup.findFirst({
+        where: {
+          channelId,
+          threadTs,
+          status: { in: ["ACTIVE", "JUST_CHATTING"] },
+        },
+        include: { modules: { orderBy: { orderIndex: "asc" } } },
+      });
+      if (byThread) return byThread;
+    }
+
+    return await prisma.meetup.findFirst({
+      where: {
+        channelId,
+        status: { in: ["ACTIVE", "JUST_CHATTING"] },
+      },
+      orderBy: { startedAt: "desc" },
+      include: { modules: { orderBy: { orderIndex: "asc" } } },
+    });
+  }
+
+  /**
+   * Calculates comprehensive time management analytics for a given timeframe.
+   */
+  static async getPacingReportStats(days = 30): Promise<PacingReportStats> {
+    const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const completed = await prisma.meetup.findMany({
+      where: {
+        status: "COMPLETED",
+        createdAt: { gte: cutoffDate },
+      },
+      orderBy: { createdAt: "desc" },
+      include: { modules: true },
+    });
+
+    let completedOnTime = 0;
+    let totalFormalMinutes = 0;
+    let totalChattingMinutes = 0;
+
+    const recentSessions = completed.map((m) => {
+      const started = m.startedAt ? new Date(m.startedAt).getTime() : new Date(m.createdAt).getTime();
+      const formalEnded = m.formalEndsAt ? new Date(m.formalEndsAt).getTime() : (m.endsAt ? new Date(m.endsAt).getTime() : started);
+      const ended = m.endsAt ? new Date(m.endsAt).getTime() : formalEnded;
+
+      const formalDurationMin = Math.max(1, Math.round((formalEnded - started) / (60 * 1000)));
+      const chattingDurationMin = Math.max(0, Math.round((ended - formalEnded) / (60 * 1000)));
+      const isOnTime = formalDurationMin <= m.totalMinutes;
+
+      if (isOnTime) completedOnTime++;
+      totalFormalMinutes += formalDurationMin;
+      totalChattingMinutes += chattingDurationMin;
+
+      return {
+        id: m.id,
+        title: m.title,
+        speakerMentions: this.formatSpeakerMentions(m.speakerUserId),
+        totalBudgetMin: m.totalMinutes,
+        formalDurationMin,
+        chattingDurationMin,
+        isOnTime,
+        date: m.startedAt || m.createdAt,
+      };
+    });
+
+    const totalSessions = completed.length;
+    const complianceRate = totalSessions > 0 ? Math.round((completedOnTime / totalSessions) * 100) : 100;
+    const totalMinutesSpent = totalFormalMinutes + totalChattingMinutes;
+
+    return {
+      totalSessions,
+      completedOnTime,
+      complianceRate,
+      totalFormalMinutes,
+      totalChattingMinutes,
+      totalMinutesSpent,
+      recentSessions: recentSessions.slice(0, 8),
+    };
+  }
+
+  /**
    * Determines the current active module based on elapsed minutes.
    */
   static getCurrentModule(meetup: {
     startedAt: Date | null;
+    formalEndsAt?: Date | null;
     modules: Array<{
       id: string;
       title: string;
@@ -185,9 +334,9 @@ export class MeetupService {
   }) {
     if (!meetup.startedAt) return null;
 
-    const elapsedMinutes = (Date.now() - new Date(meetup.startedAt).getTime()) / (60 * 1000);
+    const referenceEndTime = meetup.formalEndsAt ? new Date(meetup.formalEndsAt).getTime() : Date.now();
+    const elapsedMinutes = (referenceEndTime - new Date(meetup.startedAt).getTime()) / (60 * 1000);
 
-    // Find the module where elapsed is within [startOffsetMin, endOffsetMin)
     const current = meetup.modules.find(
       (m) => elapsedMinutes >= m.startOffsetMin && elapsedMinutes < m.endOffsetMin
     );
@@ -203,7 +352,6 @@ export class MeetupService {
       };
     }
 
-    // If elapsed time exceeded all modules, return last module or overflow state
     const lastModule = meetup.modules[meetup.modules.length - 1];
     return {
       module: lastModule,

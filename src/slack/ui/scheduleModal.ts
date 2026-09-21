@@ -4,6 +4,8 @@ export interface ModalStateData {
   title?: string;
   duration?: number;
   channelId?: string;
+  currentUserId?: string;
+  speakerUserIds?: string[];
   subtopicCount: number;
 }
 
@@ -16,6 +18,25 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     { title: "Core Topic / Demo", pct: "60" },
     { title: "Open Q&A & Wrap-up", pct: "25" },
   ];
+
+  const initialSpeakers = initialState?.speakerUserIds && initialState.speakerUserIds.length > 0
+    ? initialState.speakerUserIds
+    : initialState?.currentUserId
+    ? [initialState.currentUserId]
+    : [];
+
+  const speakerElement: any = {
+    type: "multi_users_select",
+    action_id: "speaker_select",
+    placeholder: {
+      type: "plain_text",
+      text: "Select one or more speakers",
+    },
+  };
+
+  if (initialSpeakers.length > 0) {
+    speakerElement.initial_users = initialSpeakers;
+  }
 
   const blocks: any[] = [
     {
@@ -32,7 +53,16 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       },
       label: {
         type: "plain_text",
-        text: "Meetup Title / Topic",
+        text: "Session Title",
+      },
+    },
+    {
+      type: "input",
+      block_id: "speaker_block",
+      element: speakerElement,
+      label: {
+        type: "plain_text",
+        text: "Session Speaker(s)",
       },
     },
     {
@@ -45,7 +75,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         response_url_enabled: false,
         placeholder: {
           type: "plain_text",
-          text: "Select channel or Huddle room",
+          text: "Select target channel",
         },
       },
       label: {
@@ -87,7 +117,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "*📌 Subtopics & Percentage (%) Allocation*\nDefine modules and allocate percentages. *Total must equal 100%*.",
+        text: "*📌 Agenda Modules & Time Budget (%) Allocation*\nAllocate percentage for each module. *Total must equal 100%*.",
       },
     },
   ];

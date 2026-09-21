@@ -4,6 +4,7 @@ import { registerHomeHandlers } from "./handlers/homeHandlers.js";
 import { registerModalHandlers } from "./handlers/modalHandlers.js";
 import { registerActionHandlers } from "./handlers/actionHandlers.js";
 import { registerCommandHandlers } from "./handlers/commandHandlers.js";
+import { registerHuddleHandlers } from "./handlers/huddleHandlers.js";
 
 export function createSlackApp(): bolt.App {
   const app = new App({
@@ -18,6 +19,7 @@ export function createSlackApp(): bolt.App {
   registerModalHandlers(app);
   registerActionHandlers(app);
   registerCommandHandlers(app);
+  registerHuddleHandlers(app);
 
   return app;
 }
