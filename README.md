@@ -2,82 +2,88 @@
 
 > **Slack-native meeting timekeeper and speaker companion.**
 
-HuddlePace is a Slack bot built with **Node.js**, **TypeScript**, and **Slack Socket Mode**. It keeps technical presentations, design reviews, and onboarding sessions within their agreed time budgets by tracking modular agendas in real time.
+HuddlePace is a Slack bot built with **Node.js**, **TypeScript**, and **Slack Socket Mode**. It keeps technical presentations, design reviews, and syncs within agreed time limits by tracking modular agendas in real time.
 
-Runs with a zero-cost infrastructure footprint: no external paid LLM calls, no cloud API subscriptions, and no inbound public ports.
+Infrastructure footprint:
+- Zero cloud ingress costs: connects over outbound WebSockets (Socket Mode). No public IP, reverse proxy, or TLS cert management.
+- Self-hosted runtime with embedded SQLite and Prisma ORM.
+- Zero external LLM or paid API dependencies.
 
 ---
 
 ## Key Capabilities
 
 1. **Slack App Home Dashboard**:
-   - Central graphical dashboard within the Slack workspace.
-   - Live session cards showing elapsed time, module progress, and quick controls.
-   - Schedule new sessions directly using `[ ➕ Schedule New Meetup ]`.
-   - 30-day team pacing analytics and historical session logs.
+   - Workspace dashboard showing live sessions, active modules, and quick controls.
+   - Schedule sessions using `[ ➕ Schedule New Meetup ]`.
+   - View 30-day team pacing stats and session logs.
 
-2. **Modular Agenda & Percentage Budgeting**:
-   - Organizers divide scheduled time into custom segments (e.g., *Context: 15%*, *Demo: 60%*, *Q&A: 25%*).
-   - Dynamic rows allow adding as many modules as needed.
-   - Validates that allocated percentages total exactly 100%.
+2. **Modular Agendas & Strict Timeboxing**:
+   - Organizers divide meeting duration into percentage-based topics (e.g., *Context: 15%*, *Demo: 60%*, *Q&A: 25%*).
+   - Validated at runtime with Zod schemas to enforce that allocations sum to exactly 100%.
+   - Dynamic module rows support up to 10 agenda items, respecting Slack's 100-block view limit.
 
 3. **In-Call Huddle Chat Threading**:
-   - Posts the live tracking card directly into the active Huddle chat thread (`thread_ts`), keeping the public channel free from clutter.
-   - Updates in-place every 30 seconds with a visual progress bar (`[████████░░░░░░░░] 50%`), the active module, and remaining time.
+   - Posts the live tracking card into the active Huddle chat thread (`thread_ts`), keeping the main channel clean.
+   - Updates every 30 seconds with a visual progress bar (`[████████░░░░░░░░] 50%`), current topic, and remaining time.
 
-4. **Huddle Destination Selector & Disambiguation**:
-   - The scheduling modal scans the chosen channel for active or recent Huddle calls and lists them explicitly.
-   - Options include linking to a detected Huddle, auto-detecting on start, posting to the channel feed, or specifying a custom message thread link.
-   - If set to auto-detect and multiple active Huddles exist when starting, HuddlePace opens a single-step picker modal so the organizer chooses the correct call.
+4. **Huddle Discovery & Disambiguation**:
+   - The scheduling modal detects active or recent Huddle calls in the target channel.
+   - Choose to link a detected call, auto-detect on start, post to channel feed, or supply a custom thread link.
+   - If multiple active Huddles exist at launch, HuddlePace opens a single-step selector modal.
 
 5. **Automated Huddle Lifecycle Detection**:
-   - Listens for Huddle call conclusion events (`room.has_ended: true`).
-   - When all participants leave the Huddle, HuddlePace stops the background timer, marks the session as concluded, and posts the final duration summary into the thread.
+   - Listens to channel message events for call completion markers (`room.has_ended: true`).
+   - Automatically concludes the session when participants leave the Huddle, posting the final duration summary.
 
-6. **Decoupled Moderator & Multi-Speaker Assignment**:
-   - Moderators can schedule sessions on behalf of one or more presenters via a multi-user picker.
-   - Pacing countdowns and module transition alerts are sent simultaneously via private direct messages to each assigned speaker.
+6. **Role-Gated Speaker Controls & Private DMs**:
+   - Buttons to start, transition, or conclude sessions verify user identity against assigned speakers. Unauthorized clicks receive an ephemeral access denied notice.
+   - Transition alerts and time warnings are sent privately to assigned presenters via Slack DMs.
 
-7. **"Just Chatting" Post-Meeting Mode**:
-   - A `[ ☕ Switch to Just Chatting ]` button lets organizers wrap up the formal agenda while keeping the Huddle open.
-   - Freezes formal presentation duration metrics for accurate analytics while tracking informal discussion time.
-   - Updates the tracker card with a casual chat banner so teammates browsing the channel know the meeting transitioned to open discussion.
+7. **Transparent Channel Membership**:
+   - Automatically joins public channels using the `channels:join` scope when a meeting is scheduled or launched.
+   - For private channels, provides a prompt to invite the bot (`/invite @HuddlePace`) if not already a member.
 
-8. **On-Demand Pacing Reports**:
-   - Run `/pace report [days]` (e.g. `/pace report 14`, default 30) to view timebox compliance rates, formal presentation hours, casual chat hours, and recent session records.
-   - View 30-day summary metrics on the Slack Home Tab or click `[ 📊 View Full Report ]` to open the full modal breakdown.
+8. **"Just Chatting" Wrap-Up Mode**:
+   - A `[ ☕ Switch to Just Chatting ]` button lets organizers close the formal agenda while keeping the Huddle open.
+   - Freezes formal presentation metrics for analytics while tracking casual conversation time.
+
+9. **On-Demand Pacing Reports**:
+   - Run `/pace report [days]` (default: 30 days) to review timebox compliance rates, formal presentation time, and recent session records.
+   - Access reports directly from the Slack App Home tab.
 
 ---
 
 ## Tech Stack
 
-- **Runtime**: Node.js (ESM, TypeScript)
+- **Runtime**: Node.js (ESM, TypeScript, pinned via `.node-version`)
 - **Framework**: `@slack/bolt`
-- **Transport**: Slack Socket Mode (WebSocket, zero inbound firewall holes)
-- **Database**: SQLite with Prisma ORM (`prisma/dev.db`)
-- **Cost**: $0 (deterministic calculations, self-hosted, no paid external APIs)
+- **Validation**: `zod` runtime schema validation for environment variables and modal payloads
+- **Transport**: Slack Socket Mode (outbound WebSocket)
+- **Database**: SQLite with Prisma ORM (`prisma/dev.db`, WAL journal mode enabled)
+- **Testing**: Built-in test runner via `tsx --test`
 
 ---
 
 ## Setup Guide
 
-### 1. Create the Slack App via Manifest
+### 1. Create Slack App via Manifest
 
-1. Navigate to the [Slack App Management Portal](https://api.slack.com/apps).
+1. Navigate to [api.slack.com/apps](https://api.slack.com/apps).
 2. Click **Create New App** > **From an app manifest**.
-3. Select your target workspace.
-4. Paste the contents of [`manifest.json`](./manifest.json) into the JSON editor and confirm.
+3. Select your workspace.
+4. Paste the contents of [`manifest.json`](./manifest.json) and confirm.
 
 ### 2. Generate Credentials
 
 #### App-Level Token (Socket Mode)
-1. Under **Basic Information**, scroll to **App-Level Tokens**.
+1. In **Basic Information**, scroll to **App-Level Tokens**.
 2. Click **Generate Token and Scopes**.
-3. Name it `socket-token` and add the `connections:write` scope.
+3. Name it `socket-token`, select the `connections:write` scope, and generate.
 4. Copy the token (`xapp-...`).
 
 #### Bot User Token & Installation
-1. Go to **Install App** in the left sidebar and click **Install to Workspace**.
+1. Go to **Install App** in the sidebar and click **Install to Workspace**.
 2. Copy the **Bot User OAuth Token** (`xoxb-...`).
 
 ### 3. Environment Configuration
@@ -87,21 +93,32 @@ Copy `.env.example` to `.env`:
 cp .env.example .env
 ```
 
-Set your tokens in `.env`:
+Populate tokens in `.env`:
 ```env
 SLACK_BOT_TOKEN="xoxb-your-token-here"
 SLACK_APP_TOKEN="xapp-your-token-here"
 DATABASE_URL="file:./dev.db"
 ```
 
-### 4. Database Setup & Start
-
-1. Generate Prisma client and sync database schema:
+Lock file permissions on disk:
 ```bash
+chmod 600 .env
+```
+
+### 4. Database Setup & Testing
+
+1. Install dependencies and generate the database schema:
+```bash
+pnpm install
 pnpm db:push
 ```
 
-2. Build and start the service:
+2. Run the automated test suite:
+```bash
+pnpm test
+```
+
+3. Build and run:
 ```bash
 pnpm build
 pnpm start
@@ -138,38 +155,53 @@ Expected startup log:
 
 ```text
 huddle-pace/
-├── manifest.json                  # Slack App manifest definition
-├── package.json                   # Node.js dependencies and scripts
-├── tsconfig.json                  # TypeScript configuration
+├── .github/
+│   └── workflows/
+│       └── ci.yml                 # CI pipeline: build, typecheck, and test suite
+├── .gitignore                     # Environment, SQLite, and build exclusions
+├── .node-version                  # Pinned Node.js runtime
+├── manifest.json                  # Slack App manifest with least-privilege scopes
+├── package.json                   # Dependencies, build, dev, and test scripts
+├── tsconfig.json                  # TypeScript compiler options
 ├── prisma/
-│   ├── schema.prisma              # Database schema (Meetup, Modules)
-│   └── dev.db                     # SQLite database file
+│   ├── schema.prisma              # Relational models with performance indexes
+│   └── dev.db                     # Embedded SQLite database
 ├── src/
-│   ├── index.ts                   # Application entry point and graceful shutdown
+│   ├── index.ts                   # Entry point, runtime env validation, shutdown hooks
+│   ├── config/
+│   │   └── env.ts                 # Runtime environment validation with Zod
 │   ├── db/
-│   │   └── client.ts              # Prisma client singleton with WAL mode
+│   │   └── client.ts              # Prisma singleton with SQLite WAL mode
 │   ├── services/
-│   │   └── meetupService.ts       # Business logic, time calculations, and report queries
+│   │   └── meetupService.ts       # Domain logic, minute allocations, report queries
 │   ├── scheduler/
-│   │   └── timerWorker.ts         # 30-second heartbeat worker and pacing notifications
+│   │   └── timerWorker.ts         # 30-second heartbeat loop and pacing notifications
 │   ├── utils/
-│   │   └── progressBar.ts         # Text-based progress bar generator
+│   │   └── progressBar.ts         # ASCII/Unicode progress bar renderer
 │   └── slack/
-│       ├── app.ts                 # Slack Bolt app initialization
+│       ├── app.ts                 # Slack Bolt app initialization (Socket Mode)
+│       ├── schemas/
+│       │   └── scheduleSchema.ts  # Zod schema for modal inputs and 100% timebox
 │       ├── utils/
-│       │   └── huddleDiscovery.ts # Channel history scanner for active and recent Huddles
+│       │   ├── channelUtils.ts    # Transparent auto-join and private channel handling
+│       │   └── huddleDiscovery.ts # Channel history scanner for active Huddles
 │       ├── ui/
 │       │   ├── homeTab.ts         # App Home tab builder
-│       │   ├── scheduleModal.ts   # Interactive schedule modal with Huddle selector
+│       │   ├── scheduleModal.ts   # Interactive modal with 10-module cap
 │       │   ├── huddleSelectModal.ts # Launch-time Huddle disambiguation modal
-│       │   ├── trackerBlock.ts    # In-call live progress block and chatting banner
+│       │   ├── trackerBlock.ts    # Live progress bar block and chatting banner
 │       │   └── reportBlock.ts     # Pacing analytics report builder
 │       └── handlers/
 │           ├── homeHandlers.ts    # Home Tab events and report modal triggers
-│           ├── modalHandlers.ts   # Modal submissions and dynamic channel refresh
-│           ├── actionHandlers.ts  # Start, switch to chatting, and conclude buttons
+│           ├── modalHandlers.ts   # Modal submissions with Zod validation
+│           ├── actionHandlers.ts  # Role-gated controls (start, chatting, conclude)
 │           ├── commandHandlers.ts # Slash commands (/pace, status, report, help)
-│           └── huddleHandlers.ts  # Native Huddle lifecycle detection (auto-conclusion)
+│           └── huddleHandlers.ts  # Native Huddle lifecycle detection
+├── tests/
+│   ├── accessControl.test.ts      # Speaker authorization and modal boundary tests
+│   ├── meetupService.test.ts      # Time allocation math and discrepancy tests
+│   ├── progressBar.test.ts        # Progress bar and time formatting tests
+│   └── validation.test.ts         # Zod environment and modal schema tests
 └── README.md
 ```
 
@@ -198,7 +230,7 @@ Environment=NODE_ENV=production
 WantedBy=multi-user.target
 ```
 
-Commands:
+Service management:
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable huddlepace.service
