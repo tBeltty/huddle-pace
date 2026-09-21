@@ -1,0 +1,40 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Meetup {
+  id               String         @id @default(uuid())
+  title            String
+  channelId        String
+  threadTs         String?
+  trackerMessageTs String?
+  speakerUserId    String
+  totalMinutes     Int
+  startedAt        DateTime?
+  scheduledFor     DateTime?
+  endsAt           DateTime?
+  status           String         @default("SCHEDULED") // SCHEDULED, ACTIVE, PAUSED, COMPLETED, CANCELLED
+  modules          MeetupModule[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model MeetupModule {
+  id              String   @id @default(uuid())
+  meetupId        String
+  meetup          Meetup   @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+  title           String
+  orderIndex      Int
+  percentage      Int      // e.g. 25 for 25%
+  durationMinutes Int      // calculated minutes
+  startOffsetMin  Int      // minute offset from startedAt
+  endOffsetMin    Int      // minute offset from startedAt
+  isNotified      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
