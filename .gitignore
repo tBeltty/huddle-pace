@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+
+# Environment
+.env
+.env.local
+
+# SQLite Database
+dev.db
+dev.db-journal
+dev.db-wal
+dev.db-shm
+*.db
+*.db-journal
+
+# Logs & Debug
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
