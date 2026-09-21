@@ -18,7 +18,7 @@ export function registerModalHandlers(app: App) {
         view: buildScheduleModal({ subtopicCount: newCount }),
       });
     } catch (error) {
-      logger.error("Error dynamically appending subtopic row:", error);
+      console.error("Error dynamically appending subtopic row:", error);
     }
   });
 
@@ -120,7 +120,7 @@ export function registerModalHandlers(app: App) {
         ],
       });
     } catch (error) {
-      logger.error("Error creating meetup from modal submission:", error);
+      console.error("Error creating meetup from modal submission:", error);
     }
   });
 }

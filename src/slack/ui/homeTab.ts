@@ -33,7 +33,7 @@ export function buildHomeTabView(
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "Welcome to *HuddlePace*. Prevent meeting drift, keep technical talks on track, and ensure attendees leave with clear time boundaries.",
+        text: "Schedule timed talks, track modular agendas in real time, and end on schedule.",
       },
     },
     {
@@ -59,7 +59,7 @@ export function buildHomeTabView(
     type: "header",
     text: {
       type: "plain_text",
-      text: "🔴 Active Meetups & Huddles",
+      text: "🟢 Active Sessions",
       emoji: true,
     },
   });
@@ -77,14 +77,16 @@ export function buildHomeTabView(
       const elapsedMinutes = meetup.startedAt
         ? Math.floor((Date.now() - new Date(meetup.startedAt).getTime()) / (60 * 1000))
         : 0;
+      const isOvertime = elapsedMinutes >= meetup.totalMinutes;
       const percent = Math.min(100, Math.round((elapsedMinutes / meetup.totalMinutes) * 100));
+      const statusBadge = isOvertime ? "🔴 *Overtime*" : "🟢 *In Progress*";
 
       blocks.push(
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*${meetup.title}*\nChannel: <#${meetup.channelId}> | Speaker: <@${meetup.speakerUserId}>\nElapsed: *${elapsedMinutes} / ${meetup.totalMinutes} min*\n${renderProgressBar(percent)}`,
+            text: `*${meetup.title}*  •  ${statusBadge}\nChannel: <#${meetup.channelId}> | Speaker: <@${meetup.speakerUserId}>\nElapsed: *${elapsedMinutes} / ${meetup.totalMinutes} min*\n${renderProgressBar(percent, 16)}`,
           },
           accessory: {
             type: "button",
