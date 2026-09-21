@@ -9,7 +9,7 @@ on:
 jobs:
   build-and-typecheck:
     name: Build & Typecheck
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, huddle-pace]
 
     steps:
       - name: Checkout repository
