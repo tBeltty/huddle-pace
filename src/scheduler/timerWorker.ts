@@ -14,11 +14,11 @@ export class TimerWorker {
 
     this.timer = setInterval(() => {
       this.tick().catch((err) => {
-        this.app.logger.error("Error during timer worker tick:", err);
+        console.error("Error during timer worker tick:", err);
       });
     }, intervalMs);
 
-    this.app.logger.info(`⏱️ Timer worker started (interval: ${intervalMs / 1000}s).`);
+    console.info(`⏱️ Timer worker started (interval: ${intervalMs / 1000}s).`);
   }
 
   public stop() {
@@ -65,7 +65,7 @@ export class TimerWorker {
             }),
           });
         } catch (err) {
-          this.app.logger.warn(`Failed to update tracker message for meetup ${meetup.id}:`, err);
+          console.warn(`Failed to update tracker message for meetup ${meetup.id}:`, err);
         }
 
         // 2. Private Speaker Pacing Checkpoint (when entering a new module)
@@ -81,7 +81,7 @@ export class TimerWorker {
               data: { isNotified: true },
             });
           } catch (err) {
-            this.app.logger.warn(`Failed to send pacing DM to speaker ${meetup.speakerUserId}:`, err);
+            console.warn(`Failed to send pacing DM to speaker ${meetup.speakerUserId}:`, err);
           }
         }
 
@@ -95,7 +95,7 @@ export class TimerWorker {
               text: `🏁 *Scheduled Timebox Reached (${meetup.totalMinutes} min)*: Official session time is up! Anyone with subsequent commitments is free to step away. Feel free to stay on for open chatter.`,
             });
           } catch (err) {
-            this.app.logger.warn(`Failed to post exit ramp for meetup ${meetup.id}:`, err);
+            console.warn(`Failed to post exit ramp for meetup ${meetup.id}:`, err);
           }
         }
       }
