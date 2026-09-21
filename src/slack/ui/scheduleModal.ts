@@ -111,7 +111,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         },
         label: {
           type: "plain_text",
-          text: `Module ${i + 1}: Name`,
+          text: `Module ${i + 1} Topic`,
         },
       },
       {
@@ -128,7 +128,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         },
         label: {
           type: "plain_text",
-          text: `Module ${i + 1}: Allocation (%)`,
+          text: `Module ${i + 1} Time Budget (%)`,
         },
       }
     );
