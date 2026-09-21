@@ -2,6 +2,7 @@ import { App } from "@slack/bolt";
 import { buildScheduleModal } from "../ui/scheduleModal.js";
 import { buildPacingReportBlocks } from "../ui/reportBlock.js";
 import { MeetupService } from "../../services/meetupService.js";
+import { findChannelHuddles } from "../utils/huddleDiscovery.js";
 
 export function registerCommandHandlers(app: App) {
   // Slash command: /pace
@@ -65,10 +66,16 @@ export function registerCommandHandlers(app: App) {
         return;
       }
 
-      // Default: open schedule modal
+      // Default: open schedule modal with detected Huddles in current channel
+      const huddles = await findChannelHuddles(client, command.channel_id);
       await client.views.open({
         trigger_id: command.trigger_id,
-        view: buildScheduleModal({ channelId: command.channel_id, subtopicCount: 3 }),
+        view: buildScheduleModal({
+          channelId: command.channel_id,
+          currentUserId: command.user_id,
+          subtopicCount: 3,
+          availableHuddles: huddles,
+        }),
       });
     } catch (error) {
       logger.error("Error executing /pace command:", error);

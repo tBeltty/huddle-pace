@@ -10,6 +10,7 @@ export interface CreateMeetupDTO {
   totalMinutes: number;
   channelId: string;
   speakerUserId: string; // Can be a single ID or comma-separated IDs
+  threadTs?: string | null;
   scheduledFor?: Date;
   modules: SubtopicInput[];
 }
@@ -108,6 +109,7 @@ export class MeetupService {
         title: data.title.trim(),
         totalMinutes: data.totalMinutes,
         channelId: data.channelId,
+        threadTs: data.threadTs || null,
         speakerUserId: data.speakerUserId,
         scheduledFor: data.scheduledFor || new Date(),
         status: "SCHEDULED",

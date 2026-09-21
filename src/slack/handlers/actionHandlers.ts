@@ -2,34 +2,64 @@ import { App } from "@slack/bolt";
 import { MeetupService } from "../../services/meetupService.js";
 import { buildLiveTrackerBlocks } from "../ui/trackerBlock.js";
 import { formatMinutes } from "../../utils/progressBar.js";
+import { findChannelHuddles } from "../utils/huddleDiscovery.js";
+import { buildHuddleSelectionModal } from "../ui/huddleSelectModal.js";
 
 /**
- * Searches the target channel's recent message history for an active Huddle call.
+ * Starts a meetup and attaches its live tracker to the designated Huddle thread (or channel feed).
  */
-async function findActiveHuddleThread(client: any, channelId: string): Promise<string | null> {
-  try {
-    const res = await client.conversations.history({
-      channel: channelId,
-      limit: 15,
-    });
-
-    if (!res.messages) return null;
-
-    for (const msg of res.messages) {
-      const isHuddle = msg.subtype === "huddle_thread" || msg.room != null;
-      const hasEnded = msg.room?.has_ended === true || (msg.text && msg.text.toLowerCase().includes("huddle ended"));
-      if (isHuddle && !hasEnded) {
-        return msg.ts;
-      }
-    }
-  } catch (err) {
-    console.warn(`Could not inspect conversations.history for channel ${channelId}:`, err);
+export async function launchMeetupInThread(client: any, meetupId: string, threadTs?: string) {
+  const meetup = await MeetupService.getMeetupById(meetupId);
+  if (!meetup) {
+    console.error(`Meetup ${meetupId} not found.`);
+    return;
   }
-  return null;
+
+  if (meetup.status === "ACTIVE" || meetup.status === "JUST_CHATTING") {
+    return; // Already in progress
+  }
+
+  const initialModule = meetup.modules[0];
+  const nextModule = meetup.modules[1] || null;
+
+  // 1. Post live tracker message (in Huddle thread or main feed)
+  const trackerMsg = await client.chat.postMessage({
+    channel: meetup.channelId,
+    thread_ts: threadTs || undefined,
+    text: `⏱️ *Live Tracker Started: ${meetup.title}*`,
+    blocks: buildLiveTrackerBlocks({
+      meetupId: meetup.id,
+      title: meetup.title,
+      totalMinutes: meetup.totalMinutes,
+      speakerUserId: meetup.speakerUserId,
+      elapsedMinutes: 0,
+      currentModuleName: initialModule?.title || "Introduction",
+      moduleRemainingMinutes: initialModule?.durationMinutes || meetup.totalMinutes,
+      nextModuleName: nextModule?.title || null,
+    }),
+  });
+
+  // 2. Update DB record with startedAt, tracker message TS, and Huddle thread TS
+  await MeetupService.startMeetup(
+    meetup.id,
+    trackerMsg.ts as string,
+    threadTs || (trackerMsg.ts as string)
+  );
+
+  // 3. Send private introductory pacing DM to all assigned speakers
+  const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
+  for (const spkId of speakerIds) {
+    await client.chat.postMessage({
+      channel: spkId,
+      text: `🚀 *Meetup Started: ${meetup.title}*\nYour live tracker is running in <#${meetup.channelId}>${threadTs ? " inside the selected Huddle chat" : ""}.\nYou will receive private pacing alerts here as you transition between modules.`,
+    }).catch((err: any) => {
+      console.warn(`Failed to send start DM to speaker ${spkId}:`, err);
+    });
+  }
 }
 
 export function registerActionHandlers(app: App) {
-  // Action: Start a scheduled meetup (posts inside the Huddle chat thread)
+  // Action: Start a scheduled meetup
   app.action("start_scheduled_meetup_action", async ({ ack, body, client }) => {
     await ack();
     try {
@@ -46,47 +76,32 @@ export function registerActionHandlers(app: App) {
         return; // Already in progress
       }
 
-      // 1. Locate active Huddle in target channel to inject tracker directly into Huddle chat
-      const huddleThreadTs = await findActiveHuddleThread(client, meetup.channelId);
-
-      const initialModule = meetup.modules[0];
-      const nextModule = meetup.modules[1] || null;
-
-      // 2. Post live tracker message
-      // If an active Huddle is present, inject into its chat thread
-      const trackerMsg = await client.chat.postMessage({
-        channel: meetup.channelId,
-        thread_ts: huddleThreadTs || undefined,
-        text: `⏱️ *Live Tracker Started: ${meetup.title}*`,
-        blocks: buildLiveTrackerBlocks({
-          meetupId: meetup.id,
-          title: meetup.title,
-          totalMinutes: meetup.totalMinutes,
-          speakerUserId: meetup.speakerUserId,
-          elapsedMinutes: 0,
-          currentModuleName: initialModule?.title || "Introduction",
-          moduleRemainingMinutes: initialModule?.durationMinutes || meetup.totalMinutes,
-          nextModuleName: nextModule?.title || null,
-        }),
-      });
-
-      // 3. Update DB record with startedAt, tracker message TS, and Huddle thread TS
-      await MeetupService.startMeetup(
-        meetup.id,
-        trackerMsg.ts as string,
-        huddleThreadTs || (trackerMsg.ts as string)
-      );
-
-      // 4. Send private introductory pacing DM to all assigned speakers
-      const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
-      for (const spkId of speakerIds) {
-        await client.chat.postMessage({
-          channel: spkId,
-          text: `🚀 *Meetup Started: ${meetup.title}*\nYour live tracker is running in <#${meetup.channelId}>${huddleThreadTs ? " inside the active Huddle chat" : ""}.\nYou will receive private pacing alerts here as you transition between modules.`,
-        }).catch((err: any) => {
-          console.warn(`Failed to send start DM to speaker ${spkId}:`, err);
-        });
+      // Check if threadTs was explicitly pre-selected during schedule creation
+      if (meetup.threadTs && meetup.threadTs !== "auto" && meetup.threadTs !== "main") {
+        await launchMeetupInThread(client, meetupId, meetup.threadTs);
+        return;
       }
+
+      if (meetup.threadTs === "main") {
+        await launchMeetupInThread(client, meetupId, undefined);
+        return;
+      }
+
+      // Mode is "auto" or unset: scan channel for active Huddles
+      const huddles = await findChannelHuddles(client, meetup.channelId);
+      const active = huddles.filter((h) => h.isActive);
+
+      // Disambiguate if multiple active Huddles exist
+      if (active.length > 1 && b.trigger_id) {
+        await client.views.open({
+          trigger_id: b.trigger_id,
+          view: buildHuddleSelectionModal(meetup.id, meetup.title, meetup.channelId, active),
+        });
+        return;
+      }
+
+      const targetThreadTs = active.length === 1 ? active[0].ts : undefined;
+      await launchMeetupInThread(client, meetupId, targetThreadTs);
     } catch (error) {
       console.error("Error starting meetup from action button:", error);
     }
@@ -102,7 +117,7 @@ export function registerActionHandlers(app: App) {
 
       if (!meetup || !meetup.startedAt) return;
 
-      const updated = await MeetupService.switchToJustChatting(meetupId);
+      await MeetupService.switchToJustChatting(meetupId);
 
       const elapsedMinutes = Math.floor((Date.now() - new Date(meetup.startedAt).getTime()) / (60 * 1000));
 
