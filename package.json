@@ -2,6 +2,7 @@
   "name": "huddle-pace",
   "version": "1.0.0",
   "description": "Slack-native meeting time tracker and speaker copilot",
+  "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
