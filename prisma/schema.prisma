@@ -23,6 +23,9 @@ model Meetup {
   modules          MeetupModule[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
+
+  @@index([status])
+  @@index([channelId, threadTs])
 }
 
 model MeetupModule {
@@ -38,4 +41,6 @@ model MeetupModule {
   isNotified      Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([meetupId])
 }

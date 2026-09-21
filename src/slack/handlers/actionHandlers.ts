@@ -4,6 +4,16 @@ import { buildLiveTrackerBlocks } from "../ui/trackerBlock.js";
 import { formatMinutes } from "../../utils/progressBar.js";
 import { findChannelHuddles } from "../utils/huddleDiscovery.js";
 import { buildHuddleSelectionModal } from "../ui/huddleSelectModal.js";
+import { ensureBotInChannel } from "../utils/channelUtils.js";
+
+/**
+ * Validates whether the user triggering an action is an authorized speaker/organizer.
+ */
+export function isUserAuthorizedForMeetup(speakerUserId: string, userId?: string): boolean {
+  if (!userId) return false;
+  const speakerIds = MeetupService.parseSpeakerIds(speakerUserId);
+  return speakerIds.includes(userId);
+}
 
 /**
  * Starts a meetup and attaches its live tracker to the designated Huddle thread (or channel feed).
@@ -22,7 +32,10 @@ export async function launchMeetupInThread(client: any, meetupId: string, thread
   const initialModule = meetup.modules[0];
   const nextModule = meetup.modules[1] || null;
 
-  // 1. Post live tracker message (in Huddle thread or main feed)
+  // 1. Ensure bot is present in channel (auto-joins public channels)
+  await ensureBotInChannel(client, meetup.channelId);
+
+  // 2. Post live tracker message (in Huddle thread or main feed)
   const trackerMsg = await client.chat.postMessage({
     channel: meetup.channelId,
     thread_ts: threadTs || undefined,
@@ -72,6 +85,17 @@ export function registerActionHandlers(app: App) {
         return;
       }
 
+      if (!isUserAuthorizedForMeetup(meetup.speakerUserId, b.user?.id)) {
+        try {
+          await client.chat.postEphemeral({
+            channel: b.channel?.id || meetup.channelId,
+            user: b.user?.id,
+            text: "⚠️ *Access Denied:* Only the designated speaker(s) or organizer can start this meetup.",
+          });
+        } catch {}
+        return;
+      }
+
       if (meetup.status === "ACTIVE" || meetup.status === "JUST_CHATTING") {
         return; // Already in progress
       }
@@ -116,6 +140,17 @@ export function registerActionHandlers(app: App) {
       const meetup = await MeetupService.getMeetupById(meetupId);
 
       if (!meetup || !meetup.startedAt) return;
+
+      if (!isUserAuthorizedForMeetup(meetup.speakerUserId, b.user?.id)) {
+        try {
+          await client.chat.postEphemeral({
+            channel: b.channel?.id || meetup.channelId,
+            user: b.user?.id,
+            text: "⚠️ *Access Denied:* Only the designated speaker(s) can switch this session to casual chatting.",
+          });
+        } catch {}
+        return;
+      }
 
       await MeetupService.switchToJustChatting(meetupId);
 
@@ -164,6 +199,17 @@ export function registerActionHandlers(app: App) {
       const meetup = await MeetupService.getMeetupById(meetupId);
 
       if (!meetup) return;
+
+      if (!isUserAuthorizedForMeetup(meetup.speakerUserId, b.user?.id)) {
+        try {
+          await client.chat.postEphemeral({
+            channel: b.channel?.id || meetup.channelId,
+            user: b.user?.id,
+            text: "⚠️ *Access Denied:* Only the designated speaker(s) can conclude this session.",
+          });
+        } catch {}
+        return;
+      }
 
       await MeetupService.concludeMeetup(meetupId);
 

@@ -1,6 +1,8 @@
 import { ModalView } from "@slack/bolt";
 import { DetectedHuddle } from "../utils/huddleDiscovery.js";
 
+export const MAX_SUBTOPICS = 10;
+
 export interface ModalSubtopicState {
   title: string;
   pct: string;
@@ -266,9 +268,9 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     );
   }
 
-  // Add More Subtopics Button
-  blocks.push(
-    {
+  // Add More Subtopics Button (capped at MAX_SUBTOPICS to prevent Slack 100-block limit errors)
+  if (count < MAX_SUBTOPICS) {
+    blocks.push({
       type: "actions",
       block_id: "add_row_actions",
       elements: [
@@ -283,17 +285,28 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
           value: JSON.stringify({ subtopicCount: count + 1 }),
         },
       ],
-    },
-    {
+    });
+  } else {
+    blocks.push({
       type: "context",
       elements: [
         {
           type: "mrkdwn",
-          text: "💡 _Example: 15% intro + 60% talk + 25% Q&A = 100%._",
+          text: "ℹ️ _Maximum of 10 agenda modules reached._",
         },
       ],
-    }
-  );
+    });
+  }
+
+  blocks.push({
+    type: "context",
+    elements: [
+      {
+        type: "mrkdwn",
+        text: "💡 _Example: 15% intro + 60% talk + 25% Q&A = 100%._",
+      },
+    ],
+  });
 
   return {
     type: "modal",

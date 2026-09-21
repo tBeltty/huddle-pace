@@ -1,9 +1,10 @@
 import { App } from "@slack/bolt";
 import { MeetupService, SubtopicInput } from "../../services/meetupService.js";
-import { buildScheduleModal } from "../ui/scheduleModal.js";
+import { buildScheduleModal, MAX_SUBTOPICS } from "../ui/scheduleModal.js";
 import { findChannelHuddles, DetectedHuddle } from "../utils/huddleDiscovery.js";
 import { launchMeetupInThread } from "./actionHandlers.js";
 import { scheduleModalInputSchema } from "../schemas/scheduleSchema.js";
+import { ensureBotInChannel } from "../utils/channelUtils.js";
 
 export function registerModalHandlers(app: App) {
   // Action: Dynamically refresh Huddle list when user selects a target channel in the modal
@@ -57,7 +58,10 @@ export function registerModalHandlers(app: App) {
       const b = body as any;
       const metadata = JSON.parse(b.view.private_metadata || "{}");
       const currentCount = metadata.subtopicCount || 3;
-      const newCount = currentCount + 1;
+      if (currentCount >= MAX_SUBTOPICS) {
+        return;
+      }
+      const newCount = Math.min(MAX_SUBTOPICS, currentCount + 1);
 
       const values = b.view.state.values;
       const channelId = values.channel_block?.channel_select?.selected_conversation || metadata.channelId;
@@ -185,6 +189,9 @@ export function registerModalHandlers(app: App) {
     await ack();
 
     const validatedData = validationResult.data;
+
+    // Seamlessly ensure bot is present in target channel (auto-joins public channels)
+    await ensureBotInChannel(client, validatedData.channelId, body.user.id);
 
     try {
       await MeetupService.createMeetup({
