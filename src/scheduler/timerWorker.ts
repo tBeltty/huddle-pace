@@ -6,6 +6,7 @@ import { prisma } from "../db/client.js";
 export class TimerWorker {
   private timer: NodeJS.Timeout | null = null;
   private isRunning = false;
+  private exitRampsSent = new Set<string>();
 
   constructor(private app: App) {}
 
@@ -64,8 +65,17 @@ export class TimerWorker {
               isOvertime,
             }),
           });
-        } catch (err) {
-          console.warn(`Failed to update tracker message for meetup ${meetup.id}:`, err);
+        } catch (err: any) {
+          const slackError = err?.data?.error;
+          console.warn(`Failed to update tracker message for meetup ${meetup.id}:`, slackError || err.message);
+
+          // If the message or channel was deleted in Slack, conclude meetup to release timer resources
+          if (slackError === "message_not_found" || slackError === "channel_not_found") {
+            console.warn(`Tracker message missing for meetup ${meetup.id}. Concluding session.`);
+            await MeetupService.concludeMeetup(meetup.id);
+            this.exitRampsSent.delete(meetup.id);
+            continue;
+          }
         }
 
         // 2. Private Speaker Pacing Checkpoint (when entering a new module)
@@ -73,7 +83,7 @@ export class TimerWorker {
           try {
             await this.app.client.chat.postMessage({
               channel: meetup.speakerUserId,
-              text: `🔔 *Pacing Alert:* Moving to module *'${status.module.title}'* (${status.module.durationMinutes} min allocated).`,
+              text: `⏱️ *Next Module:* "${status.module.title}" (${status.module.durationMinutes} min allocated).`,
             });
 
             await prisma.meetupModule.update({
@@ -85,14 +95,14 @@ export class TimerWorker {
           }
         }
 
-        // 3. Social Grace & Exit Ramp (at 100% completion)
-        if (isOvertime && meetup.status === "ACTIVE") {
-          // Send polite release message once
+        // 3. Social Grace & Exit Ramp (delivered once at 100% completion)
+        if (isOvertime && meetup.status === "ACTIVE" && !this.exitRampsSent.has(meetup.id)) {
+          this.exitRampsSent.add(meetup.id);
           try {
             await this.app.client.chat.postMessage({
               channel: meetup.channelId,
               thread_ts: meetup.threadTs || meetup.trackerMessageTs,
-              text: `🏁 *Scheduled Timebox Reached (${meetup.totalMinutes} min)*: Official session time is up! Anyone with subsequent commitments is free to step away. Feel free to stay on for open chatter.`,
+              text: `🏁 *Timebox reached (${meetup.totalMinutes} min).* Official agenda is complete. Attendees with next commitments can drop off; feel free to stay for open chat.`,
             });
           } catch (err) {
             console.warn(`Failed to post exit ramp for meetup ${meetup.id}:`, err);

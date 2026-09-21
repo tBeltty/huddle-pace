@@ -14,13 +14,12 @@ interface TrackerData {
 
 export function buildLiveTrackerBlocks(data: TrackerData): any[] {
   const percent = Math.min(100, Math.round((data.elapsedMinutes / data.totalMinutes) * 100));
-  const progressVisual = renderProgressBar(percent, 18);
+  const progressVisual = renderProgressBar(percent, 16);
 
-  const statusPrefix = data.isOvertime ? "⚠️ *OVERTIME WARNING:*" : "🎙️ *Live Meetup Tracker:*";
-
-  const nextSectionText = data.nextModuleName
-    ? `\n⏭️ *Next Up:* ${data.nextModuleName}`
-    : "\n🏁 *Final Segment / Conclusion*";
+  const statusBadge = data.isOvertime ? "🔴 *Session Overtime*" : "🟢 *Pacing On Track*";
+  const nextModuleDisplay = data.nextModuleName
+    ? `*${data.nextModuleName}*`
+    : "_Final Segment / Conclusion_";
 
   return [
     {
@@ -33,10 +32,36 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
     },
     {
       type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `👤 *Speaker*\n<@${data.speakerUserId}>`,
+        },
+        {
+          type: "mrkdwn",
+          text: `⏳ *Total Budget*\n${formatMinutes(data.totalMinutes)}`,
+        },
+      ],
+    },
+    {
+      type: "section",
       text: {
         type: "mrkdwn",
-        text: `${statusPrefix} *${data.title}*\n👤 *Speaker:* <@${data.speakerUserId}> | Total Budget: *${formatMinutes(data.totalMinutes)}*\n\n⏱️ *Elapsed Time:* ${data.elapsedMinutes}m / ${data.totalMinutes}m\n${progressVisual}\n\n📍 *Current Module:* *${data.currentModuleName}* (${data.moduleRemainingMinutes}m remaining)${nextSectionText}`,
+        text: `${statusBadge} • *${data.elapsedMinutes} / ${data.totalMinutes} min* (${percent}%)\n${progressVisual}`,
       },
+    },
+    {
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `📍 *Current Module*\n*${data.currentModuleName}* (${data.moduleRemainingMinutes}m remaining)`,
+        },
+        {
+          type: "mrkdwn",
+          text: `⏭️ *Next Up*\n${nextModuleDisplay}`,
+        },
+      ],
     },
     {
       type: "actions",
@@ -58,7 +83,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
             },
             text: {
               type: "mrkdwn",
-              text: "Are you sure you want to stop tracking and mark this meetup as completed?",
+              text: "Stop live tracking and mark this session as completed?",
             },
             confirm: {
               type: "plain_text",
@@ -77,7 +102,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
       elements: [
         {
           type: "mrkdwn",
-          text: "🔄 _Updates automatically in-place every 30s. Speaker receives private pacing DMs._",
+          text: "🔄 _In-place updates every 30s. Speaker receives private pacing notifications._",
         },
       ],
     },
