@@ -6,7 +6,7 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 export const prisma = globalForPrisma.prisma || new PrismaClient();
 
 // Ensure SQLite uses Write-Ahead Logging (WAL) for non-blocking concurrent reads and writes
-prisma.$executeRawUnsafe("PRAGMA journal_mode = WAL;").catch((err) => {
+prisma.$queryRawUnsafe("PRAGMA journal_mode = WAL;").catch((err) => {
   console.warn("Failed to set SQLite WAL mode:", err);
 });
 
