@@ -187,9 +187,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=jhonatan
-WorkingDirectory=/home/jhonatan/huddle-pace
-ExecStart=/usr/bin/node /home/jhonatan/huddle-pace/dist/index.js
+User=<DEPLOY_USER>
+WorkingDirectory=/opt/huddle-pace
+ExecStart=/usr/bin/node /opt/huddle-pace/dist/index.js
 Restart=always
 RestartSec=5
 Environment=NODE_ENV=production

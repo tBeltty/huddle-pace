@@ -1,9 +1,13 @@
 import "dotenv/config";
+import { getEnv } from "./config/env.js";
 import { createSlackApp } from "./slack/app.js";
 import { TimerWorker } from "./scheduler/timerWorker.js";
 import { prisma } from "./db/client.js";
 
 async function main() {
+  // Validate runtime environment variables early
+  getEnv();
+
   const app = createSlackApp();
   const worker = new TimerWorker(app);
 

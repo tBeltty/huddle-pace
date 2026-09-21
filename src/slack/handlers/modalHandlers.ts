@@ -3,6 +3,7 @@ import { MeetupService, SubtopicInput } from "../../services/meetupService.js";
 import { buildScheduleModal } from "../ui/scheduleModal.js";
 import { findChannelHuddles, DetectedHuddle } from "../utils/huddleDiscovery.js";
 import { launchMeetupInThread } from "./actionHandlers.js";
+import { scheduleModalInputSchema } from "../schemas/scheduleSchema.js";
 
 export function registerModalHandlers(app: App) {
   // Action: Dynamically refresh Huddle list when user selects a target channel in the modal
@@ -132,31 +133,47 @@ export function registerModalHandlers(app: App) {
       threadTs = "auto";
     }
 
-    const modules: SubtopicInput[] = [];
-    let totalPercentage = 0;
-    const errors: Record<string, string> = {};
-
+    const rawModules = [];
     for (let i = 0; i < count; i++) {
       const subTitle = values[`subtopic_title_${i}`]?.[`subtopic_title_input_${i}`]?.value || "";
-      const rawPct = values[`subtopic_pct_${i}`]?.[`subtopic_pct_input_${i}`]?.value || "0";
-      const pct = parseInt(rawPct, 10);
-
-      if (!subTitle.trim()) {
-        errors[`subtopic_title_${i}`] = "Please provide a name for this subtopic.";
-      }
-      if (isNaN(pct) || pct <= 0) {
-        errors[`subtopic_pct_${i}`] = "Percentage must be a positive number.";
-      }
-
-      modules.push({ title: subTitle, percentage: pct });
-      totalPercentage += pct;
+      const rawPct = values[`subtopic_pct_${i}`]?.[`subtopic_pct_input_${i}`]?.value;
+      const parsedPct = Number(rawPct);
+      rawModules.push({
+        title: subTitle,
+        percentage: isNaN(parsedPct) ? -1 : parsedPct,
+      });
     }
 
-    if (totalPercentage !== 100) {
-      errors[`subtopic_pct_${count - 1}`] = `Total must equal 100%. Currently: ${totalPercentage}%.`;
-    }
+    const validationResult = scheduleModalInputSchema.safeParse({
+      title,
+      channelId,
+      totalMinutes,
+      speakerUserId,
+      threadTs,
+      modules: rawModules,
+    });
 
-    if (Object.keys(errors).length > 0) {
+    if (!validationResult.success) {
+      const errors: Record<string, string> = {};
+      for (const issue of validationResult.error.issues) {
+        const path = issue.path;
+        if (path[0] === "modules" && typeof path[1] === "number") {
+          const index = path[1];
+          const field = path[2];
+          if (field === "percentage") {
+            errors[`subtopic_pct_${index}`] = issue.message;
+          } else {
+            errors[`subtopic_title_${index}`] = issue.message;
+          }
+        } else if (path[0] === "title") {
+          errors["title_block"] = issue.message;
+        } else if (path[0] === "channelId") {
+          errors["channel_block"] = issue.message;
+        } else if (path[0] === "totalMinutes") {
+          errors["duration_block"] = issue.message;
+        }
+      }
+
       await ack({
         response_action: "errors",
         errors,
@@ -167,14 +184,16 @@ export function registerModalHandlers(app: App) {
     // Acknowledge submission cleanly
     await ack();
 
+    const validatedData = validationResult.data;
+
     try {
       await MeetupService.createMeetup({
-        title,
-        totalMinutes,
-        channelId,
-        speakerUserId,
-        threadTs,
-        modules,
+        title: validatedData.title,
+        totalMinutes: validatedData.totalMinutes,
+        channelId: validatedData.channelId,
+        speakerUserId: validatedData.speakerUserId,
+        threadTs: validatedData.threadTs,
+        modules: validatedData.modules,
       });
 
       const speakerText = MeetupService.formatSpeakerMentions(speakerUserId);
