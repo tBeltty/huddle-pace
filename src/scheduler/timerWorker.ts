@@ -2,6 +2,7 @@ import { App } from "@slack/bolt";
 import { MeetupService } from "../services/meetupService.js";
 import { buildLiveTrackerBlocks } from "../slack/ui/trackerBlock.js";
 import { prisma } from "../db/client.js";
+import { getBotTokenForTeam } from "../slack/oauth/installationStore.js";
 
 export class TimerWorker {
   private timer: NodeJS.Timeout | null = null;
@@ -45,6 +46,8 @@ export class TimerWorker {
       for (const meetup of activeMeetups) {
         if (!meetup.startedAt || !meetup.trackerMessageTs) continue;
 
+        const botToken = await getBotTokenForTeam(meetup.teamId);
+
         const now = Date.now();
         const isChatting = meetup.status === "JUST_CHATTING";
 
@@ -70,6 +73,7 @@ export class TimerWorker {
         // 1. Update the live in-channel tracker message
         try {
           await this.app.client.chat.update({
+            token: botToken,
             channel: meetup.channelId,
             ts: meetup.trackerMessageTs,
             text: isChatting
@@ -111,6 +115,7 @@ export class TimerWorker {
           for (const speakerId of speakerIds) {
             try {
               await this.app.client.chat.postMessage({
+                token: botToken,
                 channel: speakerId,
                 text: `⏱️ *Next Module:* "${status.module.title}" (${status.module.durationMinutes} min allocated).`,
               });
@@ -134,6 +139,7 @@ export class TimerWorker {
           this.exitRampsSent.add(meetup.id);
           try {
             await this.app.client.chat.postMessage({
+              token: botToken,
               channel: meetup.channelId,
               thread_ts: meetup.threadTs || meetup.trackerMessageTs,
               text: `🏁 *Timebox reached (${meetup.totalMinutes} min).* Official agenda is complete. Attendees with next commitments can drop off; feel free to stay for open chat.`,

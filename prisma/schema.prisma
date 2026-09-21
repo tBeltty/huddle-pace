@@ -9,6 +9,7 @@ generator client {
 
 model Meetup {
   id               String         @id @default(uuid())
+  teamId           String         @default("default")
   title            String
   channelId        String
   threadTs         String?
@@ -24,8 +25,25 @@ model Meetup {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  @@index([status])
+  @@index([teamId, status])
   @@index([channelId, threadTs])
+}
+
+model SlackInstallation {
+  id                String   @id @default(uuid())
+  teamId            String?  @unique
+  enterpriseId      String?
+  teamName          String?
+  botToken          String?
+  botId             String?
+  botUserId         String?
+  installedByUserId String?
+  installationData  String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([teamId])
+  @@index([enterpriseId])
 }
 
 model MeetupModule {

@@ -46,6 +46,38 @@ describe("Zod Runtime Validation Schemas", () => {
         assert.strictEqual(issues.length > 0, true);
       }
     });
+
+    test("succeeds with valid HTTP OAuth mode environment variables", () => {
+      const validOAuthEnv = {
+        SOCKET_MODE: "false",
+        SLACK_SIGNING_SECRET: "mock-signing-secret",
+        SLACK_CLIENT_ID: "mock-client-id",
+        SLACK_CLIENT_SECRET: "mock-client-secret",
+        SLACK_STATE_SECRET: "mock-state-secret",
+        PORT: 4000,
+      };
+      const result = envSchema.safeParse(validOAuthEnv);
+      assert.strictEqual(result.success, true);
+      if (result.success) {
+        assert.strictEqual(result.data.SOCKET_MODE, false);
+        assert.strictEqual(result.data.PORT, 4000);
+      }
+    });
+
+    test("fails when OAuth secrets are missing in HTTP mode (negative control)", () => {
+      const invalidOAuthEnv = {
+        SOCKET_MODE: "false",
+        SLACK_SIGNING_SECRET: "mock-signing-secret",
+      };
+      const result = envSchema.safeParse(invalidOAuthEnv);
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const paths = result.error.issues.map((i) => i.path[0]);
+        assert.strictEqual(paths.includes("SLACK_CLIENT_ID"), true);
+        assert.strictEqual(paths.includes("SLACK_CLIENT_SECRET"), true);
+        assert.strictEqual(paths.includes("SLACK_STATE_SECRET"), true);
+      }
+    });
   });
 
   describe("scheduleModalInputSchema", () => {

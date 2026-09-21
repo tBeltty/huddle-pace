@@ -2,10 +2,10 @@
 
 > **Slack-native meeting timekeeper and speaker companion.**
 
-HuddlePace is a Slack bot built with **Node.js**, **TypeScript**, and **Slack Socket Mode**. It keeps technical presentations, design reviews, and syncs within agreed time limits by tracking modular agendas in real time.
+HuddlePace is a Slack bot built with **Node.js**, **TypeScript**, and **Slack Bolt**. It keeps technical presentations, design reviews, and syncs within agreed time limits by tracking modular agendas in real time.
 
 Infrastructure footprint:
-- Zero cloud ingress costs: connects over outbound WebSockets (Socket Mode). No public IP, reverse proxy, or TLS cert management.
+- **Dual-Mode Transport**: Run locally via outbound WebSockets (Socket Mode) with zero public IP or tunnel requirements, or in production via native Slack HTTP with OAuth v2 ("Add to Slack") to serve multiple external workspaces.
 - Self-hosted runtime with embedded SQLite and Prisma ORM.
 - Zero external LLM or paid API dependencies.
 
@@ -59,7 +59,7 @@ Infrastructure footprint:
 - **Runtime**: Node.js (ESM, TypeScript, pinned via `.node-version`)
 - **Framework**: `@slack/bolt`
 - **Validation**: `zod` runtime schema validation for environment variables and modal payloads
-- **Transport**: Slack Socket Mode (outbound WebSocket)
+- **Transport**: Dual-mode (Slack Socket Mode for local dev; native HTTP with OAuth v2 receiver for multi-tenant production)
 - **Database**: SQLite with Prisma ORM (`prisma/dev.db`, WAL journal mode enabled)
 - **Testing**: Built-in test runner via `tsx --test`
 
@@ -74,31 +74,38 @@ Infrastructure footprint:
 3. Select your workspace.
 4. Paste the contents of [`manifest.json`](./manifest.json) and confirm.
 
-### 2. Generate Credentials
+### 2. Choose Your Deployment Mode
 
-#### App-Level Token (Socket Mode)
-1. In **Basic Information**, scroll to **App-Level Tokens**.
-2. Click **Generate Token and Scopes**.
-3. Name it `socket-token`, select the `connections:write` scope, and generate.
-4. Copy the token (`xapp-...`).
+#### Option A: Native HTTP & OAuth v2 (Multi-Tenant / Public Workspaces)
+To allow external users to install HuddlePace into their own Slack workspaces without requiring admin access:
+1. In **App Credentials** (under Basic Information), note:
+   - `Client ID`
+   - `Client Secret`
+   - `Signing Secret`
+2. Under **OAuth & Permissions**, ensure the Redirect URL matches `https://<your-domain>/slack/oauth_redirect`.
+3. Under **Event Subscriptions** and **Interactivity**, set the Request URL to `https://<your-domain>/slack/events`.
+4. Configure `.env`:
+   ```env
+   SOCKET_MODE="false"
+   SLACK_SIGNING_SECRET="your-signing-secret"
+   SLACK_CLIENT_ID="your-client-id"
+   SLACK_CLIENT_SECRET="your-client-secret"
+   SLACK_STATE_SECRET="random-high-entropy-string"
+   PORT=3000
+   ```
 
-#### Bot User Token & Installation
-1. Go to **Install App** in the sidebar and click **Install to Workspace**.
-2. Copy the **Bot User OAuth Token** (`xoxb-...`).
+#### Option B: Socket Mode (Single Workspace / Local Dev)
+To test locally behind a firewall without HTTPS ingress:
+1. In **Basic Information** > **App-Level Tokens**, generate a token named `socket-token` with the `connections:write` scope (`xapp-...`).
+2. Install the app to your development workspace and obtain the Bot Token (`xoxb-...`).
+3. Configure `.env`:
+   ```env
+   SOCKET_MODE="true"
+   SLACK_BOT_TOKEN="xoxb-your-bot-token"
+   SLACK_APP_TOKEN="xapp-your-app-token"
+   ```
 
-### 3. Environment Configuration
-
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-
-Populate tokens in `.env`:
-```env
-SLACK_BOT_TOKEN="xoxb-your-token-here"
-SLACK_APP_TOKEN="xapp-your-token-here"
-DATABASE_URL="file:./dev.db"
-```
+### 3. Environment File Permissions
 
 Lock file permissions on disk:
 ```bash

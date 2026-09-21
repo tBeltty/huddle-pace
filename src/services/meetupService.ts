@@ -10,6 +10,7 @@ export interface CreateMeetupDTO {
   totalMinutes: number;
   channelId: string;
   speakerUserId: string; // Can be a single ID or comma-separated IDs
+  teamId?: string;
   threadTs?: string | null;
   scheduledFor?: Date;
   modules: SubtopicInput[];
@@ -109,6 +110,7 @@ export class MeetupService {
         title: data.title.trim(),
         totalMinutes: data.totalMinutes,
         channelId: data.channelId,
+        teamId: data.teamId || "default",
         threadTs: data.threadTs || null,
         speakerUserId: data.speakerUserId,
         scheduledFor: data.scheduledFor || new Date(),
@@ -196,10 +198,11 @@ export class MeetupService {
   /**
    * Returns all active meetups currently in flight (ACTIVE or JUST_CHATTING).
    */
-  static async getActiveMeetups() {
+  static async getActiveMeetups(teamId?: string) {
     return await prisma.meetup.findMany({
       where: {
         status: { in: ["ACTIVE", "JUST_CHATTING"] },
+        ...(teamId ? { teamId } : {}),
       },
       include: {
         modules: { orderBy: { orderIndex: "asc" } },
@@ -210,9 +213,12 @@ export class MeetupService {
   /**
    * Returns scheduled meetups that have not yet started.
    */
-  static async getUpcomingMeetups() {
+  static async getUpcomingMeetups(teamId?: string) {
     return await prisma.meetup.findMany({
-      where: { status: "SCHEDULED" },
+      where: {
+        status: "SCHEDULED",
+        ...(teamId ? { teamId } : {}),
+      },
       orderBy: { createdAt: "desc" },
       take: 10,
       include: {
@@ -236,13 +242,14 @@ export class MeetupService {
   /**
    * Finds an active or chatting meetup associated with a channel or thread.
    */
-  static async findActiveMeetupByChannelOrThread(channelId: string, threadTs?: string) {
+  static async findActiveMeetupByChannelOrThread(channelId: string, threadTs?: string, teamId?: string) {
     if (threadTs) {
       const byThread = await prisma.meetup.findFirst({
         where: {
           channelId,
           threadTs,
           status: { in: ["ACTIVE", "JUST_CHATTING"] },
+          ...(teamId ? { teamId } : {}),
         },
         include: { modules: { orderBy: { orderIndex: "asc" } } },
       });
@@ -253,6 +260,7 @@ export class MeetupService {
       where: {
         channelId,
         status: { in: ["ACTIVE", "JUST_CHATTING"] },
+        ...(teamId ? { teamId } : {}),
       },
       orderBy: { startedAt: "desc" },
       include: { modules: { orderBy: { orderIndex: "asc" } } },
@@ -262,13 +270,14 @@ export class MeetupService {
   /**
    * Calculates comprehensive time management analytics for a given timeframe.
    */
-  static async getPacingReportStats(days = 30): Promise<PacingReportStats> {
+  static async getPacingReportStats(days = 30, teamId?: string): Promise<PacingReportStats> {
     const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     const completed = await prisma.meetup.findMany({
       where: {
         status: "COMPLETED",
         createdAt: { gte: cutoffDate },
+        ...(teamId ? { teamId } : {}),
       },
       orderBy: { createdAt: "desc" },
       include: { modules: true },

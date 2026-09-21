@@ -5,16 +5,57 @@ import { registerModalHandlers } from "./handlers/modalHandlers.js";
 import { registerActionHandlers } from "./handlers/actionHandlers.js";
 import { registerCommandHandlers } from "./handlers/commandHandlers.js";
 import { registerHuddleHandlers } from "./handlers/huddleHandlers.js";
+import { prismaInstallationStore } from "./oauth/installationStore.js";
 import { getEnv } from "../config/env.js";
 
 export function createSlackApp(): bolt.App {
   const env = getEnv();
-  const app = new App({
-    token: env.SLACK_BOT_TOKEN,
-    appToken: env.SLACK_APP_TOKEN,
-    socketMode: true,
-    logLevel: LogLevel.INFO,
-  });
+
+  const app = env.SOCKET_MODE
+    ? new App({
+        token: env.SLACK_BOT_TOKEN,
+        appToken: env.SLACK_APP_TOKEN,
+        socketMode: true,
+        logLevel: LogLevel.INFO,
+      })
+    : new App({
+        signingSecret: env.SLACK_SIGNING_SECRET!,
+        clientId: env.SLACK_CLIENT_ID,
+        clientSecret: env.SLACK_CLIENT_SECRET,
+        stateSecret: env.SLACK_STATE_SECRET,
+        scopes: [
+          "commands",
+          "chat:write",
+          "channels:join",
+          "im:write",
+          "channels:history",
+          "groups:history",
+          "im:history",
+          "mpim:history",
+          "users:read",
+        ],
+        installationStore: prismaInstallationStore,
+        installerOptions: {
+          directInstall: true,
+        },
+        customRoutes: [
+          {
+            path: "/healthz",
+            method: ["GET"],
+            handler: (_req, res) => {
+              res.writeHead(200, { "Content-Type": "application/json" });
+              res.end(
+                JSON.stringify({
+                  status: "ok",
+                  mode: "http-oauth",
+                  timestamp: new Date().toISOString(),
+                })
+              );
+            },
+          },
+        ],
+        logLevel: LogLevel.INFO,
+      });
 
   // Register all interactive listeners
   registerHomeHandlers(app);
