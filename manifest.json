@@ -36,7 +36,7 @@
       "bot": [
         "commands",
         "chat:write",
-        "chat:write.public",
+        "channels:join",
         "im:write",
         "channels:history",
         "groups:history",
@@ -49,7 +49,9 @@
   "settings": {
     "event_subscriptions": {
       "bot_events": [
-        "app_home_opened"
+        "app_home_opened",
+        "message.channels",
+        "message.groups"
       ]
     },
     "interactivity": {
