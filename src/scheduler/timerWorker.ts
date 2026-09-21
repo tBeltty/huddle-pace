@@ -35,15 +35,35 @@ export class TimerWorker {
 
     try {
       const activeMeetups = await MeetupService.getActiveMeetups();
+      const activeIds = new Set(activeMeetups.map((m) => m.id));
+      for (const id of this.exitRampsSent) {
+        if (!activeIds.has(id)) {
+          this.exitRampsSent.delete(id);
+        }
+      }
 
       for (const meetup of activeMeetups) {
         if (!meetup.startedAt || !meetup.trackerMessageTs) continue;
 
         const now = Date.now();
-        const elapsedMinutes = Math.floor((now - new Date(meetup.startedAt).getTime()) / (60 * 1000));
-        const status = MeetupService.getCurrentModule(meetup);
+        const isChatting = meetup.status === "JUST_CHATTING";
 
-        if (!status) continue;
+        let elapsedMinutes: number;
+        let chattingElapsedMinutes = 0;
+
+        if (isChatting && meetup.formalEndsAt) {
+          elapsedMinutes = Math.floor(
+            (new Date(meetup.formalEndsAt).getTime() - new Date(meetup.startedAt).getTime()) / (60 * 1000)
+          );
+          chattingElapsedMinutes = Math.floor(
+            (now - new Date(meetup.formalEndsAt).getTime()) / (60 * 1000)
+          );
+        } else {
+          elapsedMinutes = Math.floor((now - new Date(meetup.startedAt).getTime()) / (60 * 1000));
+        }
+
+        const status = MeetupService.getCurrentModule(meetup);
+        if (!status && !isChatting) continue;
 
         const isOvertime = elapsedMinutes >= meetup.totalMinutes;
 
@@ -52,17 +72,21 @@ export class TimerWorker {
           await this.app.client.chat.update({
             channel: meetup.channelId,
             ts: meetup.trackerMessageTs,
-            text: `⏱️ Meetup Progress: ${meetup.title} (${elapsedMinutes}/${meetup.totalMinutes}m)`,
+            text: isChatting
+              ? `☕ Just Chatting: ${meetup.title} (+${chattingElapsedMinutes}m)`
+              : `⏱️ Meetup Progress: ${meetup.title} (${elapsedMinutes}/${meetup.totalMinutes}m)`,
             blocks: buildLiveTrackerBlocks({
               meetupId: meetup.id,
               title: meetup.title,
               totalMinutes: meetup.totalMinutes,
               speakerUserId: meetup.speakerUserId,
               elapsedMinutes,
-              currentModuleName: status.module.title,
-              moduleRemainingMinutes: status.remainingMinutes,
-              nextModuleName: status.nextModule ? status.nextModule.title : null,
+              currentModuleName: status?.module.title || "Casual Chat",
+              moduleRemainingMinutes: status?.remainingMinutes || 0,
+              nextModuleName: status?.nextModule ? status.nextModule.title : null,
               isOvertime,
+              isChatting,
+              chattingElapsedMinutes,
             }),
           });
         } catch (err: any) {
@@ -78,20 +102,30 @@ export class TimerWorker {
           }
         }
 
-        // 2. Private Speaker Pacing Checkpoint (when entering a new module)
-        if (!status.module.isNotified) {
-          try {
-            await this.app.client.chat.postMessage({
-              channel: meetup.speakerUserId,
-              text: `⏱️ *Next Module:* "${status.module.title}" (${status.module.durationMinutes} min allocated).`,
-            });
+        // If in Just Chatting mode, skip pacing DMs and formal exit ramp
+        if (isChatting) continue;
 
+        // 2. Private Speaker Pacing Checkpoint (when entering a new module)
+        if (status && !status.module.isNotified) {
+          const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
+          for (const speakerId of speakerIds) {
+            try {
+              await this.app.client.chat.postMessage({
+                channel: speakerId,
+                text: `⏱️ *Next Module:* "${status.module.title}" (${status.module.durationMinutes} min allocated).`,
+              });
+            } catch (err) {
+              console.warn(`Failed to send pacing DM to speaker ${speakerId}:`, err);
+            }
+          }
+
+          try {
             await prisma.meetupModule.update({
               where: { id: status.module.id },
               data: { isNotified: true },
             });
           } catch (err) {
-            console.warn(`Failed to send pacing DM to speaker ${meetup.speakerUserId}:`, err);
+            console.warn(`Failed to mark module ${status.module.id} as notified:`, err);
           }
         }
 

@@ -1,5 +1,6 @@
 import { App } from "@slack/bolt";
 import { buildScheduleModal } from "../ui/scheduleModal.js";
+import { buildPacingReportBlocks } from "../ui/reportBlock.js";
 import { MeetupService } from "../../services/meetupService.js";
 
 export function registerCommandHandlers(app: App) {
@@ -7,7 +8,33 @@ export function registerCommandHandlers(app: App) {
   app.command("/pace", async ({ command, ack, client, logger }) => {
     await ack();
     try {
-      const subCommand = command.text.trim().toLowerCase();
+      const rawText = command.text.trim();
+      const parts = rawText.split(/\s+/);
+      const subCommand = parts[0]?.toLowerCase() || "";
+
+      if (subCommand === "help") {
+        await client.chat.postEphemeral({
+          channel: command.channel_id,
+          user: command.user_id,
+          text: "ℹ️ *HuddlePace Commands:*\n• `/pace` — Open the meetup scheduler modal\n• `/pace status` — Check active meetups in this channel\n• `/pace report [days]` — View pacing & timebox compliance report (default: 30 days)\n• `/pace help` — Show this help message",
+        });
+        return;
+      }
+
+      if (subCommand === "report" || subCommand === "stats") {
+        const daysArg = parseInt(parts[1], 10);
+        const days = !isNaN(daysArg) && daysArg > 0 ? Math.min(daysArg, 365) : 30;
+        const stats = await MeetupService.getPacingReportStats(days);
+        const blocks = buildPacingReportBlocks(stats, days);
+
+        await client.chat.postEphemeral({
+          channel: command.channel_id,
+          user: command.user_id,
+          text: `📊 HuddlePace Report (Last ${days} days)`,
+          blocks,
+        });
+        return;
+      }
 
       if (subCommand === "status") {
         const active = await MeetupService.getActiveMeetups();
@@ -23,13 +50,17 @@ export function registerCommandHandlers(app: App) {
         }
 
         const list = channelMeetups
-          .map((m) => `• *${m.title}* by <@${m.speakerUserId}> (${m.totalMinutes} min budget)`)
+          .map((m) => {
+            const speakers = MeetupService.formatSpeakerMentions(m.speakerUserId);
+            const statusLabel = m.status === "JUST_CHATTING" ? "☕ Just Chatting" : "⏱️ In Progress";
+            return `• *${m.title}* (${statusLabel}) by ${speakers} (${m.totalMinutes} min budget)`;
+          })
           .join("\n");
 
         await client.chat.postEphemeral({
           channel: command.channel_id,
           user: command.user_id,
-          text: `🔴 *Active Meetups in this channel:*\n${list}`,
+          text: `🔴 *Active Sessions in this channel:*\n${list}`,
         });
         return;
       }

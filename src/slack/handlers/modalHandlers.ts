@@ -1,11 +1,10 @@
 import { App } from "@slack/bolt";
 import { MeetupService, SubtopicInput } from "../../services/meetupService.js";
 import { buildScheduleModal } from "../ui/scheduleModal.js";
-import { formatMinutes } from "../../utils/progressBar.js";
 
 export function registerModalHandlers(app: App) {
   // Action: Add another subtopic row in the modal dynamically
-  app.action("add_subtopic_row_action", async ({ ack, body, client, logger }) => {
+  app.action("add_subtopic_row_action", async ({ ack, body, client }) => {
     await ack();
     try {
       const b = body as any;
@@ -15,7 +14,10 @@ export function registerModalHandlers(app: App) {
 
       await client.views.update({
         view_id: b.view.id,
-        view: buildScheduleModal({ subtopicCount: newCount }),
+        view: buildScheduleModal({
+          subtopicCount: newCount,
+          currentUserId: b.user?.id,
+        }),
       });
     } catch (error) {
       console.error("Error dynamically appending subtopic row:", error);
@@ -23,7 +25,7 @@ export function registerModalHandlers(app: App) {
   });
 
   // Submission: Handle schedule modal submission
-  app.view("submit_schedule_modal", async ({ ack, view, body, client, logger }) => {
+  app.view("submit_schedule_modal", async ({ ack, view, body, client }) => {
     const values = view.state.values;
     const metadata = JSON.parse(view.private_metadata || "{}");
     const count = metadata.subtopicCount || 3;
@@ -31,7 +33,10 @@ export function registerModalHandlers(app: App) {
     const title = values.title_block?.title_input?.value || "";
     const channelId = values.channel_block?.channel_select?.selected_conversation || "";
     const totalMinutes = parseInt(values.duration_block?.duration_select?.selected_option?.value || "60", 10);
-    const speakerUserId = body.user.id;
+
+    // Multi-speaker selection support
+    const selectedSpeakers: string[] = values.speaker_block?.speaker_select?.selected_users || [];
+    const speakerUserId = selectedSpeakers.length > 0 ? selectedSpeakers.join(",") : body.user.id;
 
     const modules: SubtopicInput[] = [];
     let totalPercentage = 0;
@@ -69,7 +74,7 @@ export function registerModalHandlers(app: App) {
     await ack();
 
     try {
-      const meetup = await MeetupService.createMeetup({
+      await MeetupService.createMeetup({
         title,
         totalMinutes,
         channelId,
@@ -77,48 +82,21 @@ export function registerModalHandlers(app: App) {
         modules,
       });
 
-      const breakdownText = meetup.modules
-        .map((m) => `• *${m.title}* (${m.percentage}% — ${formatMinutes(m.durationMinutes)})`)
-        .join("\n");
+      const speakerText = MeetupService.formatSpeakerMentions(speakerUserId);
 
-      // Post confirmation card to target channel with a 1-click "Start Live Tracker" button
-      await client.chat.postMessage({
-        channel: channelId,
-        text: `📅 *New Meetup Scheduled: ${title}*`,
-        blocks: [
-          {
-            type: "header",
-            text: {
-              type: "plain_text",
-              text: `📅 Scheduled: ${title}`,
-              emoji: true,
-            },
-          },
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: `👤 *Speaker:* <@${speakerUserId}>\n⏱️ *Duration:* ${formatMinutes(totalMinutes)}\n\n*Planned Agenda & Time Allocation:*\n${breakdownText}`,
-            },
-          },
-          {
-            type: "actions",
-            elements: [
-              {
-                type: "button",
-                text: {
-                  type: "plain_text",
-                  text: "🚀 Start Live Tracker",
-                  emoji: true,
-                },
-                style: "primary",
-                value: meetup.id,
-                action_id: "start_scheduled_meetup_action",
-              },
-            ],
-          },
-        ],
-      });
+      // Silent scheduling: post ephemeral confirmation to creator without public channel spam
+      try {
+        await client.chat.postEphemeral({
+          channel: channelId,
+          user: body.user.id,
+          text: `📅 *Scheduled:* '${title}' (${totalMinutes}m) with ${speakerText}. It is saved to your Home tab and ready to launch in your Huddle!`,
+        });
+      } catch {
+        await client.chat.postMessage({
+          channel: body.user.id,
+          text: `📅 *Scheduled:* '${title}' (${totalMinutes}m) in <#${channelId}> with ${speakerText}. Launch it whenever you start the Huddle!`,
+        });
+      }
     } catch (error) {
       console.error("Error creating meetup from modal submission:", error);
     }

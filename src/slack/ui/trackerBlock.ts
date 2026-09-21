@@ -1,4 +1,5 @@
 import { renderProgressBar, formatMinutes } from "../../utils/progressBar.js";
+import { MeetupService } from "../../services/meetupService.js";
 
 interface TrackerData {
   meetupId: string;
@@ -10,11 +11,78 @@ interface TrackerData {
   moduleRemainingMinutes: number;
   nextModuleName: string | null;
   isOvertime?: boolean;
+  isChatting?: boolean;
+  chattingElapsedMinutes?: number;
 }
 
 export function buildLiveTrackerBlocks(data: TrackerData): any[] {
   const percent = Math.min(100, Math.round((data.elapsedMinutes / data.totalMinutes) * 100));
   const progressVisual = renderProgressBar(percent, 16);
+  const speakerDisplay = MeetupService.formatSpeakerMentions(data.speakerUserId);
+
+  if (data.isChatting) {
+    const chatMinutes = data.chattingElapsedMinutes || 0;
+    return [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: `☕ ${data.title} (Just Chatting)`,
+          emoji: true,
+        },
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `☕ *Formal Agenda Complete — Casual Chatting*\n\n• *Formal Duration:* ${data.elapsedMinutes}m (Budget: ${data.totalMinutes}m)\n• *Casual Chatting:* ${chatMinutes}m\n• *Speakers:* ${speakerDisplay}\n\nThe formal presentation has ended! The Huddle remains active for open banter and unstructured Q&A. Anyone is welcome to jump in.`,
+        },
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "⏹️ Conclude Session",
+              emoji: true,
+            },
+            style: "danger",
+            value: data.meetupId,
+            action_id: "conclude_meetup_action",
+            confirm: {
+              title: {
+                type: "plain_text",
+                text: "Conclude Session?",
+              },
+              text: {
+                type: "mrkdwn",
+                text: "Stop tracking and mark this session as finished?",
+              },
+              confirm: {
+                type: "plain_text",
+                text: "Yes, Conclude",
+              },
+              deny: {
+                type: "plain_text",
+                text: "Keep Chatting",
+              },
+            },
+          },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: "🔄 _Updates automatically in-place. Concludes when the Huddle call ends._",
+          },
+        ],
+      },
+    ];
+  }
 
   const statusBadge = data.isOvertime ? "🔴 *Session Overtime*" : "🟢 *Pacing On Track*";
   const nextModuleDisplay = data.nextModuleName
@@ -35,7 +103,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
       fields: [
         {
           type: "mrkdwn",
-          text: `👤 *Speaker*\n<@${data.speakerUserId}>`,
+          text: `👤 *Speaker(s)*\n${speakerDisplay}`,
         },
         {
           type: "mrkdwn",
@@ -66,6 +134,16 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
     {
       type: "actions",
       elements: [
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "☕ Switch to Just Chatting",
+            emoji: true,
+          },
+          value: data.meetupId,
+          action_id: "switch_to_chatting_action",
+        },
         {
           type: "button",
           text: {
