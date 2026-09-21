@@ -242,4 +242,6 @@ sudo journalctl -u huddlepace.service -f
 
 ## License
 
-MIT License.
+Source-Available & Audit License. Copyright (c) 2026 tBeltty. All rights reserved.
+
+Permission is granted solely for code inspection, security auditing, and personal evaluation. Plagiarism, modification, redistribution, and unauthorized commercial deployment are strictly prohibited. For commercial licensing, contact the repository owner. See [`LICENSE`](./LICENSE) for full legal terms.
