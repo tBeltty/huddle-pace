@@ -1,4 +1,10 @@
 import { ModalView } from "@slack/bolt";
+import { DetectedHuddle } from "../utils/huddleDiscovery.js";
+
+export interface ModalSubtopicState {
+  title: string;
+  pct: string;
+}
 
 export interface ModalStateData {
   title?: string;
@@ -7,6 +13,10 @@ export interface ModalStateData {
   currentUserId?: string;
   speakerUserIds?: string[];
   subtopicCount: number;
+  selectedHuddleChoice?: string;
+  customThreadTs?: string;
+  availableHuddles?: DetectedHuddle[];
+  customSubtopics?: ModalSubtopicState[];
 }
 
 export function buildScheduleModal(initialState?: Partial<ModalStateData>): ModalView {
@@ -37,6 +47,63 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
   if (initialSpeakers.length > 0) {
     speakerElement.initial_users = initialSpeakers;
   }
+
+  // Construct Huddle selector options
+  const detectedHuddles = initialState?.availableHuddles || [];
+  const huddleOptions: any[] = [];
+
+  // 1. Detected Huddles in this channel
+  if (detectedHuddles.length > 0) {
+    detectedHuddles.forEach((h, index) => {
+      const statusIcon = h.isActive ? "🟢 Active" : "⚪ Recent";
+      const timePart = h.timeFormatted ? ` (${h.timeFormatted})` : "";
+      const labelText = `${statusIcon} Huddle #${index + 1}${timePart}`.slice(0, 75);
+      huddleOptions.push({
+        text: { type: "plain_text", text: labelText, emoji: true },
+        value: `huddle_${h.ts}`,
+      });
+    });
+  }
+
+  // 2. Auto-detect option
+  huddleOptions.push({
+    text: { type: "plain_text", text: "⚡ Auto-detect active Huddle on start", emoji: true },
+    value: "auto",
+  });
+
+  // 3. Main channel feed option
+  huddleOptions.push({
+    text: { type: "plain_text", text: "💬 Main Channel Feed (No Huddle thread)", emoji: true },
+    value: "main",
+  });
+
+  // 4. Custom thread option
+  huddleOptions.push({
+    text: { type: "plain_text", text: "🔗 Custom Thread Link / TS", emoji: true },
+    value: "custom",
+  });
+
+  // Select initial option
+  let initialHuddleOption = huddleOptions.find((o) => o.value === initialState?.selectedHuddleChoice);
+  if (!initialHuddleOption) {
+    const firstActive = detectedHuddles.find((h) => h.isActive);
+    if (firstActive) {
+      initialHuddleOption = huddleOptions.find((o) => o.value === `huddle_${firstActive.ts}`) || huddleOptions[0];
+    } else {
+      initialHuddleOption = huddleOptions.find((o) => o.value === "auto");
+    }
+  }
+
+  const durationOptions = [
+    { text: { type: "plain_text" as const, text: "30 minutes" }, value: "30" },
+    { text: { type: "plain_text" as const, text: "45 minutes" }, value: "45" },
+    { text: { type: "plain_text" as const, text: "60 minutes" }, value: "60" },
+    { text: { type: "plain_text" as const, text: "90 minutes" }, value: "90" },
+    { text: { type: "plain_text" as const, text: "120 minutes" }, value: "120" },
+  ];
+
+  const durationStr = (initialState?.duration || 60).toString();
+  const initialDuration = durationOptions.find((d) => d.value === durationStr) || durationOptions[2];
 
   const blocks: any[] = [
     {
@@ -71,16 +138,59 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       element: {
         type: "conversations_select",
         action_id: "channel_select",
-        default_to_current_conversation: true,
+        default_to_current_conversation: !initialState?.channelId,
         response_url_enabled: false,
         placeholder: {
           type: "plain_text",
           text: "Select target channel",
         },
+        ...(initialState?.channelId ? { initial_conversation: initialState.channelId } : {}),
       },
       label: {
         type: "plain_text",
         text: "Target Channel",
+      },
+    },
+    {
+      type: "input",
+      block_id: "huddle_select_block",
+      element: {
+        type: "static_select",
+        action_id: "huddle_select",
+        placeholder: {
+          type: "plain_text",
+          text: "Select Huddle destination",
+        },
+        initial_option: initialHuddleOption,
+        options: huddleOptions,
+      },
+      label: {
+        type: "plain_text",
+        text: "Huddle Destination",
+      },
+      hint: {
+        type: "plain_text",
+        text: detectedHuddles.length > 0
+          ? `Found ${detectedHuddles.length} Huddle(s) in this channel. Choose one to lock it in directly.`
+          : "Choose whether to auto-detect on start, link to a Huddle, or post to main feed.",
+      },
+    },
+    {
+      type: "input",
+      block_id: "custom_thread_block",
+      optional: true,
+      element: {
+        type: "plain_text_input",
+        action_id: "custom_thread_input",
+        placeholder: {
+          type: "plain_text",
+          text: "Leave blank, or paste Slack message URL / thread timestamp",
+        },
+        initial_value: initialState?.customThreadTs || "",
+      },
+      label: {
+        type: "plain_text",
+        text: "Custom Thread Link / TS (Optional)",
       },
     },
     {
@@ -93,17 +203,8 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
           type: "plain_text",
           text: "Select duration",
         },
-        initial_option: {
-          text: { type: "plain_text", text: "60 minutes" },
-          value: "60",
-        },
-        options: [
-          { text: { type: "plain_text", text: "30 minutes" }, value: "30" },
-          { text: { type: "plain_text", text: "45 minutes" }, value: "45" },
-          { text: { type: "plain_text", text: "60 minutes" }, value: "60" },
-          { text: { type: "plain_text", text: "90 minutes" }, value: "90" },
-          { text: { type: "plain_text", text: "120 minutes" }, value: "120" },
-        ],
+        initial_option: initialDuration,
+        options: durationOptions,
       },
       label: {
         type: "plain_text",
@@ -124,7 +225,8 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
 
   // Dynamically render subtopic rows
   for (let i = 0; i < count; i++) {
-    const preset = defaultPresets[i] || { title: `Subtopic ${i + 1}`, pct: "0" };
+    const custom = initialState?.customSubtopics?.[i];
+    const preset = custom || defaultPresets[i] || { title: `Subtopic ${i + 1}`, pct: "0" };
 
     blocks.push(
       {
@@ -208,7 +310,10 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       type: "plain_text",
       text: "Cancel",
     },
-    private_metadata: JSON.stringify({ subtopicCount: count }),
+    private_metadata: JSON.stringify({
+      subtopicCount: count,
+      channelId: initialState?.channelId,
+    }),
     blocks,
   };
 }
