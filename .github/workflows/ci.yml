@@ -27,8 +27,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Generate Prisma Client
-        run: pnpm db:generate
+      - name: Setup Database Schema & Generate Client
+        run: pnpm db:push
         env:
           DATABASE_URL: "file:./ci.db"
 
