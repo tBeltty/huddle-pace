@@ -60,6 +60,9 @@ export const prismaInstallationStore: InstallationStore = {
       record = await prisma.slackInstallation.findFirst({
         where: { enterpriseId: installQuery.enterpriseId },
       });
+    } else {
+      // Fallback only when query has neither teamId nor enterpriseId
+      record = await prisma.slackInstallation.findFirst();
     }
 
     if (!record || !record.installationData) {

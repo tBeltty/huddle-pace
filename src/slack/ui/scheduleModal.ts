@@ -145,13 +145,14 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       element: {
         type: "conversations_select",
         action_id: "channel_select",
-        default_to_current_conversation: !initialState?.channelId,
         response_url_enabled: false,
         placeholder: {
           type: "plain_text",
           text: "Select target channel",
         },
-        ...(initialState?.channelId ? { initial_conversation: initialState.channelId } : {}),
+        ...(initialState?.channelId
+          ? { initial_conversation: initialState.channelId }
+          : { default_to_current_conversation: false }),
       },
       label: {
         type: "plain_text",
