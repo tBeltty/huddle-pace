@@ -3,9 +3,13 @@ import { getEnv } from "./config/env.js";
 import { createSlackApp } from "./slack/app.js";
 import { TimerWorker } from "./scheduler/timerWorker.js";
 import { prisma } from "./db/client.js";
+import { ensureDefaultInstallation } from "./slack/oauth/installationStore.js";
 
 async function main() {
   const env = getEnv();
+
+  // Ensure primary workspace installation is seeded for HTTP OAuth mode
+  await ensureDefaultInstallation();
 
   const app = createSlackApp();
   const worker = new TimerWorker(app);
