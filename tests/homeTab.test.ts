@@ -1,9 +1,9 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { buildHomeTabView } from "../src/slack/ui/homeTab.js";
+import { buildHomeTabView, buildGuideModal } from "../src/slack/ui/homeTab.js";
 import { buildAppHomeDeepLink, buildAppHomeMrkdwnLink } from "../src/slack/utils/deepLinks.js";
 
-describe("App Home Tab — Sub-tabs Navigation, Personalization & Boundary Tests", () => {
+describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", () => {
   const dummyStats = {
     totalSessions: 10,
     completedOnTime: 8,
@@ -54,63 +54,65 @@ describe("App Home Tab — Sub-tabs Navigation, Personalization & Boundary Tests
     ],
   };
 
-  describe("Sub-tabs Navigation Architecture", () => {
-    test("renders sub-tabs navigation bar with Meetups, Analytics and Guide buttons", () => {
-      const view = buildHomeTabView([], [], dummyStats, "U_USER", "meetups");
+  describe("Minimalist Header & Action Bar", () => {
+    test("renders personalized greeting with user mention and wave emoji", () => {
+      const view = buildHomeTabView([], [], dummyStats, "U_JHONATAN");
       assert.strictEqual(view.type, "home");
 
-      const navBlock = view.blocks.find((b: any) => b.block_id === "home_subtabs_nav");
-      assert.ok(navBlock, "Navigation block home_subtabs_nav should exist");
-      assert.strictEqual(navBlock.elements.length, 3);
-
-      const actionIds = navBlock.elements.map((el: any) => el.action_id);
-      assert.deepStrictEqual(actionIds, ["nav_tab_meetups", "nav_tab_analytics", "nav_tab_guide"]);
+      const greetingBlock = view.blocks.find(
+        (b: any) => b.type === "section" && b.text?.text?.includes("Hi, <@U_JHONATAN> :wave:")
+      );
+      assert.ok(greetingBlock, "Should render personalized greeting with :wave:");
     });
 
-    test("highlights active tab with primary style and dot indicator", () => {
-      // Meetups tab active
-      const viewMeetups = buildHomeTabView([], [], dummyStats, "U_USER", "meetups");
-      const navMeetups = viewMeetups.blocks.find((b: any) => b.block_id === "home_subtabs_nav");
-      assert.strictEqual(navMeetups.elements[0].style, "primary");
-      assert.strictEqual(navMeetups.elements[1].style, undefined);
-      assert.strictEqual(navMeetups.elements[2].style, undefined);
+    test("falls back cleanly to generic greeting when currentUserId is missing", () => {
+      const view = buildHomeTabView([], [], dummyStats);
+      const greetingBlock = view.blocks.find(
+        (b: any) => b.type === "section" && b.text?.text?.includes("Hi there :wave:")
+      );
+      assert.ok(greetingBlock, "Should render generic greeting");
+    });
 
-      // Analytics tab active
-      const viewAnalytics = buildHomeTabView([], [], dummyStats, "U_USER", "analytics");
-      const navAnalytics = viewAnalytics.blocks.find((b: any) => b.block_id === "home_subtabs_nav");
-      assert.strictEqual(navAnalytics.elements[0].style, undefined);
-      assert.strictEqual(navAnalytics.elements[1].style, "primary");
-      assert.strictEqual(navAnalytics.elements[2].style, undefined);
+    test("renders action bar with Schedule Meetup, Analytics, and Guide buttons", () => {
+      const view = buildHomeTabView([], [], dummyStats, "U_USER");
+      const actionBar = view.blocks.find((b: any) => b.block_id === "home_action_bar");
+      assert.ok(actionBar, "Action bar block should exist");
+      assert.strictEqual(actionBar.elements.length, 3);
 
-      // Guide tab active
-      const viewGuide = buildHomeTabView([], [], dummyStats, "U_USER", "guide");
-      const navGuide = viewGuide.blocks.find((b: any) => b.block_id === "home_subtabs_nav");
-      assert.strictEqual(navGuide.elements[0].style, undefined);
-      assert.strictEqual(navGuide.elements[1].style, undefined);
-      assert.strictEqual(navGuide.elements[2].style, "primary");
+      const [btnSchedule, btnAnalytics, btnGuide] = actionBar.elements;
+      assert.strictEqual(btnSchedule.action_id, "open_schedule_modal");
+      assert.strictEqual(btnSchedule.style, "primary");
+      assert.match(btnSchedule.text.text, /Schedule Meetup/);
+
+      assert.strictEqual(btnAnalytics.action_id, "open_report_modal");
+      assert.strictEqual(btnAnalytics.text.text, "Analytics");
+
+      assert.strictEqual(btnGuide.action_id, "open_guide_modal");
+      assert.strictEqual(btnGuide.text.text, "Guide");
+    });
+
+    test("omits redundant 'Dashboard' header block for a cleaner, modern look", () => {
+      const view = buildHomeTabView([], [], dummyStats, "U_USER");
+      const hasDashboardHeader = view.blocks.some(
+        (b: any) => b.type === "header" && b.text?.text?.includes("Dashboard")
+      );
+      assert.strictEqual(hasDashboardHeader, false, "Dashboard header should be omitted");
     });
   });
 
-  describe("Tab 1: Meetups & Agenda (Clean Slate & Session List)", () => {
-    test("renders unified clean empty state when no active or upcoming meetups exist", () => {
-      const view = buildHomeTabView([], [], dummyStats, "U_USER", "meetups");
+  describe("Agenda & Sessions Display", () => {
+    test("renders clean, unified empty slate when no meetups are active or upcoming", () => {
+      const view = buildHomeTabView([], [], dummyStats, "U_USER");
       const hasCleanSlate = view.blocks.some(
         (b: any) =>
           b.type === "section" &&
           b.text?.text?.includes("Your agenda is clear")
       );
       assert.strictEqual(hasCleanSlate, true);
-
-      // Negative control: should NOT show redundant wall-of-text empty messages
-      const hasWallOfText = view.blocks.some(
-        (b: any) =>
-          b.text?.text?.includes("You have no upcoming sessions assigned as speaker")
-      );
-      assert.strictEqual(hasWallOfText, false);
     });
 
-    test("renders active sessions and concludes buttons when active sessions exist", () => {
-      const view = buildHomeTabView([dummyActiveMeetup], [], dummyStats, "U_SPEAKER_1", "meetups");
+    test("renders active sessions with role badges and conclude buttons", () => {
+      const view = buildHomeTabView([dummyActiveMeetup], [], dummyStats, "U_SPEAKER_1");
       const hasActiveHeader = view.blocks.some(
         (b: any) => b.type === "header" && b.text?.text?.includes("Active Sessions")
       );
@@ -124,8 +126,8 @@ describe("App Home Tab — Sub-tabs Navigation, Personalization & Boundary Tests
       assert.strictEqual(activeSection.accessory?.action_id, "conclude_meetup_action");
     });
 
-    test("negative control: marks user as spectator when currentUserId does not match active speaker", () => {
-      const view = buildHomeTabView([dummyActiveMeetup], [], dummyStats, "U_SPECTATOR", "meetups");
+    test("negative control: marks user as spectator when currentUserId is not active speaker", () => {
+      const view = buildHomeTabView([dummyActiveMeetup], [], dummyStats, "U_SPECTATOR");
       const activeSection = view.blocks.find(
         (b: any) => b.type === "section" && b.text?.text?.includes("Daily Standup")
       );
@@ -134,13 +136,12 @@ describe("App Home Tab — Sub-tabs Navigation, Personalization & Boundary Tests
       assert.doesNotMatch(activeSection.text.text, /🌟 \*You are a speaker\*/);
     });
 
-    test("partitions upcoming meetups into My Scheduled vs Workspace Meetups", () => {
+    test("partitions upcoming meetups into My Scheduled Meetups vs Workspace Meetups", () => {
       const view = buildHomeTabView(
         [],
         [dummyMeetup1, dummyMeetup2],
         dummyStats,
-        "U_SPEAKER_2",
-        "meetups"
+        "U_SPEAKER_2"
       );
 
       const myHeaderIndex = view.blocks.findIndex(
@@ -158,7 +159,6 @@ describe("App Home Tab — Sub-tabs Navigation, Personalization & Boundary Tests
         mySection.some((b: any) => b.text?.text?.includes("Sprint Planning")),
         true
       );
-      // Negative control: Meetup 2 (Engineering All-Hands) must not be in My section
       assert.strictEqual(
         mySection.some((b: any) => b.text?.text?.includes("Engineering All-Hands")),
         false
@@ -172,47 +172,13 @@ describe("App Home Tab — Sub-tabs Navigation, Personalization & Boundary Tests
     });
   });
 
-  describe("Tab 2: Analytics & Reports", () => {
-    test("renders compliance metrics, time breakdown, and report button", () => {
-      const view = buildHomeTabView([], [], dummyStats, "U_USER", "analytics");
-      const hasAnalyticsHeader = view.blocks.some(
-        (b: any) => b.type === "header" && b.text?.text?.includes("Pacing & Timebox Analytics")
-      );
-      assert.strictEqual(hasAnalyticsHeader, true);
+  describe("Guide Modal Builder", () => {
+    test("builds guide modal with 3 steps and slash commands", () => {
+      const modal = buildGuideModal();
+      assert.strictEqual(modal.type, "modal");
+      assert.strictEqual(modal.title.text, "HuddlePace Guide");
 
-      // Verify compliance rate block
-      const hasComplianceRate = view.blocks.some(
-        (b: any) =>
-          b.type === "section" &&
-          b.fields?.some((f: any) => f.text?.includes("80%"))
-      );
-      assert.strictEqual(hasComplianceRate, true);
-
-      // Verify report button
-      const hasReportBtn = view.blocks.some(
-        (b: any) =>
-          b.type === "actions" &&
-          b.elements?.some((el: any) => el.action_id === "open_report_modal")
-      );
-      assert.strictEqual(hasReportBtn, true);
-
-      // Negative control: should NOT render agenda session headers in analytics tab
-      const hasActiveHeader = view.blocks.some(
-        (b: any) => b.type === "header" && b.text?.text?.includes("Active Sessions")
-      );
-      assert.strictEqual(hasActiveHeader, false);
-    });
-  });
-
-  describe("Tab 3: Guide & Tips", () => {
-    test("renders 3-step guide and quick slash commands", () => {
-      const view = buildHomeTabView([], [], dummyStats, "U_USER", "guide");
-      const hasWelcome = view.blocks.some(
-        (b: any) => b.type === "header" && b.text?.text?.includes("Welcome to HuddlePace")
-      );
-      assert.strictEqual(hasWelcome, true);
-
-      const has3Steps = view.blocks.some(
+      const has3Steps = modal.blocks.some(
         (b: any) =>
           b.type === "section" &&
           b.text?.text?.includes("Schedule with Modules") &&
@@ -220,19 +186,13 @@ describe("App Home Tab — Sub-tabs Navigation, Personalization & Boundary Tests
       );
       assert.strictEqual(has3Steps, true);
 
-      const hasSlashCommands = view.blocks.some(
+      const hasSlashCommands = modal.blocks.some(
         (b: any) =>
           b.type === "section" &&
           b.text?.text?.includes("/pace") &&
           b.text?.text?.includes("/pace report")
       );
       assert.strictEqual(hasSlashCommands, true);
-
-      // Negative control: should NOT render active meetups in guide tab
-      const hasActiveHeader = view.blocks.some(
-        (b: any) => b.type === "header" && b.text?.text?.includes("Active Sessions")
-      );
-      assert.strictEqual(hasActiveHeader, false);
     });
   });
 
@@ -249,7 +209,7 @@ describe("App Home Tab — Sub-tabs Navigation, Personalization & Boundary Tests
         modules: [{ title: "Topic", percentage: 100, durationMinutes: 15 }],
       }));
 
-      const view = buildHomeTabView([], manyMeetups, dummyStats, "U_SPEAKER_0", "meetups");
+      const view = buildHomeTabView([], manyMeetups, dummyStats, "U_SPEAKER_0");
       assert.ok(view.blocks.length <= 99, `Block count ${view.blocks.length} exceeds 99`);
 
       const lastBlock = view.blocks[view.blocks.length - 1];
