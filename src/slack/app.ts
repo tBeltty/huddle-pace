@@ -111,9 +111,16 @@ export function createSlackApp(): bolt.App {
       handler: async (_req: any, res: any) => {
         try {
           const { execSync } = await import("node:child_process");
-          const logs = execSync("pm2 logs huddle-pace --lines 40 --nostream", { encoding: "utf8" });
+          let out = "=== PM2 LOGS ===\n";
+          out += execSync("pm2 logs huddle-pace --lines 40 --nostream", { encoding: "utf8" });
+          out += "\n=== NGINX ACCESS LOG ===\n";
+          try {
+            out += execSync("tail -n 25 /var/log/nginx/access.log 2>&1 || true", { encoding: "utf8" });
+          } catch (e: any) {
+            out += "Nginx log unavailable: " + e.message;
+          }
           res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
-          res.end(logs);
+          res.end(out);
         } catch (e: any) {
           res.writeHead(500, { "Content-Type": "text/plain" });
           res.end(e.message);

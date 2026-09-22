@@ -153,7 +153,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         },
         ...(initialState?.channelId
           ? { initial_conversation: initialState.channelId }
-          : { default_to_current_conversation: false }),
+          : {}),
       },
       label: {
         type: "plain_text",
