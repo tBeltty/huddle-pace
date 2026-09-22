@@ -89,4 +89,35 @@ describe("MeetupService calculations and parsing", () => {
       );
     });
   });
+
+  describe("extendMeetup", () => {
+    test("extends meetup totalMinutes and the final module duration", async () => {
+      const created = await MeetupService.createMeetup({
+        title: "Architecture Review",
+        totalMinutes: 30,
+        channelId: "C123_TEST",
+        speakerUserId: "U_USER",
+        teamId: "T_TEST_EXT",
+        modules: [
+          { title: "Intro", percentage: 50 },
+          { title: "Discussion", percentage: 50 },
+        ],
+      });
+
+      const extended = await MeetupService.extendMeetup(created.id, 10);
+      assert.strictEqual(extended.totalMinutes, 40);
+      assert.strictEqual(extended.status, "ACTIVE");
+
+      const lastModule = extended.modules[extended.modules.length - 1];
+      assert.strictEqual(lastModule.durationMinutes, 25); // 15 + 10
+      assert.strictEqual(lastModule.endOffsetMin, 40);
+    });
+
+    test("fails when extending non-existent meetup (negative control)", async () => {
+      await assert.rejects(
+        () => MeetupService.extendMeetup("non-existent-id", 5),
+        /not found/
+      );
+    });
+  });
 });

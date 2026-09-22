@@ -1,6 +1,7 @@
 import { App } from "@slack/bolt";
 import { MeetupService } from "../../services/meetupService.js";
 import { formatMinutes } from "../../utils/progressBar.js";
+import { publishHomeTab } from "./homeHandlers.js";
 
 export function registerHuddleHandlers(app: App) {
   // Listen for message changes to detect when a Huddle call ends
@@ -8,14 +9,26 @@ export function registerHuddleHandlers(app: App) {
     try {
       const e = event as any;
 
-      // Only inspect message_changed events on channels
+      // Inspect message_changed events on channels
       if (e.subtype !== "message_changed" || !e.message) {
         return;
       }
 
       const msg = e.message;
-      const isHuddle = msg.subtype === "huddle_thread" || msg.room != null;
-      const hasEnded = msg.room?.has_ended === true || (msg.text && msg.text.toLowerCase().includes("huddle ended"));
+      const isHuddle =
+        msg.subtype === "huddle_thread" ||
+        msg.subtype === "sh_room_created" ||
+        msg.room != null ||
+        (msg.text &&
+          (msg.text.toLowerCase().includes("huddle") || msg.text.toLowerCase().includes("call")));
+
+      const hasEnded =
+        msg.room?.has_ended === true ||
+        (msg.room?.date_end != null && msg.room.date_end > 0) ||
+        (msg.text &&
+          (msg.text.toLowerCase().includes("huddle ended") ||
+            msg.text.toLowerCase().includes("ended a huddle") ||
+            msg.text.toLowerCase().includes("call ended")));
 
       if (isHuddle && hasEnded) {
         const channelId = e.channel;
@@ -36,10 +49,35 @@ export function registerHuddleHandlers(app: App) {
 
           const formalMinutes = Math.max(1, Math.round((formalEnded - started) / (60 * 1000)));
           const chatMinutes = Math.max(0, Math.round((ended - formalEnded) / (60 * 1000)));
-
           const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
 
-          // Post final summary into the Huddle thread
+          // 1. Update in-channel live tracker message in-place
+          if (meetup.trackerMessageTs) {
+            await client.chat.update({
+              channel: channelId,
+              ts: meetup.trackerMessageTs,
+              text: `🏁 *Meetup Concluded: ${meetup.title}*`,
+              blocks: [
+                {
+                  type: "header",
+                  text: {
+                    type: "plain_text",
+                    text: `🏁 Concluded: ${meetup.title}`,
+                    emoji: true,
+                  },
+                },
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: `🎉 *This meetup has officially concluded.*\n\n• *Formal Duration:* ${formatMinutes(formalMinutes)} (Scheduled: ${formatMinutes(meetup.totalMinutes)})\n${chatMinutes > 0 ? `• *Casual Chatting:* ${formatMinutes(chatMinutes)}\n` : ""}• *Speakers:* ${speakers}\n\nThank you for respecting everyone's time!`,
+                  },
+                },
+              ],
+            }).catch(() => {});
+          }
+
+          // 2. Post final summary into the Huddle thread
           await client.chat.postMessage({
             channel: channelId,
             thread_ts: meetup.threadTs || threadTs,
@@ -47,6 +85,12 @@ export function registerHuddleHandlers(app: App) {
           }).catch((err: any) => {
             console.warn("Failed to post Huddle end summary:", err);
           });
+
+          // 3. Proactively refresh App Home for all speakers
+          const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
+          for (const spkId of speakerIds) {
+            publishHomeTab(client, spkId, teamId).catch(() => {});
+          }
         }
       }
     } catch (error) {

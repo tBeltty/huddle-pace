@@ -122,12 +122,13 @@ export function buildHomeTabView(
             : "  •  👀 _Spectator_"
           : "";
 
+        const remainingMinutes = Math.max(0, meetup.totalMinutes - elapsedMinutes);
         blocks.push(
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: `*${meetup.title}*  •  ${statusBadge}${roleBadge}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\nElapsed: *${elapsedMinutes} / ${meetup.totalMinutes} min*\n${renderProgressBar(percent, 16)}`,
+              text: `*${meetup.title}*  •  ${statusBadge}${roleBadge}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\nElapsed: *${elapsedMinutes} / ${meetup.totalMinutes} min* (${percent}%) • *${formatMinutes(remainingMinutes)} remaining*\n${renderProgressBar(percent, 16)}`,
             },
             accessory: {
               type: "button",

@@ -634,6 +634,56 @@
       color: #fde68a;
     }
 
+    .mockup-context-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+    }
+
+    .mockup-mention {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      padding: 2px 6px;
+      border-radius: var(--radius-xs);
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .mockup-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 12px;
+    }
+
+    .mockup-btn {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+      cursor: default;
+    }
+
+    .mockup-btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+
+    .mockup-footer {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
     /* Pillars */
     .pillars-section {
       padding: 60px 0 100px;
@@ -1243,6 +1293,21 @@
               <div data-i18n="simAlert">
                 <strong>Midpoint Flight Check:</strong> Over 60% of estimated time has elapsed. If you have critical technical blockers, bring them to the table now before touchdown.
               </div>
+            </div>
+
+            <div class="mockup-context-row">
+              <div>👤 <strong>Speaker:</strong> <span class="mockup-mention">@guest</span></div>
+              <div>📍 <strong>Active Module:</strong> Core Topic <span style="color:var(--text-muted);">(5m left)</span></div>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">⏭️ <strong>Next Up:</strong> Wrap-up & Q&A</div>
+
+            <div class="mockup-actions">
+              <button class="mockup-btn" type="button" aria-disabled="true">☕ Just Chatting</button>
+              <button class="mockup-btn mockup-btn-danger" type="button" aria-disabled="true">⏹️ Conclude Meetup</button>
+            </div>
+
+            <div class="mockup-footer">
+              🔄 <em>In-place updates every 30s. Vector keeps your team on flight path.</em>
             </div>
           </div>
         </div>

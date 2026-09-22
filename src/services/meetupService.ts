@@ -178,6 +178,44 @@ export class MeetupService {
   }
 
   /**
+   * Extends the duration of an active meetup by additional minutes (Snooze / Time Extension).
+   */
+  static async extendMeetup(id: string, additionalMinutes: number) {
+    const meetup = await prisma.meetup.findUnique({
+      where: { id },
+      include: { modules: { orderBy: { orderIndex: "desc" } } },
+    });
+    if (!meetup) throw new Error(`Meetup ${id} not found.`);
+
+    const newTotalMinutes = meetup.totalMinutes + additionalMinutes;
+    const now = new Date();
+    const started = meetup.startedAt || now;
+    const newEndsAt = new Date(started.getTime() + newTotalMinutes * 60 * 1000);
+
+    // Extend the final module
+    if (meetup.modules.length > 0) {
+      const lastMod = meetup.modules[0]; // sorted desc
+      await prisma.meetupModule.update({
+        where: { id: lastMod.id },
+        data: {
+          durationMinutes: lastMod.durationMinutes + additionalMinutes,
+          endOffsetMin: lastMod.endOffsetMin + additionalMinutes,
+        },
+      });
+    }
+
+    return await prisma.meetup.update({
+      where: { id },
+      data: {
+        totalMinutes: newTotalMinutes,
+        endsAt: newEndsAt,
+        status: "ACTIVE",
+      },
+      include: { modules: { orderBy: { orderIndex: "asc" } } },
+    });
+  }
+
+  /**
    * Concludes a meetup completely.
    */
   static async concludeMeetup(id: string) {
