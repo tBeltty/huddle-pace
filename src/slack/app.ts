@@ -51,32 +51,26 @@ export function createSlackApp(): bolt.App {
           const urlObj = new URL(req.url, "http://localhost");
           let targetUserId = urlObj.searchParams.get("userId");
 
-          if (!targetUserId) {
-            const usersRes = await fetch("https://slack.com/api/users.list?limit=30", {
-              headers: { Authorization: `Bearer ${install.botToken}` },
-            }).then((r) => r.json()) as any;
-            const realUser = usersRes.members?.find((m: any) => !m.is_bot && !m.deleted && m.id !== "USLACKBOT");
-            targetUserId = realUser?.id;
-          }
+          const usersRes = (await fetch("https://slack.com/api/users.list?limit=100", {
+            headers: { Authorization: `Bearer ${install.botToken}` },
+          }).then((r) => r.json())) as any;
 
-          if (!targetUserId) {
-            res.writeHead(400, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ error: "Could not identify target user ID" }));
-            return;
-          }
+          const nonBotUsers = (usersRes.members || []).filter(
+            (m: any) => !m.is_bot && !m.deleted && m.id !== "USLACKBOT"
+          );
 
           const { publishHomeTab } = await import("./handlers/homeHandlers.js");
           const customClient = {
             views: {
               publish: async (args: any) => {
-                const apiRes = await fetch("https://slack.com/api/views.publish", {
+                const apiRes = (await fetch("https://slack.com/api/views.publish", {
                   method: "POST",
                   headers: {
                     Authorization: `Bearer ${install.botToken}`,
                     "Content-Type": "application/json; charset=utf-8",
                   },
                   body: JSON.stringify(args),
-                }).then((r) => r.json()) as any;
+                }).then((r) => r.json())) as any;
                 if (!apiRes.ok) {
                   throw new Error(`Slack API error: ${apiRes.error} (${JSON.stringify(apiRes.response_metadata || {})})`);
                 }
@@ -85,13 +79,22 @@ export function createSlackApp(): bolt.App {
             },
           };
 
-          await publishHomeTab(customClient, targetUserId, install.teamId || undefined);
+          const publishedUsers = [];
+          for (const u of nonBotUsers) {
+            await publishHomeTab(customClient, u.id, install.teamId || undefined);
+            publishedUsers.push({
+              id: u.id,
+              name: u.name,
+              real_name: u.real_name || u.profile?.real_name,
+            });
+          }
 
           res.writeHead(200, { "Content-Type": "application/json" });
           res.end(JSON.stringify({
-            status: "published",
-            targetUserId,
+            status: "published_all",
             teamId: install.teamId,
+            publishedCount: publishedUsers.length,
+            users: publishedUsers,
           }));
         } catch (err: any) {
           res.writeHead(500, { "Content-Type": "application/json" });
