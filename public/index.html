@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuddlePace — 15-Minute Huddles That Actually Take 15 Minutes</title>
+  
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="HuddlePace — 15-Minute Huddles That Actually Take 15 Minutes">
+  <meta name="description" content="Vector keeps your Slack Huddles on time and focused. Real-time visual progress bars, midpoint blocker prompts, and zero audio recording. Built for fast engineering teams.">
+  <meta name="keywords" content="Slack Bot, Meeting Pacer, Slack Huddle Timer, Agile Standup, Meeting Timekeeper, Scrum Productivity, HuddlePace">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://huddlepace.com/">
+
+  <!-- Open Graph / Facebook / Slack -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://huddlepace.com/">
+  <meta property="og:title" content="HuddlePace — 15-Minute Huddles That Actually Take 15 Minutes">
+  <meta property="og:description" content="Eliminate meeting drift. Vector accompanies your Slack Huddles with real-time visual progress bars, blocker alerts, and clean wrap-up cues.">
+  <meta property="og:image" content="https://huddlepace.com/assets/og-image.jpg">
+  <meta property="og:site_name" content="HuddlePace">
+
+  <!-- Twitter Card -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://huddlepace.com/">
+  <meta property="twitter:title" content="HuddlePace — 15-Minute Huddles That Actually Take 15 Minutes">
+  <meta property="twitter:description" content="Eliminate meeting drift. Real-time visual cadence for Slack Huddles with zero audio retention.">
+  <meta property="twitter:image" content="https://huddlepace.com/assets/og-image.jpg">
+
+  <!-- Favicon Suite -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/assets/favicon.ico">
+
+  <!-- Google Fonts Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "HuddlePace",
+    "operatingSystem": "Slack",
+    "applicationCategory": "BusinessApplication",
+    "url": "https://huddlepace.com/",
+    "offers": {
+      "@type": "Offer",
+      "price": "0.00",
+      "priceCurrency": "USD"
+    },
+    "description": "Slack-native meeting timekeeper and cadence companion. Tracks modular agendas and huddle durations in real time without audio recording."
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg-base: #080b11;
+      --bg-surface: rgba(15, 23, 42, 0.72);
+      --bg-surface-hover: rgba(30, 41, 59, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(6, 182, 212, 0.4);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-cyan: #06b6d4;
+      --accent-cyan-glow: rgba(6, 182, 212, 0.25);
+      --accent-amber: #f59e0b;
+      --accent-orange: #f97316;
+      --accent-slack: #611f69;
+      --accent-slack-hover: #4a154b;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-full: 9999px;
+      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient Glows */
+    .ambient-glow-1 {
+      position: absolute;
+      top: -120px;
+      left: 10%;
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.16) 0%, rgba(8, 11, 17, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-glow-2 {
+      position: absolute;
+      top: 280px;
+      right: 5%;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.14) 0%, rgba(8, 11, 17, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .telemetry-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1100px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(circle at top center, black 30%, transparent 80%);
+      -webkit-mask-image: radial-gradient(circle at top center, black 30%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    header {
+      padding: 24px 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      padding: 12px 24px;
+      border-radius: var(--radius-full);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-amber));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+    }
+
+    /* Language Switcher */
+    .lang-switcher {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .lang-btn.active {
+      background: #1e293b;
+      color: var(--text-primary);
+    }
+
+    .btn-nav-slack {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-slack);
+      color: #ffffff;
+      padding: 8px 18px;
+      border-radius: var(--radius-full);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-nav-slack:hover {
+      background: var(--accent-slack-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 70px 0 60px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: center;
+      gap: 48px;
+    }
+
+    .badge-pilot {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: var(--radius-full);
+      color: var(--accent-cyan);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.035em;
+      margin-bottom: 20px;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, #38bdf8 0%, #f59e0b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-lead {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      margin-bottom: 36px;
+      max-width: 540px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #ffffff;
+      padding: 14px 28px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.05rem;
+      box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px -5px rgba(2, 132, 199, 0.6);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 14px 24px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.05rem;
+      backdrop-filter: blur(12px);
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-surface-hover);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .hero-trust {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .trust-item svg {
+      color: var(--accent-cyan);
+    }
+
+    /* Vector Hero Card */
+    .vector-card-wrap {
+      position: relative;
+    }
+
+    .vector-radar-backdrop {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 480px;
+      height: 480px;
+      border: 1px dashed rgba(6, 182, 212, 0.22);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .vector-radar-backdrop::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 320px;
+      height: 320px;
+      border: 1px solid rgba(245, 158, 11, 0.16);
+      border-radius: 50%;
+    }
+
+    .vector-display-card {
+      position: relative;
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+
+    .vector-display-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-amber), transparent);
+    }
+
+    .vector-image-container {
+      width: 100%;
+      height: 380px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: relative;
+      background: #0d131f;
+    }
+
+    .vector-image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transition: transform 0.4s ease;
+    }
+
+    .vector-image-container:hover img {
+      transform: scale(1.03);
+    }
+
+    .vector-floating-tag {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      background: rgba(11, 15, 25, 0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tag-identity h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .tag-identity p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .tag-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 8px var(--accent-cyan);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    /* Simulation Section */
+    .simulation-section {
+      padding: 40px 0 80px;
+    }
+
+    .slack-mockup-card {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      max-width: 860px;
+      margin: 0 auto;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+    }
+
+    .mockup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .mockup-channel {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    .mockup-badge {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: var(--accent-amber);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .slack-message {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 16px;
+      background: rgba(8, 11, 17, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-md);
+      padding: 20px;
+    }
+
+    .bot-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border-accent);
+    }
+
+    .bot-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .message-content h5 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .bot-pill {
+      background: #1e293b;
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .huddle-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #38bdf8;
+      margin-bottom: 12px;
+    }
+
+    .progress-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .progress-meta strong {
+      color: var(--accent-cyan);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: #1e293b;
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-cyan), #38bdf8);
+      border-radius: var(--radius-full);
+      box-shadow: 0 0 10px var(--accent-cyan-glow);
+      transition: width 1s linear;
+    }
+
+    .mockup-alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: rgba(245, 158, 11, 0.1);
+      border-left: 3px solid var(--accent-amber);
+      padding: 12px 16px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 0.9rem;
+      color: #fde68a;
+    }
+
+    /* Pillars */
+    .pillars-section {
+      padding: 60px 0 100px;
+    }
+
+    .section-headline {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .section-headline h2 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .section-headline p {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .pillar-card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 32px 28px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .pillar-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .pillar-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-cyan);
+      margin-bottom: 20px;
+    }
+
+    .pillar-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .pillar-card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 40px 0;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .hero-title {
+        font-size: 2.6rem;
+      }
+      .hero-lead {
+        margin: 0 auto 32px;
+      }
+      .hero-actions {
+        justify-content: center;
+      }
+      .hero-trust {
+        justify-content: center;
+      }
+      .pillars-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+  <div class="telemetry-grid"></div>
+
+  <div class="container">
+    <!-- Navbar -->
+    <header>
+      <nav class="navbar">
+        <a href="/" class="brand">
+          <div class="brand-icon">⏱️</div>
+          <span>HuddlePace</span>
+        </a>
+        <div class="nav-actions">
+          <a href="#demo" class="nav-link" data-i18n="navDemo">Live Demo</a>
+          <a href="#features" class="nav-link" data-i18n="navFeatures">Pillars</a>
+          
+          <!-- Language Toggle -->
+          <div class="lang-switcher">
+            <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" id="btn-es" onclick="setLanguage('es')">ES</button>
+          </div>
+
+          <a href="https://huddlepace.com/slack/install" class="btn-nav-slack">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.528 2.528 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
+            <span>Add to Slack</span>
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-text">
+        <div class="badge-pilot">
+          <span data-i18n="badgeText">⚡ Flight Pacer for Slack Huddles</span>
+        </div>
+        <h1 class="hero-title" data-i18n="heroTitle">
+          15-minute huddles that <span>actually take 15 minutes</span>
+        </h1>
+        <p class="hero-lead" data-i18n="heroLead">
+          Vector introduces real-time visual progress bars, midpoint blocker prompts, and wrap-up warnings to your Slack Huddles. Zero audio recording, zero drift, 100% focus.
+        </p>
+
+        <div class="hero-actions">
+          <a href="https://huddlepace.com/slack/install" class="btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.528 2.528 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
+            <span data-i18n="btnInstall">Install to Slack</span>
+          </a>
+          <a href="#demo" class="btn-secondary" data-i18n="btnDemo">See Live Simulation</a>
+        </div>
+
+        <div class="hero-trust">
+          <div class="trust-item">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            <span data-i18n="trust1">1-Click Install</span>
+          </div>
+          <div class="trust-item">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            <span data-i18n="trust2">0% Audio Retention</span>
+          </div>
+          <div class="trust-item">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            <span data-i18n="trust3">OAuth v2 Multi-Tenant</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vector Hero Graphic -->
+      <div class="vector-card-wrap">
+        <div class="vector-radar-backdrop"></div>
+        <div class="vector-display-card">
+          <div class="vector-image-container">
+            <img src="/assets/hero-vector.jpg" alt="Vector the Pacer Falcon" fetchpriority="high">
+            <div class="vector-floating-tag">
+              <div class="tag-identity">
+                <h4>Vector</h4>
+                <p>Flight Pacer · Vibecoder Crew</p>
+              </div>
+              <div class="tag-status">
+                <div class="pulse-dot"></div>
+                <span>HUD ONLINE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Simulation Section -->
+    <section class="simulation-section" id="demo">
+      <div class="slack-mockup-card">
+        <div class="mockup-header">
+          <div class="mockup-channel">
+            <span># engineering-sync</span>
+            <span>·</span>
+            <span data-i18n="simHuddleLive">Live Huddle Thread</span>
+          </div>
+          <div class="mockup-badge" data-i18n="simBadge">⏱️ Pacing Active</div>
+        </div>
+
+        <div class="slack-message">
+          <div class="bot-avatar">
+            <img src="/assets/avatar.png" alt="HuddlePace Bot Avatar">
+          </div>
+          <div class="message-content">
+            <h5>
+              <span>HuddlePace</span>
+              <span class="bot-pill">APP</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:400;" id="sim-clock">10:14 AM</span>
+            </h5>
+            <div class="huddle-title" data-i18n="simTitle">Daily Sync: Sprint Planning & Blockers</div>
+
+            <div class="progress-box">
+              <div class="progress-meta">
+                <span><span data-i18n="simElapsed">Elapsed time:</span> <strong id="sim-elapsed">9m 12s / 15m</strong></span>
+                <span><span data-i18n="simRemaining">Remaining:</span> <strong id="sim-remaining">5m 48s</strong></span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="sim-bar" style="width: 61%;"></div>
+              </div>
+            </div>
+
+            <div class="mockup-alert">
+              <span style="font-size:1.2rem;">🧭</span>
+              <div data-i18n="simAlert">
+                <strong>Midpoint Flight Check:</strong> Over 60% of estimated time has elapsed. If you have critical technical blockers, bring them to the table now before touchdown.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pillars Section -->
+    <section class="pillars-section" id="features">
+      <div class="section-headline">
+        <h2 data-i18n="pillarsHeading">Engineered to Keep Your Team on Flight Path</h2>
+        <p data-i18n="pillarsSubheading">Three non-negotiable architectural principles that protect deep engineering focus.</p>
+      </div>
+
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <h3 data-i18n="pillar1Title">Modular Timeboxing</h3>
+          <p data-i18n="pillar1Desc">Launch instant sessions with <code>/pace 15m</code> or structure percentage-based topics. Visual progress updates automatically inside the Huddle chat without spamming the main channel.</p>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          </div>
+          <h3 data-i18n="pillar2Title">Zero Audio Retention</h3>
+          <p data-i18n="pillar2Desc">Your privacy is sacred. HuddlePace never records audio, captures transcripts, or stores private conversation content. It purely manages time, session state, and cadence.</p>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+          </div>
+          <h3 data-i18n="pillar3Title">1-Click Distribution</h3>
+          <p data-i18n="pillar3Desc">Native OAuth v2 ("Add to Slack") multi-tenant setup. No servers or ngrok tunnels required for external teams, with HMAC-SHA256 request verification across every event.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <p>© 2026 HuddlePace · Part of the Vibecoder Universe · Hosted securely on <a href="https://huddlepace.com">huddlepace.com</a></p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Interactive Simulator & i18n Script -->
+  <script>
+    const translations = {
+      en: {
+        navDemo: "Live Demo",
+        navFeatures: "Pillars",
+        badgeText: "⚡ Flight Pacer for Slack Huddles",
+        heroTitle: '15-minute huddles that <span>actually take 15 minutes</span>',
+        heroLead: "Vector introduces real-time visual progress bars, midpoint blocker prompts, and wrap-up warnings to your Slack Huddles. Zero audio recording, zero drift, 100% focus.",
+        btnInstall: "Install to Slack",
+        btnDemo: "See Live Simulation",
+        trust1: "1-Click Install",
+        trust2: "0% Audio Retention",
+        trust3: "OAuth v2 Multi-Tenant",
+        simHuddleLive: "Live Huddle Thread",
+        simBadge: "⏱️ Pacing Active",
+        simTitle: "Daily Sync: Sprint Planning & Blockers",
+        simElapsed: "Elapsed time:",
+        simRemaining: "Remaining:",
+        simAlert: "<strong>Midpoint Flight Check:</strong> Over 60% of estimated time has elapsed. If you have critical technical blockers, bring them to the table now before touchdown.",
+        pillarsHeading: "Engineered to Keep Your Team on Flight Path",
+        pillarsSubheading: "Three non-negotiable architectural principles that protect deep engineering focus.",
+        pillar1Title: "Modular Timeboxing",
+        pillar1Desc: "Launch instant sessions with <code>/pace 15m</code> or structure percentage-based topics. Visual progress updates automatically inside the Huddle chat without spamming the main channel.",
+        pillar2Title: "Zero Audio Retention",
+        pillar2Desc: "Your privacy is sacred. HuddlePace never records audio, captures transcripts, or stores private conversation content. It purely manages time, session state, and cadence.",
+        pillar3Title: "1-Click Distribution",
+        pillar3Desc: "Native OAuth v2 (\"Add to Slack\") multi-tenant setup. No servers or ngrok tunnels required for external teams, with HMAC-SHA256 request verification across every event."
+      },
+      es: {
+        navDemo: "En Vivo",
+        navFeatures: "Pilares",
+        badgeText: "⚡ Copiloto de Cadencia para Slack Huddles",
+        heroTitle: 'Reuniones de 15 minutos que <span>duran 15 minutos</span>',
+        heroLead: "Vector introduce barras de progreso visuales en tiempo real, alertas de bloqueos a mitad de llamada y avisos de cierre. Sin grabaciones invasivas, sin desvíos y con respeto por el foco de tu equipo.",
+        btnInstall: "Instalar en Slack",
+        btnDemo: "Ver Demostración",
+        trust1: "Instalación en 1-Clic",
+        trust2: "Cero Audio Grabado",
+        trust3: "Multi-Tenant OAuth v2",
+        simHuddleLive: "Hilo de Huddle en Vivo",
+        simBadge: "⏱️ Pacing Activo",
+        simTitle: "Daily Sync: Planificación de Sprint y Bloqueos",
+        simElapsed: "Tiempo transcurrido:",
+        simRemaining: "Restante:",
+        simAlert: "<strong>Alerta de Mitad de Vuelo:</strong> El 60% del tiempo estimado ha concluido. Si quedan bloqueos técnicos críticos, colócalos sobre la mesa ahora antes del aterrizaje.",
+        pillarsHeading: "Diseñado para Mantener el Vuelo Nivelado",
+        pillarsSubheading: "Tres principios de ingeniería para proteger las horas de trabajo profundo de tu equipo.",
+        pillar1Title: "Timeboxing Modular",
+        pillar1Desc: "Lanza sesiones al instante con <code>/pace 15m</code> o estructura temas por porcentajes. La barra se actualiza en el chat del Huddle cada 30 segundos sin inundar el canal principal.",
+        pillar2Title: "Cero Grabación Invasiva",
+        pillar2Desc: "Tu privacidad es sagrada. HuddlePace no graba audio, no procesa transcripciones ni almacena conversaciones confidenciales. Solo controla la cadencia y el tiempo.",
+        pillar3Title: "Instalación en 1-Clic",
+        pillar3Desc: "Flujo nativo OAuth v2 (\"Add to Slack\"). Sin túneles ngrok, sin configurar servidores y con aislamiento criptográfico total de credenciales por espacio de trabajo."
+      }
+    };
+
+    function setLanguage(lang) {
+      document.documentElement.lang = lang;
+      document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+      document.getElementById('btn-es').classList.toggle('active', lang === 'es');
+
+      const dict = translations[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+          el.innerHTML = dict[key];
+        }
+      });
+      localStorage.setItem('huddlepace_lang', lang);
+    }
+
+    // Auto-detect language
+    const savedLang = localStorage.getItem('huddlepace_lang');
+    if (savedLang) {
+      setLanguage(savedLang);
+    } else if (navigator.language && navigator.language.startsWith('es')) {
+      setLanguage('es');
+    }
+
+    // Dynamic Live Simulation Counter
+    let secondsElapsed = 552; // 9m 12s
+    const totalSeconds = 900; // 15m
+    setInterval(() => {
+      secondsElapsed++;
+      if (secondsElapsed > totalSeconds) secondsElapsed = 60;
+      
+      const m = Math.floor(secondsElapsed / 60);
+      const s = secondsElapsed % 60;
+      const rem = totalSeconds - secondsElapsed;
+      const remM = Math.floor(rem / 60);
+      const remS = rem % 60;
+
+      const pct = Math.min(100, Math.floor((secondsElapsed / totalSeconds) * 100));
+      document.getElementById('sim-elapsed').innerText = `${m}m ${s < 10 ? '0' : ''}${s}s / 15m`;
+      document.getElementById('sim-remaining').innerText = `${remM}m ${remS < 10 ? '0' : ''}${remS}s`;
+      document.getElementById('sim-bar').style.width = `${pct}%`;
+    }, 1000);
+  </script>
+</body>
+</html>

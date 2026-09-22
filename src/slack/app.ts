@@ -7,6 +7,7 @@ import { registerCommandHandlers } from "./handlers/commandHandlers.js";
 import { registerHuddleHandlers } from "./handlers/huddleHandlers.js";
 import { prismaInstallationStore } from "./oauth/installationStore.js";
 import { getEnv } from "../config/env.js";
+import { getWebCustomRoutes } from "../web/landingPage.js";
 
 export function createSlackApp(): bolt.App {
   const env = getEnv();
@@ -53,6 +54,7 @@ export function createSlackApp(): bolt.App {
               );
             },
           },
+          ...getWebCustomRoutes(),
         ],
         logLevel: LogLevel.INFO,
       });
