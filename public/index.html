@@ -356,7 +356,7 @@
             <ul>
               <li><a href="/privacy" data-i18n="fCol3Privacy">Privacy Policy</a></li>
               <li><a href="/terms" data-i18n="fCol3Terms">Terms of Service</a></li>
-              <li><a href="mailto:support@huddlepace.com" data-i18n="fCol3Support">Contact Support</a></li>
+              <li><a href="mailto:support@huddlepace.com" id="footer-contact-link" data-i18n="fCol3Support">Contact Support</a></li>
               <li><a href="#demo" data-i18n="fCol3Changelog">Release Notes</a></li>
             </ul>
           </div>
@@ -447,7 +447,15 @@
         fCol3Support: "Contact Support",
         fCol3Changelog: "Release Notes",
         footerPill: "🛡️ Slack-Verified OAuth · ⚡ Live Cadence Updates · 🦅 Vector v1.0",
-        footerCopy: "© 2026 HuddlePace. Engineered for teams that value focus."
+        footerCopy: "© 2026 HuddlePace. Engineered for teams that value focus.",
+        contactModalTitle: "Contact Support",
+        contactModalSubtitle: "Tell us what's going on, Vector will route it to the team.",
+        contactNameLabel: "Your Name",
+        contactEmailLabel: "Your Email",
+        contactSubjectLabel: "Subject",
+        contactMessageLabel: "Message",
+        contactSendBtn: "Send Message",
+        contactModalHint: "Opens your email app, addressed to support@huddlepace.com."
       },
       es: {
         navVector: "Conoce a Vector",
@@ -518,7 +526,15 @@
         fCol3Support: "Contacto de Soporte",
         fCol3Changelog: "Notas de Versión",
         footerPill: "🛡️ OAuth verificado por Slack · ⚡ Avance de cadencia en vivo · 🦅 Vector v1.0",
-        footerCopy: "© 2026 HuddlePace. Diseñado para equipos que cuidan su tiempo."
+        footerCopy: "© 2026 HuddlePace. Diseñado para equipos que cuidan su tiempo.",
+        contactModalTitle: "Contacto de Soporte",
+        contactModalSubtitle: "Cuéntanos qué pasa, Vector lo enviará al equipo.",
+        contactNameLabel: "Tu Nombre",
+        contactEmailLabel: "Tu Correo Electrónico",
+        contactSubjectLabel: "Asunto",
+        contactMessageLabel: "Mensaje",
+        contactSendBtn: "Enviar Mensaje",
+        contactModalHint: "Abre tu cliente de correo, dirigido a support@huddlepace.com."
       }
     };
 
@@ -599,6 +615,60 @@
       const t = translations[currentLang()];
       return [t.simModule1, t.simModule2, t.simModule3];
     }
+
+    // Contact Support modal: branded in-app form that hands off to the
+    // user's own email client via a mailto: link on submit, instead of a
+    // bare mailto anchor that silently no-ops when no mail client is
+    // configured (the common case in-browser).
+    document.addEventListener('DOMContentLoaded', function initContactModal() {
+      const link = document.getElementById('footer-contact-link');
+      const overlay = document.getElementById('contact-modal-overlay');
+      const closeBtn = document.getElementById('contact-modal-close');
+      const form = document.getElementById('contact-modal-form');
+      if (!link || !overlay || !closeBtn || !form) return;
+
+      // The modal markup sits after the main script block, so it didn't
+      // exist yet when setLanguage() ran on initial page load. Re-apply
+      // translations now that its [data-i18n] nodes are in the DOM.
+      const dict = translations[currentLang()];
+      overlay.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.innerHTML = dict[key];
+      });
+
+      function openModal(e) {
+        e.preventDefault();
+        overlay.hidden = false;
+        document.getElementById('contact-name')?.focus();
+      }
+
+      function closeModal() {
+        overlay.hidden = true;
+      }
+
+      link.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !overlay.hidden) closeModal();
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('contact-name').value.trim();
+        const email = document.getElementById('contact-email').value.trim();
+        const subject = document.getElementById('contact-subject').value.trim();
+        const message = document.getElementById('contact-message').value.trim();
+
+        const body = `${message}\n\n---\n${name} <${email}>`;
+        const mailtoUrl = `mailto:support@huddlepace.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.location.href = mailtoUrl;
+        closeModal();
+        form.reset();
+      });
+    });
 
     function moduleIndexForSeconds(sec) {
       const pct = sec / totalSeconds;
@@ -776,6 +846,40 @@
     renderLiveState();
     startSimulation();
   </script>
+
+  <!-- Contact Support Modal -->
+  <div class="contact-modal-overlay" id="contact-modal-overlay" hidden>
+    <div class="contact-modal" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
+      <button type="button" class="contact-modal-close" id="contact-modal-close" aria-label="Close">&times;</button>
+      <div class="contact-modal-header">
+        <img src="/assets/avatar.png" alt="" class="contact-modal-avatar" />
+        <div>
+          <h3 id="contact-modal-title" data-i18n="contactModalTitle">Contact Support</h3>
+          <p data-i18n="contactModalSubtitle">Tell us what's going on, Vector will route it to the team.</p>
+        </div>
+      </div>
+      <form id="contact-modal-form">
+        <div class="contact-form-group">
+          <label for="contact-name" data-i18n="contactNameLabel">Your Name</label>
+          <input type="text" id="contact-name" name="name" required />
+        </div>
+        <div class="contact-form-group">
+          <label for="contact-email" data-i18n="contactEmailLabel">Your Email</label>
+          <input type="email" id="contact-email" name="email" required />
+        </div>
+        <div class="contact-form-group">
+          <label for="contact-subject" data-i18n="contactSubjectLabel">Subject</label>
+          <input type="text" id="contact-subject" name="subject" required />
+        </div>
+        <div class="contact-form-group">
+          <label for="contact-message" data-i18n="contactMessageLabel">Message</label>
+          <textarea id="contact-message" name="message" rows="5" required></textarea>
+        </div>
+        <button type="submit" class="contact-modal-submit" data-i18n="contactSendBtn">Send Message</button>
+        <p class="contact-modal-hint" data-i18n="contactModalHint">Opens your email app, addressed to support@huddlepace.com.</p>
+      </form>
+    </div>
+  </div>
 
   <!-- tBelt Support Beacon SDK -->
   <script src="https://finances.tbelt.online/beacon.js"></script>
