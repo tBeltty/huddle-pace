@@ -1,26 +1,39 @@
 import { App } from "@slack/bolt";
 import { MeetupService } from "../../services/meetupService.js";
-import { buildHomeTabView } from "../ui/homeTab.js";
+import { buildHomeTabView, HomeTabType } from "../ui/homeTab.js";
 import { buildScheduleModal } from "../ui/scheduleModal.js";
 import { buildPacingReportBlocks } from "../ui/reportBlock.js";
+
+// Tracks active sub-tab per user in-memory for instant navigation
+const userHomeTabMap = new Map<string, HomeTabType>();
 
 /**
  * Centralized publisher for a user's App Home view.
  */
-export async function publishHomeTab(client: any, userId: string, teamId?: string): Promise<void> {
+export async function publishHomeTab(
+  client: any,
+  userId: string,
+  teamId?: string,
+  tabOverride?: HomeTabType
+): Promise<void> {
   try {
+    if (tabOverride) {
+      userHomeTabMap.set(userId, tabOverride);
+    }
+    const activeTab = tabOverride || userHomeTabMap.get(userId) || "meetups";
+
     const [active, upcoming, stats] = await Promise.all([
       MeetupService.getActiveMeetups(teamId),
       MeetupService.getUpcomingMeetups(teamId),
       MeetupService.getPacingReportStats(30, teamId),
     ]);
 
-    const view = buildHomeTabView(active, upcoming, stats, userId);
-    const result = await client.views.publish({
+    const view = buildHomeTabView(active, upcoming, stats, userId, activeTab);
+    await client.views.publish({
       user_id: userId,
       view,
     });
-    console.info(`⚡ App Home tab published successfully for user ${userId} (blocks: ${view.blocks.length})`);
+    console.info(`⚡ App Home tab published for user ${userId} (tab: ${activeTab}, blocks: ${view.blocks.length})`);
   } catch (error: any) {
     console.error(`Error publishing App Home tab for user ${userId}:`, error?.data || error.message || error);
   }
@@ -42,6 +55,39 @@ export function registerHomeHandlers(app: App) {
     const userId = b.user?.id;
     if (userId) {
       await publishHomeTab(client, userId, teamId);
+    }
+  });
+
+  // Action: Switch to Meetups & Agenda sub-tab
+  app.action("nav_tab_meetups", async ({ ack, body, client, context }) => {
+    await ack();
+    const b = body as any;
+    const teamId = b.team?.id || context.teamId;
+    const userId = b.user?.id;
+    if (userId) {
+      await publishHomeTab(client, userId, teamId, "meetups");
+    }
+  });
+
+  // Action: Switch to Analytics & Reports sub-tab
+  app.action("nav_tab_analytics", async ({ ack, body, client, context }) => {
+    await ack();
+    const b = body as any;
+    const teamId = b.team?.id || context.teamId;
+    const userId = b.user?.id;
+    if (userId) {
+      await publishHomeTab(client, userId, teamId, "analytics");
+    }
+  });
+
+  // Action: Switch to Guide & Tips sub-tab
+  app.action("nav_tab_guide", async ({ ack, body, client, context }) => {
+    await ack();
+    const b = body as any;
+    const teamId = b.team?.id || context.teamId;
+    const userId = b.user?.id;
+    if (userId) {
+      await publishHomeTab(client, userId, teamId, "guide");
     }
   });
 
