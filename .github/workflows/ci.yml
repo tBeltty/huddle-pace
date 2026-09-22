@@ -1,12 +1,18 @@
-name: CI
+name: CI/CD Pipeline & Quality Gate
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
 
 jobs:
   build-and-test:
-    name: Build, Typecheck & Test
+    name: Build, Typecheck & Test Suite
     runs-on: [self-hosted, huddle-pace]
 
     steps:
@@ -27,7 +33,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Setup Database Schema & Generate Client
+      - name: Setup Test Database Schema & Generate Client
         run: pnpm db:push
         env:
           DATABASE_URL: "file:./ci.db"
@@ -39,3 +45,87 @@ jobs:
         run: pnpm test
         env:
           DATABASE_URL: "file:./ci.db"
+
+  deploy-and-verify:
+    name: Continuous Deployment & Smoke Gate
+    needs: [build-and-test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: [self-hosted, huddle-pace]
+
+    steps:
+      - name: Execute Zero-Downtime Deployment with Rollback Gate
+        run: |
+          set -euo pipefail
+          PROD_DIR="/home/jhonatan/huddle-pace"
+          echo "=== Deploying to $PROD_DIR ==="
+          
+          cd "$PROD_DIR"
+          
+          PREV_SHA=$(git rev-parse HEAD)
+          echo "Current production SHA: $PREV_SHA"
+          
+          # Fetch latest origin
+          git fetch origin main
+          TARGET_SHA=$(git rev-parse origin/main)
+          echo "Deploying target SHA: $TARGET_SHA"
+          
+          # Rollback handler in case of build or smoke test failure
+          rollback() {
+            echo "🚨 DEPLOYMENT FAILED! Initiating automatic rollback to $PREV_SHA..."
+            cd "$PROD_DIR"
+            git reset --hard "$PREV_SHA"
+            pnpm install
+            pnpm db:push
+            pnpm build
+            pm2 reload huddle-pace --update-env
+            echo "Rollback completed. Checking healthz after rollback..."
+            sleep 2
+            curl -fsS http://127.0.0.1:3000/healthz || true
+            exit 1
+          }
+          
+          trap rollback ERR
+          
+          git reset --hard origin/main
+          pnpm install
+          pnpm db:push
+          pnpm build
+          
+          echo "Reloading PM2 service with zero downtime..."
+          pm2 reload huddle-pace --update-env
+          
+          echo "=== Running Smoke Test Gate ==="
+          ATTEMPTS=0
+          MAX_ATTEMPTS=15
+          SUCCESS=0
+          
+          while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+            ATTEMPTS=$((ATTEMPTS+1))
+            echo "Checking http://127.0.0.1:3000/healthz (Attempt $ATTEMPTS/$MAX_ATTEMPTS)..."
+            
+            HEALTH_RESPONSE=$(curl -sS -m 3 http://127.0.0.1:3000/healthz || true)
+            
+            if echo "$HEALTH_RESPONSE" | grep -q '"status":"ok"' && echo "$HEALTH_RESPONSE" | grep -q '"mode":"http-oauth"'; then
+              echo "✅ Health check passed on localhost: $HEALTH_RESPONSE"
+              SUCCESS=1
+              break
+            fi
+            sleep 2
+          done
+          
+          if [ $SUCCESS -ne 1 ]; then
+            echo "❌ Local health check failed after $MAX_ATTEMPTS attempts."
+            echo "Last response: $HEALTH_RESPONSE"
+            false
+          fi
+          
+          # Verify public domain via HTTPS
+          echo "Checking public healthz endpoint https://huddlepace.com/healthz..."
+          PUBLIC_HEALTH=$(curl -sS -m 5 https://huddlepace.com/healthz || true)
+          if echo "$PUBLIC_HEALTH" | grep -q '"status":"ok"'; then
+            echo "✅ Public health check passed: $PUBLIC_HEALTH"
+          else
+            echo "⚠️ Warning: Public healthcheck returned: $PUBLIC_HEALTH"
+          fi
+          
+          echo "🚀 Deployment succeeded and verified for commit $TARGET_SHA."
