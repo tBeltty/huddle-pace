@@ -89,7 +89,7 @@ describe("Web Landing Page & Asset Delivery", () => {
       assert.match(res.body, /Meet Vector/);
       assert.match(res.body, /The timekeeper for your Slack workspace/);
       assert.match(res.body, /src="\/assets\/avatar\.png"/);
-      assert.match(res.body, /src="\/assets\/vector-full-body\.png"/);
+      assert.match(res.body, /src="\/assets\/vectorfull\.png"/);
     });
 
     test("serves pre-rendered Spanish page when ?lang=es is requested", () => {
@@ -159,8 +159,8 @@ describe("Web Landing Page & Asset Delivery", () => {
       handleStaticAsset(req, res as any);
     });
 
-    test("serves vector-full-body.png with 200 OK and image/png", (t, done) => {
-      const req: any = { params: { file: "vector-full-body.png" } };
+    test("serves vectorfull.png with 200 OK and image/png", (t, done) => {
+      const req: any = { params: { file: "vectorfull.png" } };
       const res = new MockResponse();
 
       res.on("finish", () => {
