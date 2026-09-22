@@ -15,11 +15,38 @@ export function createSlackApp(): bolt.App {
   const redirectUri = env.SLACK_REDIRECT_URI || "https://huddlepace.com/slack/oauth_redirect";
   const redirectUriPath = new URL(redirectUri).pathname;
 
+  const customRoutes = [
+    {
+      path: "/healthz",
+      method: ["GET", "HEAD"],
+      handler: (_req: any, res: any) => {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        if (_req.method === "HEAD") {
+          res.end();
+          return;
+        }
+        res.end(
+          JSON.stringify({
+            status: "ok",
+            mode: env.SOCKET_MODE ? "socket-mode" : "http-oauth",
+            timestamp: new Date().toISOString(),
+          })
+        );
+      },
+    },
+    ...getWebCustomRoutes(),
+  ];
+
   const app = env.SOCKET_MODE
     ? new App({
         token: env.SLACK_BOT_TOKEN,
         appToken: env.SLACK_APP_TOKEN,
         socketMode: true,
+        tokenVerificationEnabled: false,
+        installerOptions: {
+          port: env.PORT,
+        },
+        customRoutes,
         logLevel: LogLevel.INFO,
       })
     : new App({
@@ -44,27 +71,7 @@ export function createSlackApp(): bolt.App {
           directInstall: true,
           redirectUriPath,
         },
-        customRoutes: [
-          {
-            path: "/healthz",
-            method: ["GET", "HEAD"],
-            handler: (_req, res) => {
-              res.writeHead(200, { "Content-Type": "application/json" });
-              if (_req.method === "HEAD") {
-                res.end();
-                return;
-              }
-              res.end(
-                JSON.stringify({
-                  status: "ok",
-                  mode: "http-oauth",
-                  timestamp: new Date().toISOString(),
-                })
-              );
-            },
-          },
-          ...getWebCustomRoutes(),
-        ],
+        customRoutes,
         logLevel: LogLevel.INFO,
       });
 

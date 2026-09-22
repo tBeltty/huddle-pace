@@ -14,8 +14,9 @@ async function main() {
   worker.start(30000); // 30-second ticks
 
   if (env.SOCKET_MODE) {
-    await app.start();
-    console.log("⚡️ HuddlePace is live and connected via Slack Socket Mode!");
+    await app.start(env.PORT);
+    console.log(`⚡️ HuddlePace is live and connected via Slack Socket Mode (HTTP web port: ${env.PORT})!`);
+    console.log(`🔗 Healthcheck endpoint: http://localhost:${env.PORT}/healthz`);
   } else {
     await app.start(env.PORT);
     console.log(`⚡️ HuddlePace is live on port ${env.PORT} via Slack HTTP OAuth mode!`);
