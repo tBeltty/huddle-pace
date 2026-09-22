@@ -114,20 +114,12 @@ export class TimerWorker {
                         type: "section",
                         text: {
                           type: "mrkdwn",
-                          text: `🎉 *This meetup has officially concluded.*\n\n• *Formal Duration:* ${formatMinutes(formalMin)} (Scheduled: ${formatMinutes(meetup.totalMinutes)})\n• *Speakers:* ${speakers}\n\nThank you for respecting everyone's time!`,
+                          text: `🎉 *This meetup has officially concluded.*\n\n• *Formal Duration:* ${formatMinutes(formalMin)} (Scheduled: ${formatMinutes(meetup.totalMinutes)})\n• *Speakers:* ${speakers}\n\n🛬 Smooth landing — logged and ready for next time.`,
                         },
                       },
                     ],
                   }).catch(() => {});
                 }
-
-                // Brief notice into Huddle thread
-                await this.app.client.chat.postMessage({
-                  token: botToken,
-                  channel: meetup.channelId,
-                  thread_ts: meetup.threadTs,
-                  text: `🏁 *Huddle call ended.* Live pacing session concluded and logged (${formatMinutes(formalMin)}). Great work!`,
-                }).catch(() => {});
 
                 // Clean up speaker DM reminders (1-minute warnings, transitions, etc.)
                 await MeetupService.cleanupReminderDMs(updated, this.app.client, botToken);

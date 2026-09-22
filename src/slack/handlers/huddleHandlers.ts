@@ -62,21 +62,12 @@ export function registerHuddleHandlers(app: App) {
                   type: "section",
                   text: {
                     type: "mrkdwn",
-                    text: `🎉 *This meetup has officially concluded.*\n\n• *Formal Duration:* ${formatMinutes(formalMinutes)} (Scheduled: ${formatMinutes(meetup.totalMinutes)})\n${chatMinutes > 0 ? `• *Casual Chatting:* ${formatMinutes(chatMinutes)}\n` : ""}• *Speakers:* ${speakers}\n\nThank you for respecting everyone's time!`,
+                    text: `🎉 *This meetup has officially concluded.*\n\n• *Formal Duration:* ${formatMinutes(formalMinutes)} (Scheduled: ${formatMinutes(meetup.totalMinutes)})\n${chatMinutes > 0 ? `• *Casual Chatting:* ${formatMinutes(chatMinutes)}\n` : ""}• *Speakers:* ${speakers}\n\n🛬 Smooth landing — logged and ready for next time.`,
                   },
                 },
               ],
             }).catch(() => {});
           }
-
-          // Post final summary into the Huddle thread
-          await client.chat.postMessage({
-            channel: channelId,
-            thread_ts: meetup.threadTs || rootTs,
-            text: `🏁 *Huddle ended automatically.*\n\n• *Formal Session Duration:* ${formatMinutes(formalMinutes)} (Budget: ${formatMinutes(meetup.totalMinutes)})\n${chatMinutes > 0 ? `• *Casual Chatting:* ${formatMinutes(chatMinutes)}\n` : ""}• *Speakers:* ${speakers}\n\nSession concluded and logged. Great pacing!`,
-          }).catch((err: any) => {
-            console.warn("Failed to post Huddle end summary:", err);
-          });
 
           // Proactively refresh App Home for all speakers
           const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
