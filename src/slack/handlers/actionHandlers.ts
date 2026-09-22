@@ -205,6 +205,74 @@ export function registerActionHandlers(app: App) {
     }
   });
 
+  // Action: Snooze / Extend meetup duration (+5m, +10m, +20m)
+  app.action("snooze_meetup_action", async ({ ack, body, client }) => {
+    await ack();
+    try {
+      const b = body as any;
+      const payload = JSON.parse(b.actions[0]?.value || "{}");
+      const { meetupId, minutes } = payload;
+      const additionalMin = parseInt(minutes, 10);
+      if (!meetupId || isNaN(additionalMin) || additionalMin <= 0) return;
+
+      const meetup = await MeetupService.getMeetupById(meetupId);
+      if (!meetup) return;
+
+      if (!isUserAuthorizedForMeetup(meetup.speakerUserId, b.user?.id)) {
+        try {
+          await client.chat.postEphemeral({
+            channel: b.channel?.id || meetup.channelId,
+            user: b.user?.id,
+            text: "⚠️ *Access Denied:* Only designated speaker(s) can snooze or extend the session timebox.",
+          });
+        } catch {}
+        return;
+      }
+
+      const updated = await MeetupService.extendMeetup(meetupId, additionalMin);
+      const elapsedMinutes = updated.startedAt
+        ? Math.floor((Date.now() - new Date(updated.startedAt).getTime()) / (60 * 1000))
+        : 0;
+      const currentMod = MeetupService.getCurrentModule(updated);
+
+      // 1. Update live tracker block in-place with the extended budget
+      if (updated.trackerMessageTs) {
+        await client.chat.update({
+          channel: updated.channelId,
+          ts: updated.trackerMessageTs,
+          text: `⏱️ Meetup Progress: ${updated.title} (${elapsedMinutes}/${updated.totalMinutes}m)`,
+          blocks: buildLiveTrackerBlocks({
+            meetupId: updated.id,
+            title: updated.title,
+            totalMinutes: updated.totalMinutes,
+            speakerUserId: updated.speakerUserId,
+            elapsedMinutes,
+            currentModuleName: currentMod?.module?.title || "Discussion",
+            moduleRemainingMinutes: currentMod?.remainingMinutes || additionalMin,
+            nextModuleName: currentMod?.nextModule ? currentMod.nextModule.title : null,
+            isOvertime: elapsedMinutes >= updated.totalMinutes,
+          }),
+        }).catch(() => {});
+      }
+
+      // 2. Post brief confirmation in the thread
+      await client.chat.postMessage({
+        channel: updated.channelId,
+        thread_ts: updated.threadTs || undefined,
+        text: `⏱️ *Flight Time Extended:* Added *+${additionalMin}m* to the session budget (New total: *${updated.totalMinutes}m*). Pacing tracker updated!`,
+      }).catch(() => {});
+
+      // 3. Proactively refresh App Home for speakers
+      const speakerIds = MeetupService.parseSpeakerIds(updated.speakerUserId);
+      const usersToRefresh = Array.from(new Set([b.user?.id, ...speakerIds].filter(Boolean)));
+      for (const uid of usersToRefresh) {
+        publishHomeTab(client, uid, b.team?.id).catch(() => {});
+      }
+    } catch (error) {
+      console.error("Error extending meetup timebox:", error);
+    }
+  });
+
   // Action: Conclude an active meetup
   app.action("conclude_meetup_action", async ({ ack, body, client }) => {
     await ack();

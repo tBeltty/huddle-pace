@@ -60,7 +60,12 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     detectedHuddles.forEach((h, index) => {
       const statusIcon = h.isActive ? "🟢 Active" : "⚪ Recent";
       const timePart = h.timeFormatted ? ` (${h.timeFormatted})` : "";
-      const labelText = `${statusIcon} Huddle #${index + 1}${timePart}`.slice(0, 75);
+      const namePart = h.roomName
+        ? `"${h.roomName}"`
+        : h.createdBy
+        ? `by <@${h.createdBy}>`
+        : `Huddle #${index + 1}`;
+      const labelText = `${statusIcon} ${namePart}${timePart}`.slice(0, 75);
       huddleOptions.push({
         text: { type: "plain_text", text: labelText, emoji: true },
         value: `huddle_${h.ts}`,
@@ -147,6 +152,9 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         type: "conversations_select",
         action_id: "channel_select",
         response_url_enabled: false,
+        filter: {
+          include: ["public", "private"],
+        },
         placeholder: {
           type: "plain_text",
           text: "Select target channel",

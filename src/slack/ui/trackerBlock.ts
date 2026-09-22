@@ -19,6 +19,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
   const percent = Math.min(100, Math.round((data.elapsedMinutes / data.totalMinutes) * 100));
   const progressVisual = renderProgressBar(percent, 16);
   const speakerDisplay = MeetupService.formatSpeakerMentions(data.speakerUserId);
+  const remainingMinutes = Math.max(0, data.totalMinutes - data.elapsedMinutes);
 
   if (data.isChatting) {
     const chatMinutes = data.chattingElapsedMinutes || 0;
@@ -35,8 +36,21 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `☕ *Formal Agenda Complete — Casual Chatting*\n\n• *Formal Duration:* ${data.elapsedMinutes}m (Budget: ${data.totalMinutes}m)\n• *Casual Chatting:* ${chatMinutes}m\n• *Speakers:* ${speakerDisplay}\n\nThe scheduled presentation has finished. The Huddle remains open for questions and casual discussion.`,
+          text: `> ☕ *Casual Chat Mode Active*\n> Formal presentation has finished at *${data.elapsedMinutes}m* (budget: ${data.totalMinutes}m). The room remains open for casual discussion and Q&A.`,
         },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `👤 *Speaker(s)*\n${speakerDisplay}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `☕ *Casual Chat Duration*\n*${chatMinutes}m*`,
+          },
+        ],
       },
       {
         type: "actions",
@@ -77,7 +91,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
         elements: [
           {
             type: "mrkdwn",
-            text: "🔄 _Updates automatically in-place. Concludes when the Huddle call ends._",
+            text: "🔄 _In-place updates every 30s. Automatically concludes when the Huddle call ends._",
           },
         ],
       },
@@ -87,7 +101,21 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
   const statusBadge = data.isOvertime ? "🔴 *Session Overtime*" : "🟢 *Pacing On Track*";
   const nextModuleDisplay = data.nextModuleName
     ? `*${data.nextModuleName}*`
-    : "_Final Segment / Conclusion_";
+    : "_Final Segment / Wrap-up_";
+
+  // Determine dynamic Vector Flight Companion check
+  let companionAlert: string;
+  if (data.isOvertime) {
+    companionAlert = `> 🔴 *Holding Pattern (Overtime):* Meeting has exceeded the ${data.totalMinutes}m scheduled budget. Conclude or switch to casual chat.`;
+  } else if (data.moduleRemainingMinutes <= 1 && data.nextModuleName) {
+    companionAlert = `> ⏱️ *1-Minute Warning:* Wrapping up *${data.currentModuleName}*. Transitioning next to *${data.nextModuleName}*.`;
+  } else if (remainingMinutes <= 2) {
+    companionAlert = `> ⚠️ *Final Approach (${remainingMinutes}m remaining):* Begin summarizing action items and key takeaways before touchdown.`;
+  } else if (percent >= 50) {
+    companionAlert = `> 🧭 *Midpoint Flight Check:* Over 50% of estimated time has elapsed. If you have critical technical blockers, bring them to the table now before touchdown.`;
+  } else {
+    companionAlert = `> ⏱️ *Flight Plan Active:* Pacing is steady. Moving through *${data.currentModuleName}*.`;
+  }
 
   return [
     {
@@ -100,22 +128,16 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
     },
     {
       type: "section",
-      fields: [
-        {
-          type: "mrkdwn",
-          text: `👤 *Speaker(s)*\n${speakerDisplay}`,
-        },
-        {
-          type: "mrkdwn",
-          text: `⏳ *Total Budget*\n${formatMinutes(data.totalMinutes)}`,
-        },
-      ],
+      text: {
+        type: "mrkdwn",
+        text: `${statusBadge}  •  *${data.elapsedMinutes} / ${data.totalMinutes} min* (${percent}%)\n${progressVisual}  •  *${formatMinutes(remainingMinutes)} remaining*`,
+      },
     },
     {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `${statusBadge} • *${data.elapsedMinutes} / ${data.totalMinutes} min* (${percent}%)\n${progressVisual}`,
+        text: companionAlert,
       },
     },
     {
@@ -123,13 +145,25 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
       fields: [
         {
           type: "mrkdwn",
-          text: `📍 *Current Module*\n*${data.currentModuleName}* (${data.moduleRemainingMinutes}m remaining)`,
+          text: `👤 *Speaker(s)*\n${speakerDisplay}`,
         },
         {
           type: "mrkdwn",
-          text: `⏭️ *Next Up*\n${nextModuleDisplay}`,
+          text: `📍 *Active Module*\n*${data.currentModuleName}* (${data.moduleRemainingMinutes}m left)`,
         },
       ],
+    },
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `⏭️ *Next Up:* ${nextModuleDisplay}`,
+        },
+      ],
+    },
+    {
+      type: "divider",
     },
     {
       type: "actions",
@@ -138,7 +172,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
           type: "button",
           text: {
             type: "plain_text",
-            text: "☕ Switch to Just Chatting",
+            text: "☕ Just Chatting",
             emoji: true,
           },
           value: data.meetupId,
@@ -180,7 +214,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
       elements: [
         {
           type: "mrkdwn",
-          text: "🔄 _In-place updates every 30s. Speaker receives private pacing notifications._",
+          text: "🔄 _In-place updates every 30s. Vector keeps your team on flight path._",
         },
       ],
     },

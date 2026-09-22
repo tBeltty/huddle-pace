@@ -3,11 +3,14 @@ import { MeetupService } from "../services/meetupService.js";
 import { buildLiveTrackerBlocks } from "../slack/ui/trackerBlock.js";
 import { prisma } from "../db/client.js";
 import { getBotTokenForTeam } from "../slack/oauth/installationStore.js";
+import { publishHomeTab } from "../slack/handlers/homeHandlers.js";
+import { formatMinutes } from "../utils/progressBar.js";
 
 export class TimerWorker {
   private timer: NodeJS.Timeout | null = null;
   private isRunning = false;
   private exitRampsSent = new Set<string>();
+  private moduleWarningsSent = new Set<string>();
 
   constructor(private app: App) {}
 
@@ -37,6 +40,8 @@ export class TimerWorker {
     try {
       const activeMeetups = await MeetupService.getActiveMeetups();
       const activeIds = new Set(activeMeetups.map((m) => m.id));
+
+      // Clean up exit ramp and warning caches for finished meetups
       for (const id of this.exitRampsSent) {
         if (!activeIds.has(id)) {
           this.exitRampsSent.delete(id);
@@ -47,6 +52,79 @@ export class TimerWorker {
         if (!meetup.startedAt || !meetup.trackerMessageTs) continue;
 
         const botToken = await getBotTokenForTeam(meetup.teamId);
+
+        // 0. Safety Net: Verify if Slack Huddle thread has ended
+        if (meetup.threadTs && meetup.threadTs !== "main") {
+          try {
+            const historyRes = await this.app.client.conversations.history({
+              token: botToken,
+              channel: meetup.channelId,
+              latest: meetup.threadTs,
+              oldest: meetup.threadTs,
+              inclusive: true,
+              limit: 1,
+            });
+
+            const parentMsg = historyRes.messages?.[0] as any;
+            if (parentMsg) {
+              const isEnded =
+                parentMsg.room?.has_ended === true ||
+                (parentMsg.room?.date_end != null && parentMsg.room.date_end > 0) ||
+                (parentMsg.text &&
+                  (parentMsg.text.toLowerCase().includes("huddle ended") ||
+                    parentMsg.text.toLowerCase().includes("ended a huddle") ||
+                    parentMsg.text.toLowerCase().includes("call ended")));
+
+              if (isEnded) {
+                console.info(`⏱️ Timer worker detected Huddle ${meetup.threadTs} has ended. Auto-concluding meetup ${meetup.id}.`);
+                const updated = await MeetupService.concludeMeetup(meetup.id);
+                const started = new Date(meetup.startedAt).getTime();
+                const ended = updated.endsAt ? new Date(updated.endsAt).getTime() : Date.now();
+                const formalMin = Math.max(1, Math.round((ended - started) / (60 * 1000)));
+                const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
+
+                if (meetup.trackerMessageTs) {
+                  await this.app.client.chat.update({
+                    token: botToken,
+                    channel: meetup.channelId,
+                    ts: meetup.trackerMessageTs,
+                    text: `🏁 *Meetup Concluded: ${meetup.title}*`,
+                    blocks: [
+                      {
+                        type: "header",
+                        text: { type: "plain_text", text: `🏁 Concluded: ${meetup.title}`, emoji: true },
+                      },
+                      {
+                        type: "section",
+                        text: {
+                          type: "mrkdwn",
+                          text: `🎉 *This meetup has officially concluded.*\n\n• *Formal Duration:* ${formatMinutes(formalMin)} (Scheduled: ${formatMinutes(meetup.totalMinutes)})\n• *Speakers:* ${speakers}\n\nThank you for respecting everyone's time!`,
+                        },
+                      },
+                    ],
+                  }).catch(() => {});
+                }
+
+                // Brief notice into Huddle thread
+                await this.app.client.chat.postMessage({
+                  token: botToken,
+                  channel: meetup.channelId,
+                  thread_ts: meetup.threadTs,
+                  text: `🏁 *Huddle call ended.* Live pacing session concluded and logged (${formatMinutes(formalMin)}). Great work!`,
+                }).catch(() => {});
+
+                // Refresh Home tabs
+                const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
+                for (const spkId of speakerIds) {
+                  publishHomeTab(this.app.client, spkId, meetup.teamId).catch(() => {});
+                }
+                continue;
+              }
+            }
+          } catch (err: any) {
+            // Ignore transient Slack history lookup errors
+          }
+        }
 
         const now = Date.now();
         const isChatting = meetup.status === "JUST_CHATTING";
@@ -85,7 +163,7 @@ export class TimerWorker {
               totalMinutes: meetup.totalMinutes,
               speakerUserId: meetup.speakerUserId,
               elapsedMinutes,
-              currentModuleName: status?.module.title || "Casual Chat",
+              currentModuleName: status?.module?.title || "Casual Chat",
               moduleRemainingMinutes: status?.remainingMinutes || 0,
               nextModuleName: status?.nextModule ? status.nextModule.title : null,
               isOvertime,
@@ -97,7 +175,6 @@ export class TimerWorker {
           const slackError = err?.data?.error;
           console.warn(`Failed to update tracker message for meetup ${meetup.id}:`, slackError || err.message);
 
-          // If the message or channel was deleted in Slack, conclude meetup to release timer resources
           if (slackError === "message_not_found" || slackError === "channel_not_found") {
             console.warn(`Tracker message missing for meetup ${meetup.id}. Concluding session.`);
             await MeetupService.concludeMeetup(meetup.id);
@@ -106,18 +183,56 @@ export class TimerWorker {
           }
         }
 
+        // 2. Proactively refresh App Home for speakers so progress updates in real time
+        const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
+        for (const spkId of speakerIds) {
+          publishHomeTab(this.app.client, spkId, meetup.teamId).catch(() => {});
+        }
+
         // If in Just Chatting mode, skip pacing DMs and formal exit ramp
         if (isChatting) continue;
 
-        // 2. Private Speaker Pacing Checkpoint (when entering a new module)
-        if (status && !status.module.isNotified) {
-          const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
+        // 3. 1-Minute Early Warning DM to speakers
+        if (status && status.module && status.remainingMinutes <= 1 && !this.moduleWarningsSent.has(status.module.id)) {
+          this.moduleWarningsSent.add(status.module.id);
+          const nextMod = status.nextModule;
+          const warningText = nextMod
+            ? `⏱️ *1 Minute Remaining:* Wrapping up "*${status.module.title}*". Start rounding out your points; next up is "*${nextMod.title}*" (${nextMod.durationMinutes}m).`
+            : `⏱️ *1 Minute Remaining:* Wrapping up final module "*${status.module.title}*". Prepare for open Q&A or conclusion.`;
+
           for (const speakerId of speakerIds) {
             try {
               await this.app.client.chat.postMessage({
                 token: botToken,
                 channel: speakerId,
-                text: `⏱️ *Next Module:* "${status.module.title}" (${status.module.durationMinutes} min allocated).`,
+                text: warningText,
+              });
+            } catch (err) {
+              console.warn(`Failed to send 1-minute warning DM to speaker ${speakerId}:`, err);
+            }
+          }
+        }
+
+        // 4. Natural Vector Speaker Transition / Takeoff DM
+        if (status && status.module && !status.module.isNotified) {
+          const isTakeoff = status.module.startOffsetMin === 0;
+          let messageText: string;
+
+          if (isTakeoff) {
+            messageText = `🛫 *Cleared for Takeoff!* Starting with module "*${status.module.title}*" (${status.module.durationMinutes}m allocated). I'll keep an eye on pacing so you can focus on the talk.`;
+          } else {
+            // Find preceding module
+            const prevModule = meetup.modules.find((m) => m.endOffsetMin === status.module.startOffsetMin);
+            const prevTitle = prevModule ? prevModule.title : "Previous Module";
+            messageText = `🧭 *Module Transition:* Time is up for "*${prevTitle}*". Move to "*${status.module.title}*" (${status.module.durationMinutes}m allocated) to keep our flight path on schedule.`;
+          }
+
+          for (const speakerId of speakerIds) {
+            try {
+              await this.app.client.chat.postMessage({
+                token: botToken,
+                channel: speakerId,
+                text: messageText,
               });
             } catch (err) {
               console.warn(`Failed to send pacing DM to speaker ${speakerId}:`, err);
@@ -134,7 +249,7 @@ export class TimerWorker {
           }
         }
 
-        // 3. Social Grace & Exit Ramp (delivered once at 100% completion)
+        // 5. Timebox Reached Notification with Snooze & Just Chatting Options
         if (isOvertime && meetup.status === "ACTIVE" && !this.exitRampsSent.has(meetup.id)) {
           this.exitRampsSent.add(meetup.id);
           try {
@@ -142,10 +257,55 @@ export class TimerWorker {
               token: botToken,
               channel: meetup.channelId,
               thread_ts: meetup.threadTs || meetup.trackerMessageTs,
-              text: `🏁 *Timebox reached (${meetup.totalMinutes} min).* Official agenda is complete. Attendees with next commitments can drop off; feel free to stay for open chat.`,
+              text: `⏱️ *Timebox Reached (${meetup.totalMinutes}m).* The scheduled agenda time has elapsed.`,
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: `⏱️ *Timebox Reached:* The scheduled *${meetup.totalMinutes}m* budget for *"${meetup.title}"* has elapsed. Select an option below to extend time, transition to casual chat, or conclude:`,
+                  },
+                },
+                {
+                  type: "actions",
+                  elements: [
+                    {
+                      type: "button",
+                      text: { type: "plain_text", text: "+5m Snooze", emoji: true },
+                      value: JSON.stringify({ meetupId: meetup.id, minutes: 5 }),
+                      action_id: "snooze_meetup_action",
+                    },
+                    {
+                      type: "button",
+                      text: { type: "plain_text", text: "+10m Snooze", emoji: true },
+                      value: JSON.stringify({ meetupId: meetup.id, minutes: 10 }),
+                      action_id: "snooze_meetup_action",
+                    },
+                    {
+                      type: "button",
+                      text: { type: "plain_text", text: "+20m Snooze", emoji: true },
+                      value: JSON.stringify({ meetupId: meetup.id, minutes: 20 }),
+                      action_id: "snooze_meetup_action",
+                    },
+                    {
+                      type: "button",
+                      text: { type: "plain_text", text: "☕ Just Chatting", emoji: true },
+                      value: meetup.id,
+                      action_id: "switch_to_chatting_action",
+                    },
+                    {
+                      type: "button",
+                      text: { type: "plain_text", text: "⏹️ Conclude", emoji: true },
+                      style: "danger",
+                      value: meetup.id,
+                      action_id: "conclude_meetup_action",
+                    },
+                  ],
+                },
+              ],
             });
           } catch (err) {
-            console.warn(`Failed to post exit ramp for meetup ${meetup.id}:`, err);
+            console.warn(`Failed to post timebox alert for meetup ${meetup.id}:`, err);
           }
         }
       }

@@ -4,6 +4,8 @@ import { buildPacingReportBlocks } from "../ui/reportBlock.js";
 import { MeetupService } from "../../services/meetupService.js";
 import { findChannelHuddles } from "../utils/huddleDiscovery.js";
 import { buildAppHomeMrkdwnLink } from "../utils/deepLinks.js";
+import { ensureBotInChannel } from "../utils/channelUtils.js";
+import { launchMeetupInThread } from "./actionHandlers.js";
 
 export function registerCommandHandlers(app: App) {
   // Slash command: /pace
@@ -20,7 +22,7 @@ export function registerCommandHandlers(app: App) {
         await client.chat.postEphemeral({
           channel: command.channel_id,
           user: command.user_id,
-          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the meetup scheduler modal\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to see your personalized sessions.`,
+          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the interactive meetup scheduler\n• \`/pace 15m [Title]\` — Instant takeoff! Starts a 15m live session right inside this Huddle/channel\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to see your personalized sessions.`,
         });
         return;
       }
@@ -31,7 +33,6 @@ export function registerCommandHandlers(app: App) {
         const stats = await MeetupService.getPacingReportStats(days, command.team_id);
         const blocks = buildPacingReportBlocks(stats, days);
 
-        // Add App Home link context
         blocks.push({
           type: "context",
           elements: [
@@ -80,8 +81,59 @@ export function registerCommandHandlers(app: App) {
         return;
       }
 
-      // Default: open schedule modal with detected Huddles in current channel
+      // Check for Instant Launch syntax: e.g. "/pace 15m", "/pace 20m Core Sync", "/pace 15"
+      const durationMatch = rawText.match(/^(\d+)(?:m|min|mins)?(?:\s+(.*))?$/i);
+      if (durationMatch) {
+        const parsedMinutes = parseInt(durationMatch[1], 10);
+        if (!isNaN(parsedMinutes) && parsedMinutes > 0 && parsedMinutes <= 480) {
+          const customTitle = durationMatch[2]?.trim();
+
+          // Ensure bot is in the channel
+          await ensureBotInChannel(client, command.channel_id, command.user_id);
+
+          // Find active Huddle in this channel
+          const huddles = await findChannelHuddles(client, command.channel_id);
+          const activeHuddle = huddles.find((h) => h.isActive);
+          const threadTs = activeHuddle ? activeHuddle.ts : undefined;
+
+          const defaultTitle = activeHuddle?.roomName
+            ? `Huddle: ${activeHuddle.roomName}`
+            : "Huddle Sync";
+          const title = customTitle || defaultTitle;
+
+          // Default 3-stage flight plan: 20% Intro, 60% Core, 20% Wrap-up
+          const modules = [
+            { title: "Context & Intro", percentage: 20 },
+            { title: "Core Topic", percentage: 60 },
+            { title: "Wrap-up & Next Steps", percentage: 20 },
+          ];
+
+          const newMeetup = await MeetupService.createMeetup({
+            title,
+            totalMinutes: parsedMinutes,
+            channelId: command.channel_id,
+            speakerUserId: command.user_id,
+            threadTs,
+            teamId: command.team_id,
+            modules,
+          });
+
+          await launchMeetupInThread(client, newMeetup.id, threadTs);
+
+          const locationText = threadTs ? "inside this live Huddle thread" : "in the channel feed";
+          await client.chat.postEphemeral({
+            channel: command.channel_id,
+            user: command.user_id,
+            text: `🛫 *Flight Initiated!* Vector is now tracking *"${title}"* (${parsedMinutes}m) ${locationText}.\nI will provide private pacing checkpoints as you progress through each module.`,
+          });
+          return;
+        }
+      }
+
+      // Default: ensure bot is joined and open schedule modal
+      await ensureBotInChannel(client, command.channel_id, command.user_id);
       const huddles = await findChannelHuddles(client, command.channel_id);
+
       await client.views.open({
         trigger_id: command.trigger_id,
         view: buildScheduleModal({
