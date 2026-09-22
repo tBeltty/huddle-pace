@@ -70,7 +70,7 @@ describe("Web Landing Page & Asset Delivery", () => {
   });
 
   describe("handleLandingPage", () => {
-    test("serves default English page with protocol headers, Vector avatar, and Specs section", () => {
+    test("serves default English page with protocol headers, Vector avatar, and Meet Vector section", () => {
       const req: any = { url: "/" };
       const res = new MockResponse();
 
@@ -86,12 +86,10 @@ describe("Web Landing Page & Asset Delivery", () => {
       );
       assert.match(res.body, /<html lang="en">/);
       assert.match(res.body, /HuddlePace/);
-      assert.match(res.body, /Vector: The Pacer Falcon — Telemetry &amp; Specs|Vector: The Pacer Falcon — Telemetry & Specs/);
+      assert.match(res.body, /Meet Vector/);
+      assert.match(res.body, /The timekeeper for your Slack workspace/);
       assert.match(res.body, /src="\/assets\/avatar\.png"/);
-      assert.match(res.body, /src="\/assets\/tech\/hud-visor\.jpg"/);
-      assert.match(res.body, /src="\/assets\/tech\/cadence-timer\.jpg"/);
-      assert.match(res.body, /src="\/assets\/tech\/ankle-bands\.jpg"/);
-      assert.match(res.body, /src="\/assets\/tech\/propulsion\.jpg"/);
+      assert.match(res.body, /src="\/assets\/vector-full-body\.png"/);
     });
 
     test("serves pre-rendered Spanish page when ?lang=es is requested", () => {
@@ -105,9 +103,8 @@ describe("Web Landing Page & Asset Delivery", () => {
       assert.match(String(res.headers["Set-Cookie"]), /huddlepace_lang=es/);
       assert.match(res.body, /<html lang="es">/);
       assert.match(res.body, /Reuniones de 15 minutos que/);
-      assert.match(res.body, /Telemetría y Gadgets/);
-      assert.match(res.body, /Visor HUD/);
-      assert.match(res.body, /Reloj de Cadencia en Solapa/);
+      assert.match(res.body, /Conoce a Vector/);
+      assert.match(res.body, /El guardián del tiempo en tu workspace/);
     });
 
     test("serves pre-rendered Spanish page when Accept-Language: es is sent", () => {
@@ -120,6 +117,7 @@ describe("Web Landing Page & Asset Delivery", () => {
       assert.strictEqual(res.headers["Content-Language"], "es");
       assert.match(res.body, /<html lang="es">/);
       assert.match(res.body, /Reuniones de 15 minutos que/);
+      assert.match(res.body, /Conoce a Vector/);
     });
 
     test("handles HEAD request cleanly without body", () => {
@@ -161,17 +159,17 @@ describe("Web Landing Page & Asset Delivery", () => {
       handleStaticAsset(req, res as any);
     });
 
-    test("serves nested tech asset hud-visor.jpg with 200 OK and image/jpeg", (t, done) => {
-      const req: any = { params: { file: "hud-visor.jpg" } };
+    test("serves vector-full-body.png with 200 OK and image/png", (t, done) => {
+      const req: any = { params: { file: "vector-full-body.png" } };
       const res = new MockResponse();
 
       res.on("finish", () => {
         assert.strictEqual(res.statusCode, 200);
-        assert.strictEqual(res.headers["Content-Type"], "image/jpeg");
+        assert.strictEqual(res.headers["Content-Type"], "image/png");
         done();
       });
 
-      handleStaticAsset(req, res as any, undefined, "tech");
+      handleStaticAsset(req, res as any);
     });
 
     test("blocks directory traversal and returns 404 for missing assets (negative control)", () => {
@@ -183,26 +181,15 @@ describe("Web Landing Page & Asset Delivery", () => {
       assert.strictEqual(res.statusCode, 404);
       assert.strictEqual(res.body, "Asset not found");
     });
-
-    test("blocks directory traversal on nested tech folder (negative control)", () => {
-      const req: any = { params: { file: "../../package.json" } };
-      const res = new MockResponse();
-
-      handleStaticAsset(req, res as any, undefined, "tech");
-
-      assert.strictEqual(res.statusCode, 404);
-      assert.strictEqual(res.body, "Asset not found");
-    });
   });
 
   describe("getWebCustomRoutes", () => {
-    test("registers root, assets, tech assets, favicon, and apple-touch-icon routes", () => {
+    test("registers root, assets, favicon, and apple-touch-icon routes", () => {
       const routes = getWebCustomRoutes();
       const paths = routes.map((r) => r.path);
 
       assert.ok(paths.includes("/"));
       assert.ok(paths.includes("/assets/:file"));
-      assert.ok(paths.includes("/assets/tech/:file"));
       assert.ok(paths.includes("/favicon.ico"));
       assert.ok(paths.includes("/apple-touch-icon.png"));
     });

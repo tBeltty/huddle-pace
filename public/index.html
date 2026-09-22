@@ -823,87 +823,113 @@
       color: var(--text-muted);
     }
 
-    /* Vector Specs Section */
-    .specs-section {
-      padding: 90px 0 60px;
+    /* Meet Vector Section */
+    .vector-section {
+      padding: 70px 0 50px;
     }
 
-    .specs-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-    }
-
-    .spec-card {
+    .vector-card {
       background: var(--bg-surface);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .spec-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--border-accent);
-      box-shadow: 0 10px 30px rgba(6, 182, 212, 0.12);
-    }
-
-    .spec-img-wrapper {
-      width: 100%;
-      height: 180px;
-      overflow: hidden;
-      background: rgba(0, 0, 0, 0.4);
+      border-radius: var(--radius-lg);
+      padding: 48px;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      align-items: center;
+      gap: 52px;
       position: relative;
+      overflow: hidden;
     }
 
-    .spec-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.3s ease;
+    .vector-card::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      left: 60px;
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.18) 0%, rgba(8, 11, 17, 0) 70%);
+      pointer-events: none;
     }
 
-    .spec-card:hover .spec-img {
-      transform: scale(1.05);
-    }
-
-    .spec-body {
-      padding: 20px;
+    .vector-visual {
       display: flex;
-      flex-direction: column;
-      flex-grow: 1;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      z-index: 1;
     }
 
-    .spec-tag {
+    .vector-visual img {
+      max-width: 100%;
+      height: auto;
+      max-height: 380px;
+      object-fit: contain;
+      filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 24px rgba(6, 182, 212, 0.2));
+    }
+
+    .vector-info {
+      position: relative;
+      z-index: 1;
+    }
+
+    .vector-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-family: var(--font-mono);
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       font-weight: 700;
       color: var(--accent-cyan);
-      letter-spacing: 0.08em;
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      margin-bottom: 16px;
+      letter-spacing: 0.04em;
+    }
+
+    .vector-info h2 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
       margin-bottom: 8px;
     }
 
-    .spec-card h3 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      line-height: 1.35;
+    .vector-sub {
+      font-size: 1.15rem;
+      color: var(--accent-cyan);
+      font-weight: 600;
+      margin-bottom: 16px;
     }
 
-    .spec-card p {
+    .vector-desc {
       color: var(--text-secondary);
-      font-size: 0.88rem;
-      line-height: 1.55;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin-bottom: 24px;
     }
 
-    @media (max-width: 1024px) {
-      .specs-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+    .vector-traits {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .vector-traits li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+    }
+
+    .vector-traits li svg {
+      color: var(--accent-cyan);
+      flex-shrink: 0;
     }
 
     @media (max-width: 900px) {
@@ -923,6 +949,16 @@
       .hero-trust {
         justify-content: center;
       }
+      .vector-card {
+        grid-template-columns: 1fr;
+        padding: 32px 24px;
+        text-align: center;
+        gap: 32px;
+      }
+      .vector-traits {
+        align-items: center;
+        text-align: left;
+      }
       .pillars-grid {
         grid-template-columns: 1fr;
       }
@@ -937,9 +973,6 @@
     }
 
     @media (max-width: 600px) {
-      .specs-grid {
-        grid-template-columns: 1fr;
-      }
       .footer-grid {
         grid-template-columns: 1fr;
         gap: 28px;
@@ -965,7 +998,7 @@
           <span>HuddlePace</span>
         </a>
         <div class="nav-actions">
-          <a href="#specs" class="nav-link" data-i18n="navSpecs">Vector Specs</a>
+          <a href="#vector" class="nav-link" data-i18n="navVector">Meet Vector</a>
           <a href="#demo" class="nav-link" data-i18n="navDemo">Live Demo</a>
           <a href="#features" class="nav-link" data-i18n="navFeatures">Pillars</a>
           
@@ -1086,56 +1119,33 @@
       </div>
     </section>
 
-    <!-- Vector Telemetry & Specs Section -->
-    <section class="specs-section" id="specs">
-      <div class="section-headline">
-        <h2 data-i18n="specsHeading">Vector: The Pacer Falcon — Telemetry & Specs</h2>
-        <p data-i18n="specsSubheading">Every piece of equipment is purpose-built for aerial telemetry and meeting cadence control.</p>
-      </div>
-
-      <div class="specs-grid">
-        <div class="spec-card">
-          <div class="spec-img-wrapper">
-            <img src="/assets/tech/hud-visor.jpg" alt="HUD Visor" class="spec-img" loading="lazy">
-          </div>
-          <div class="spec-body">
-            <div class="spec-tag">OPTRONICS</div>
-            <h3 data-i18n="gadget1Title">HUD Visor (Amber Projection)</h3>
-            <p data-i18n="gadget1Desc">Projects critical flight cadence, elapsed duration, and timebox countdowns directly in his line of sight without blocking team eye contact.</p>
-          </div>
+    <!-- Meet Vector Section -->
+    <section class="vector-section" id="vector">
+      <div class="vector-card">
+        <div class="vector-visual">
+          <img src="/assets/vector-full-body.png" alt="Vector - The Meeting Timekeeper" loading="lazy">
         </div>
-
-        <div class="spec-card">
-          <div class="spec-img-wrapper">
-            <img src="/assets/tech/cadence-timer.jpg" alt="Cadence Timer Lapel" class="spec-img" loading="lazy">
-          </div>
-          <div class="spec-body">
-            <div class="spec-tag">CHRONOMETRY · 00:32</div>
-            <h3 data-i18n="gadget2Title">Cadence Timer Lapel (00:32)</h3>
-            <p data-i18n="gadget2Desc">Digital stopwatch dial integrated into the flight vest collar, monitoring pacing intervals and synchronizing with Slack's event stream.</p>
-          </div>
-        </div>
-
-        <div class="spec-card">
-          <div class="spec-img-wrapper">
-            <img src="/assets/tech/ankle-bands.jpg" alt="Anti-Gravity Ankle Bands" class="spec-img" loading="lazy">
-          </div>
-          <div class="spec-body">
-            <div class="spec-tag">GRAVITRONICS</div>
-            <h3 data-i18n="gadget3Title">Anti-Gravity Ankle Bands</h3>
-            <p data-i18n="gadget3Desc">Mounted on natural agile talons (no clumsy robotic prosthetics). Delivers gravitational stability and telemetry acceleration data.</p>
-          </div>
-        </div>
-
-        <div class="spec-card">
-          <div class="spec-img-wrapper">
-            <img src="/assets/tech/propulsion.jpg" alt="Aft Micro-Propulsion Vanes" class="spec-img" loading="lazy">
-          </div>
-          <div class="spec-body">
-            <div class="spec-tag">VECTORED THRUST</div>
-            <h3 data-i18n="gadget4Title">Aft Micro-Propulsion Vanes</h3>
-            <p data-i18n="gadget4Desc">Dual vector-thrust micro-turbines integrated flush into the vest for rapid altitude adjustments and agile team navigation.</p>
-          </div>
+        <div class="vector-info">
+          <div class="vector-badge">⚡ COMPANION BOT</div>
+          <h2 data-i18n="vectorHeading">Meet Vector</h2>
+          <p class="vector-sub" data-i18n="vectorSub">The timekeeper for your Slack workspace.</p>
+          <p class="vector-desc" data-i18n="vectorDesc">
+            Vector runs right inside your Huddle threads. He tracks elapsed time, prompts the team for blockers at midpoint, and signals the wrap-up when time is up—so nobody has to play meeting cop.
+          </p>
+          <ul class="vector-traits">
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span data-i18n="vectorTrait1">Launches instantly with <code>/pace 15m</code></span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span data-i18n="vectorTrait2">Live progress updates without spamming the channel</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span data-i18n="vectorTrait3">100% cadence control, zero audio recording</span>
+            </li>
+          </ul>
         </div>
       </div>
     </section>
@@ -1258,7 +1268,7 @@
   <script>
     const translations = {
       en: {
-        navSpecs: "Vector Specs",
+        navVector: "Meet Vector",
         navDemo: "Live Demo",
         navFeatures: "Pillars",
         badgeText: "⚡ Flight Pacer for Slack Huddles",
@@ -1275,16 +1285,12 @@
         simElapsed: "Elapsed time:",
         simRemaining: "Remaining:",
         simAlert: "<strong>Midpoint Flight Check:</strong> Over 60% of estimated time has elapsed. If you have critical technical blockers, bring them to the table now before touchdown.",
-        specsHeading: "Vector: The Pacer Falcon — Telemetry & Specs",
-        specsSubheading: "Every piece of equipment is purpose-built for aerial telemetry and meeting cadence control.",
-        gadget1Title: "HUD Visor (Amber Projection)",
-        gadget1Desc: "Projects critical flight cadence, elapsed duration, and timebox countdowns directly in his line of sight without blocking team eye contact.",
-        gadget2Title: "Cadence Timer Lapel (00:32)",
-        gadget2Desc: "Digital stopwatch dial integrated into the flight vest collar, monitoring pacing intervals and synchronizing with Slack's event stream.",
-        gadget3Title: "Anti-Gravity Ankle Bands",
-        gadget3Desc: "Mounted on natural agile talons (no clumsy robotic prosthetics). Delivers gravitational stability and telemetry acceleration data.",
-        gadget4Title: "Aft Micro-Propulsion Vanes",
-        gadget4Desc: "Dual vector-thrust micro-turbines integrated flush into the vest for rapid altitude adjustments and agile team navigation.",
+        vectorHeading: "Meet Vector",
+        vectorSub: "The timekeeper for your Slack workspace.",
+        vectorDesc: "Vector runs right inside your Huddle threads. He tracks elapsed time, prompts the team for blockers at midpoint, and signals the wrap-up when time is up—so nobody has to play meeting cop.",
+        vectorTrait1: "Launches instantly with <code>/pace 15m</code>",
+        vectorTrait2: "Live progress updates without spamming the channel",
+        vectorTrait3: "100% cadence control, zero audio recording",
         pillarsHeading: "Engineered to Keep Your Team on Flight Path",
         pillarsSubheading: "Three non-negotiable architectural principles that protect deep engineering focus.",
         pillar1Title: "Modular Timeboxing",
@@ -1313,7 +1319,7 @@
         footerCopy: "© 2026 HuddlePace. Engineered for teams that value focus."
       },
       es: {
-        navSpecs: "Especificaciones",
+        navVector: "Conoce a Vector",
         navDemo: "En Vivo",
         navFeatures: "Pilares",
         badgeText: "⚡ Copiloto de Cadencia para Slack Huddles",
@@ -1330,16 +1336,12 @@
         simElapsed: "Tiempo transcurrido:",
         simRemaining: "Restante:",
         simAlert: "<strong>Alerta de Mitad de Vuelo:</strong> El 60% del tiempo estimado ha concluido. Si quedan bloqueos técnicos críticos, colócalos sobre la mesa ahora antes del aterrizaje.",
-        specsHeading: "Vector: The Pacer Falcon — Telemetría y Gadgets",
-        specsSubheading: "Cada pieza de su equipo está diseñada para la telemetría aérea y el control de ritmo en reuniones.",
-        gadget1Title: "Visor HUD (Proyección Ámbar)",
-        gadget1Desc: "Proyecta la cadencia de vuelo, el tiempo transcurrido y la cuenta regresiva en su línea de visión directa sin obstaculizar el contacto visual.",
-        gadget2Title: "Reloj de Cadencia en Solapa (00:32)",
-        gadget2Desc: "Cronómetro digital integrado en el chaleco de vuelo, monitoreando intervalos de ritmo sincronizados con el flujo de eventos de Slack.",
-        gadget3Title: "Anillos de Telemetría Antigravedad",
-        gadget3Desc: "Montados sobre sus garras naturales y ágiles (sin prótesis biónicas torpes). Aportan estabilidad gravitacional y telemetría de aceleración.",
-        gadget4Title: "Microtoberas Posteriores",
-        gadget4Desc: "Turbinas de empuje vectorizado integradas al ras en la espalda para maniobras rápidas y cambios ágiles de rumbo en el equipo.",
+        vectorHeading: "Conoce a Vector",
+        vectorSub: "El guardián del tiempo en tu workspace.",
+        vectorDesc: "Vector acompaña tus Huddles directamente en el hilo de Slack. Monitorea la duración, avisa en el punto medio para revisar bloqueos y marca el cierre a tiempo, evitando que nadie tenga que hacer de policía en la reunión.",
+        vectorTrait1: "Se activa al instante con <code>/pace 15m</code>",
+        vectorTrait2: "Avance en tiempo real sin saturar el canal principal",
+        vectorTrait3: "100% control de cadencia, cero grabación de audio",
         pillarsHeading: "Diseñado para Mantener el Vuelo Nivelado",
         pillarsSubheading: "Tres principios de ingeniería para proteger las horas de trabajo profundo de tu equipo.",
         pillar1Title: "Timeboxing Modular",
