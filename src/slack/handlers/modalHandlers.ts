@@ -238,12 +238,12 @@ export function registerModalHandlers(app: App) {
         await client.chat.postEphemeral({
           channel: channelId,
           user: body.user.id,
-          text: `📅 *Scheduled:* '${title}' (${totalMinutes}m) with ${speakerText} (${destinationNote}). Ready to launch from your Home tab!`,
+          text: `*Scheduled:* '${title}' (${totalMinutes}m) with ${speakerText} (${destinationNote}). Ready to launch from your Home tab!`,
         });
       } catch {
         await client.chat.postMessage({
           channel: body.user.id,
-          text: `📅 *Scheduled:* '${title}' (${totalMinutes}m) in <#${channelId}> with ${speakerText} (${destinationNote}).`,
+          text: `*Scheduled:* '${title}' (${totalMinutes}m) in <#${channelId}> with ${speakerText} (${destinationNote}).`,
         });
       }
     } catch (error) {

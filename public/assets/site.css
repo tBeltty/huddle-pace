@@ -432,63 +432,63 @@
       padding: 40px 0 80px;
     }
 
+    /* Colors sampled directly from Slack's own dark theme (computed styles
+       inspected on a real HuddlePace tracker message), not approximated —
+       inline-code orange, blockquote gray, mention blue, button colors all
+       match Slack's actual rendering, not our brand palette. */
     .slack-mockup-card {
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 32px;
+      --slack-text: #d1d2d3;
+      --slack-text-bright: #f8f8f8;
+      --slack-text-muted: #ababad;
+      --slack-code-orange: #e8912d;
+      --slack-quote-bar: #b9babd;
+      --slack-mention-text: #2ba5ce;
+      --slack-mention-bg: rgba(3, 102, 150, 0.25);
+      --slack-btn-border: rgba(121, 124, 129, 0.5);
+      --slack-btn-danger-bg: #d3305d;
+      background: #1a1d21;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
       max-width: 860px;
       margin: 0 auto;
-      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      color: var(--slack-text);
     }
 
     .mockup-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid var(--border-subtle);
-      padding-bottom: 16px;
-      margin-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 12px 20px;
     }
 
     .mockup-channel {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-family: var(--font-mono);
-      font-size: 0.95rem;
-      color: var(--text-secondary);
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--slack-text-muted);
     }
 
     .mockup-badge {
-      background: rgba(245, 158, 11, 0.15);
-      border: 1px solid rgba(245, 158, 11, 0.4);
-      color: var(--accent-amber);
       font-size: 0.75rem;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: var(--radius-full);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      color: var(--slack-text-muted);
     }
 
     .slack-message {
       display: grid;
       grid-template-columns: 48px 1fr;
-      gap: 16px;
-      background: rgba(8, 11, 17, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: var(--radius-md);
+      gap: 12px;
       padding: 20px;
     }
 
     .bot-avatar {
       width: 48px;
       height: 48px;
-      border-radius: var(--radius-sm);
+      border-radius: 8px;
       overflow: hidden;
-      border: 1px solid var(--border-accent);
     }
 
     .bot-avatar img {
@@ -501,75 +501,67 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 1rem;
-      font-weight: 700;
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: var(--slack-text-bright);
       margin-bottom: 6px;
     }
 
     .bot-pill {
-      background: #1e293b;
-      color: var(--text-muted);
-      font-size: 0.65rem;
+      background: rgba(248, 248, 248, 0.06);
+      color: var(--slack-text-muted);
+      font-size: 0.6rem;
       font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
+      padding: 1px 4px;
+      border-radius: 2px;
       text-transform: uppercase;
     }
 
     .huddle-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--text-primary);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--slack-text-bright);
       margin-bottom: 12px;
     }
 
     .progress-box {
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .progress-meta {
       display: flex;
-      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
       font-family: var(--font-mono);
       font-size: 0.85rem;
       margin-bottom: 8px;
-      color: var(--text-secondary);
+      color: var(--slack-text);
     }
 
     .progress-meta strong {
-      color: var(--text-primary);
+      color: var(--slack-text-bright);
     }
 
-    .progress-track {
-      width: 100%;
-      height: 10px;
-      background: #1e293b;
-      border-radius: var(--radius-full);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .progress-fill {
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent-cyan), #38bdf8);
-      border-radius: var(--radius-full);
-      box-shadow: 0 0 10px var(--accent-cyan-glow);
-      transition: width 1s linear;
+    .progress-meta-right::before {
+      content: "•";
+      margin-right: 6px;
+      color: var(--slack-text-muted);
     }
 
     /* ASCII progress bar — matches src/utils/progressBar.ts's renderProgressBar()
-       output exactly, so the marketing demo shows the same text HuddlePace
-       actually posts in Slack instead of a styled web progress bar. */
+       output exactly (`` `[bar]` `` in Slack mrkdwn). Slack renders inline
+       code in orange by default in its dark theme — this isn't a styling
+       choice, it's what Slack itself does with backtick-wrapped text. */
     .progress-ascii {
+      display: inline-block;
       font-family: var(--font-mono);
       font-size: 0.85rem;
       letter-spacing: -0.5px;
-      color: var(--text-secondary);
+      color: var(--slack-code-orange);
+      background: rgba(232, 232, 232, 0.04);
+      padding: 1px 4px;
+      border-radius: 3px;
       white-space: pre;
       overflow-x: auto;
     }
@@ -579,7 +571,7 @@
       align-items: center;
       gap: 6px;
       font-weight: 700;
-      color: #4ade80;
+      color: var(--slack-text-bright, var(--text-primary));
       font-size: 0.85rem;
       margin-bottom: 8px;
     }
@@ -595,20 +587,21 @@
     }
 
     .sim-concluded-row strong {
-      color: var(--text-primary);
+      color: var(--slack-text-bright, var(--text-primary));
       text-align: right;
     }
 
+    /* Slack mrkdwn blockquote (`>` prefix): a 4px solid gray rule via
+       ::before, no fill, no accent color — sampled from a real Slack
+       blockquote, not approximated. */
     .mockup-alert {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
-      background: rgba(245, 158, 11, 0.1);
-      border-left: 3px solid var(--accent-amber);
-      padding: 12px 16px;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      gap: 10px;
+      border-left: 4px solid var(--slack-quote-bar, rgba(255, 255, 255, 0.2));
+      padding: 2px 0 2px 12px;
       font-size: 0.9rem;
-      color: #fde68a;
+      color: var(--slack-text, var(--text-secondary));
     }
 
     .mockup-context-row {
@@ -617,15 +610,18 @@
       gap: 16px;
       margin-top: 14px;
       font-size: 0.85rem;
-      color: var(--text-secondary);
+      color: var(--slack-text, var(--text-secondary));
       flex-wrap: wrap;
     }
 
+    /* Slack mention pill for a non-self mention (blue). A mention of the
+       viewer themself renders gold instead — Slack's mention color is
+       fixed per mention type, it doesn't vary from person to person. */
     .mockup-mention {
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent-cyan);
-      padding: 2px 6px;
-      border-radius: var(--radius-xs);
+      background: var(--slack-mention-bg, rgba(56, 189, 248, 0.15));
+      color: var(--slack-mention-text, var(--accent-cyan));
+      padding: 1px 4px;
+      border-radius: 3px;
       font-weight: 600;
       font-size: 0.8rem;
     }
@@ -639,25 +635,30 @@
     }
 
     .mockup-btn {
-      padding: 6px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-primary);
-      cursor: default;
+      padding: 3px 8px 4px;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      border-radius: 4px;
+      border: 1px solid var(--slack-btn-border, rgba(255, 255, 255, 0.15));
+      background: transparent;
+      color: var(--slack-text-bright, var(--text-primary));
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .mockup-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
     }
 
     .mockup-btn-danger {
-      background: rgba(239, 68, 68, 0.15);
-      border-color: rgba(239, 68, 68, 0.4);
-      color: #fca5a5;
+      background: var(--slack-btn-danger-bg, #d3305d);
+      border-color: var(--slack-btn-danger-bg, #d3305d);
+      color: #fff;
     }
 
     .mockup-footer {
       font-size: 0.75rem;
-      color: var(--text-muted);
+      color: var(--slack-text-muted, var(--text-muted));
       margin-top: 10px;
     }
 
@@ -1056,7 +1057,11 @@
       }
       .progress-meta {
         flex-direction: column;
+        align-items: flex-start;
         gap: 4px;
+      }
+      .progress-meta-right::before {
+        display: none;
       }
       .mockup-header {
         flex-direction: column;

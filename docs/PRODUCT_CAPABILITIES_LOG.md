@@ -6,6 +6,18 @@
 
 ---
 
+## [2026-09-22] Adopción y Adaptación del Sistema Canónico de Branding (`docs/BRAND.md`)
+* **Adaptación arquitectónica desde `finances_app`**:
+  * Creación del documento canónico de referencia de marca [`docs/BRAND.md`](BRAND.md), formalizando las decisiones de diseño e identidad visual de HuddlePace.
+  * **Paleta Atmos "Aerospace Telemetry"**: Especificación formal de tokens CSS y roles semánticos:
+    * Base: Space Navy (`#080B11`, `--bg-base`) y Cockpit Slate (`#0F172A`, `--bg-surface`).
+    * Acentos: Telemetry Cyan (`#06B6D4`, `--accent-cyan`), Visor Amber (`#F59E0B`, `--accent-amber`), Pilot Orange (`#F97316`, `--accent-orange`), y Slack Aubergine (`#611F69`, `--accent-slack`).
+    * Mapeo de estados de Slack Block Kit: tiempo activo (Cyan/`⏱️`), midpoint/bloqueos (Amber/`🧭`), último minuto (Orange/`⚠️`), overtime (Red/`🚨`), y cierre (Emerald/`✅`).
+  * **Tipografía oficial**: Plus Jakarta Sans (Display, UI, Web) y JetBrains Mono con números tabulares para ASCII progress bar y telemetría de cronómetro.
+  * **Ficha de personaje y plantilla de prompts de Vector (The Pacer Falcon)**: Estandarización de lore en el universo Vibecoder (junto a Cluck-O), especificaciones de gadgets (HUD monocle ámbar, headset táctico, chaleco de vuelo) y prompt base parametrizado para pipelines de generación visual de poses.
+  * **Directrices de Slack App Directory**: Estandarización de nombres de visualización, descripciones cortas/largas en EN/ES y colores de fondo oficiales.
+  * **Higiene de repositorio**: Vinculación cruzada en `docs/README.md`, `docs/guidelines/UI_SLACK_BLOCKS_CSS.md` y `AGENTS.md`.
+
 ## [2026-09-22] Auditoría Forense y Optimización del Copy de Todo el Sitio (Web & Legales)
 * **Erradicación estricta de em-dashes (`—`) y contrastes binarios**:
   * Eliminación sistemática de guiones largos en títulos, descripciones y cuerpos de texto en `public/index.html`, `public/privacy.html`, `public/terms.html`, y los diccionarios i18n (`src/locales/en.json`, `src/locales/es.json`, `public/locales/en.json`, `public/locales/es.json`).

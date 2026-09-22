@@ -176,22 +176,25 @@
 
             <div class="progress-box">
               <div class="progress-meta">
-                <span><span data-i18n="simElapsed">Elapsed time:</span> <strong id="sim-elapsed">9m 12s / 15m</strong></span>
-                <span><span data-i18n="simRemaining">Remaining:</span> <strong id="sim-remaining">5m 48s</strong></span>
+                <span class="progress-meta-left"><span id="sim-status-emoji">🟢</span> <strong id="sim-status-label" data-i18n="simStatusOnTrack">Pacing On Track</strong></span>
+                <span class="progress-meta-right"><strong><span id="sim-elapsed">9m 12s</span> / 15m</strong> (<span id="sim-percent">61</span>%)</span>
               </div>
-              <div class="progress-ascii" role="progressbar" id="sim-progress" aria-valuenow="61" aria-valuemin="0" aria-valuemax="100" aria-label="Meeting elapsed time">[████████████░░░░] 61%</div>
+              <div class="progress-meta">
+                <span class="progress-ascii" role="progressbar" id="sim-progress" aria-valuenow="61" aria-valuemin="0" aria-valuemax="100" aria-label="Meeting elapsed time">[████████████░░░░] 61%</span>
+                <span class="progress-meta-right"><strong><span id="sim-remaining">5m 48s</span> <span data-i18n="simRemainingWord">remaining</span></strong></span>
+              </div>
             </div>
 
             <div class="mockup-alert">
-              <span style="font-size:1.2rem;">🧭</span>
-              <div id="sim-alert-text" data-i18n="simAlert">
-                <strong>60% of the timebox is up.</strong> If someone has a blocker or needs code review, bring it up now so the call finishes on schedule.
+              <span id="sim-alert-emoji" style="font-size:1.2rem;">🧭</span>
+              <div id="sim-alert-text">
+                <strong>Midpoint Flight Check:</strong> Over 50% of estimated time has elapsed. If you have critical technical blockers, bring them to the table now before touchdown.
               </div>
             </div>
 
             <div class="mockup-context-row">
               <div>👤 <strong data-i18n="simSpeakerLabel">Speaker:</strong> <span class="mockup-mention">@guest</span></div>
-              <div>📍 <strong data-i18n="simActiveModuleLabel">Active Module:</strong> <span id="sim-active-module">Core Topic / Demo</span> <span style="color:var(--text-muted);" id="sim-module-time">(9m left)</span></div>
+              <div><strong data-i18n="simActiveModuleLabel">Active Module:</strong> <span id="sim-active-module">Core Topic / Demo</span> <span style="color:var(--text-muted);" id="sim-module-time">(9m left)</span></div>
             </div>
             <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">⏭️ <strong data-i18n="simNextUpLabel">Next Up:</strong> <span id="sim-next-module">Open Q&A &amp; Wrap-up</span></div>
 
@@ -390,9 +393,14 @@
         simHuddleLive: "Live Huddle Thread",
         simBadge: "⏱️ Pacing Active",
         simTitle: "Daily Sync: Sprint Planning & Blockers",
-        simElapsed: "Elapsed time:",
-        simRemaining: "Remaining:",
-        simAlert: "<strong>60% of the timebox is up.</strong> If someone has a blocker or needs code review, bring it up now so the call finishes on schedule.",
+        simStatusOnTrack: "Pacing On Track",
+        simStatusOvertime: "Session Overtime",
+        simRemainingWord: "remaining",
+        simAlertOvertime: "<strong>Holding Pattern (Overtime):</strong> Meeting has exceeded the {total}m scheduled budget. Conclude or switch to casual chat.",
+        simAlertOneMin: "<strong>1-Minute Warning:</strong> Wrapping up <strong>{current}</strong>. Transitioning next to <strong>{next}</strong>.",
+        simAlertFinalApproach: "<strong>Final Approach ({remaining}m remaining):</strong> Begin summarizing action items and key takeaways before touchdown.",
+        simAlertMidpoint: "<strong>Midpoint Flight Check:</strong> Over 50% of estimated time has elapsed. If you have critical technical blockers, bring them to the table now before touchdown.",
+        simAlertSteady: "<strong>Flight Plan Active:</strong> Pacing is steady. Moving through <strong>{current}</strong>.",
         simSpeakerLabel: "Speaker:",
         simActiveModuleLabel: "Active Module:",
         simNextUpLabel: "Next Up:",
@@ -456,10 +464,15 @@
         simHuddleLive: "Hilo de Huddle en Vivo",
         simBadge: "⏱️ Pacing Activo",
         simTitle: "Daily Sync: Planificación de Sprint y Bloqueos",
-        simElapsed: "Tiempo transcurrido:",
-        simRemaining: "Restante:",
-        simAlert: "<strong>Pasó el 60% del tiempo.</strong> Si tienes un bloqueo técnico o necesitas destrabar un pull request, coméntalo ahora para cerrar a tiempo.",
-        simSpeakerLabel: "Speaker:",
+        simStatusOnTrack: "Pacing On Track",
+        simStatusOvertime: "Sesión con Tiempo Excedido",
+        simRemainingWord: "restantes",
+        simAlertOvertime: "<strong>Modo de Espera (Tiempo Excedido):</strong> La reunión superó el presupuesto de {total}m. Concluye o cambia a chat informal.",
+        simAlertOneMin: "<strong>Aviso de 1 Minuto:</strong> Cerrando <strong>{current}</strong>. Sigue: <strong>{next}</strong>.",
+        simAlertFinalApproach: "<strong>Aproximación Final ({remaining}m restantes):</strong> Empieza a resumir los puntos de acción antes del aterrizaje.",
+        simAlertMidpoint: "<strong>Alerta de Mitad de Vuelo:</strong> Más del 50% del tiempo estimado ha transcurrido. Si tienes bloqueos técnicos críticos, ponlos sobre la mesa ahora antes del aterrizaje.",
+        simAlertSteady: "<strong>Plan de Vuelo Activo:</strong> El ritmo es estable. Avanzando por <strong>{current}</strong>.",
+        simSpeakerLabel: "Orador:",
         simActiveModuleLabel: "Módulo Activo:",
         simNextUpLabel: "Siguiente:",
         simBtnAdvance: "▶️ Avanzar Fase",
@@ -626,35 +639,73 @@
 
       const advanceBtn = document.getElementById('sim-btn-advance');
       if (advanceBtn) advanceBtn.style.visibility = isLast ? 'hidden' : 'visible';
+
+      return { moduleRemainingMin: Math.ceil(leftInModule / 60), isLast, names };
+    }
+
+    // Mirrors trackerBlock.ts's companionAlert branching exactly: overtime >
+    // 1-minute-to-next-module warning > final-approach > midpoint > steady.
+    function computeAlert(remainingMin, moduleRemainingMin, isOvertime, currentName, nextName, pct) {
+      const t = translations[currentLang()];
+      const totalMin = Math.round(totalSeconds / 60);
+      if (isOvertime) {
+        return { emoji: '🔴', html: t.simAlertOvertime.replace('{total}', totalMin) };
+      }
+      if (moduleRemainingMin <= 1 && nextName) {
+        return { emoji: '⏱️', html: t.simAlertOneMin.replace('{current}', currentName).replace('{next}', nextName) };
+      }
+      if (remainingMin <= 2) {
+        return { emoji: '⚠️', html: t.simAlertFinalApproach.replace('{remaining}', Math.max(0, remainingMin)) };
+      }
+      if (pct >= 50) {
+        return { emoji: '🧭', html: t.simAlertMidpoint };
+      }
+      return { emoji: '⏱️', html: t.simAlertSteady.replace('{current}', currentName) };
     }
 
     function renderLiveState() {
-      const m = Math.floor(secondsElapsed / 60);
-      const s = secondsElapsed % 60;
-      const rem = totalSeconds - secondsElapsed;
+      const isOvertime = secondsElapsed > totalSeconds;
+      const clampedElapsed = Math.min(secondsElapsed, totalSeconds);
+      const m = Math.floor(clampedElapsed / 60);
+      const s = clampedElapsed % 60;
+      const rem = Math.max(0, totalSeconds - secondsElapsed);
       const remM = Math.floor(rem / 60);
       const remS = rem % 60;
-      const pct = Math.min(100, Math.floor((secondsElapsed / totalSeconds) * 100));
+      const pct = Math.round((secondsElapsed / totalSeconds) * 100);
 
       const elElapsed = document.getElementById('sim-elapsed');
       const elRemaining = document.getElementById('sim-remaining');
+      const elPercent = document.getElementById('sim-percent');
       const elBar = document.getElementById('sim-progress');
+      const elStatusEmoji = document.getElementById('sim-status-emoji');
+      const elStatusLabel = document.getElementById('sim-status-label');
 
-      if (elElapsed) elElapsed.innerText = `${m}m ${s < 10 ? '0' : ''}${s}s / 15m`;
+      if (elElapsed) elElapsed.innerText = `${m}m ${s < 10 ? '0' : ''}${s}s`;
       if (elRemaining) elRemaining.innerText = `${remM}m ${remS < 10 ? '0' : ''}${remS}s`;
+      if (elPercent) elPercent.innerText = pct;
       if (elBar) {
         elBar.innerText = renderAsciiBar(pct);
-        elBar.setAttribute('aria-valuenow', pct);
+        elBar.setAttribute('aria-valuenow', Math.min(100, pct));
       }
 
-      currentModuleIndex = moduleIndexForSeconds(secondsElapsed);
-      updateModuleDisplay();
+      const t = translations[currentLang()];
+      if (elStatusEmoji) elStatusEmoji.innerText = isOvertime ? '🔴' : '🟢';
+      if (elStatusLabel) elStatusLabel.innerText = isOvertime ? t.simStatusOvertime : t.simStatusOnTrack;
+
+      currentModuleIndex = moduleIndexForSeconds(Math.min(secondsElapsed, totalSeconds - 1));
+      const { moduleRemainingMin, isLast, names } = updateModuleDisplay();
+      const remainingMin = Math.ceil(rem / 60);
+      const alert = computeAlert(remainingMin, moduleRemainingMin, isOvertime, names[currentModuleIndex], isLast ? null : names[currentModuleIndex + 1], pct);
+      const elAlertEmoji = document.getElementById('sim-alert-emoji');
+      const elAlertText = document.getElementById('sim-alert-text');
+      if (elAlertEmoji) elAlertEmoji.innerText = alert.emoji;
+      if (elAlertText) elAlertText.innerHTML = alert.html;
     }
 
     function tickSimulation() {
       if (simConcluded) return;
       secondsElapsed++;
-      if (secondsElapsed > totalSeconds) secondsElapsed = 60;
+      if (secondsElapsed > totalSeconds + 30) secondsElapsed = 0;
       renderLiveState();
     }
 

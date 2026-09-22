@@ -18,6 +18,7 @@ This directory contains the normative engineering standards for HuddlePace, desi
 
 ## Product Documentation
 
+- **[Brand Identity & System Guide](BRAND.md)**: Master reference for colors (Aerospace Telemetry), typography, Vector mascot specifications, voice, and visual assets.
 - **[Product Capabilities & Changes Log](PRODUCT_CAPABILITIES_LOG.md)**: Master reverse-chronological record of everything HuddlePace does and recent feature updates.
 - **[Target Niches & Market Personas](TARGET_NICHES.md)**: Market segments, Scrum Masters, pain points, and commercial opportunities.
 
