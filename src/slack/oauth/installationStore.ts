@@ -106,3 +106,57 @@ export async function getBotTokenForTeam(teamId?: string | null): Promise<string
     return process.env.SLACK_BOT_TOKEN;
   }
 }
+
+/**
+ * Ensures that if a workspace has a static SLACK_BOT_TOKEN (e.g. primary workspace or dev mode),
+ * it is registered in the database so Bolt's HTTP receiver can authorize it seamlessly.
+ */
+export async function ensureDefaultInstallation(): Promise<void> {
+  const botToken = process.env.SLACK_BOT_TOKEN;
+  if (!botToken) return;
+
+  try {
+    const existingCount = await prisma.slackInstallation.count();
+    if (existingCount > 0) return;
+
+    const res = await fetch("https://slack.com/api/auth.test", {
+      headers: { Authorization: `Bearer ${botToken}` },
+    });
+    const auth = (await res.json()) as any;
+
+    if (auth.ok && auth.team_id) {
+      const installation = {
+        team: { id: auth.team_id, name: auth.team as string },
+        bot: {
+          token: botToken,
+          id: auth.bot_id as string,
+          userId: auth.user_id as string,
+        },
+        tokenType: "bot" as const,
+      };
+
+      await prisma.slackInstallation.upsert({
+        where: { teamId: auth.team_id },
+        create: {
+          teamId: auth.team_id,
+          teamName: (auth.team as string) || null,
+          botToken,
+          botId: (auth.bot_id as string) || null,
+          botUserId: (auth.user_id as string) || null,
+          installedByUserId: (auth.user_id as string) || null,
+          installationData: JSON.stringify(installation),
+        },
+        update: {
+          teamName: (auth.team as string) || null,
+          botToken,
+          botId: (auth.bot_id as string) || null,
+          botUserId: (auth.user_id as string) || null,
+          installationData: JSON.stringify(installation),
+        },
+      });
+      console.log(`✅ Default workspace installation auto-seeded for team: ${auth.team} (${auth.team_id})`);
+    }
+  } catch (err) {
+    console.warn("Could not auto-seed default installation:", err);
+  }
+}
