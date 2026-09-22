@@ -20,7 +20,8 @@ interface MeetupWithModules {
 export function buildHomeTabView(
   activeMeetups: MeetupWithModules[],
   upcomingMeetups: MeetupWithModules[],
-  stats?: PacingReportStats
+  stats?: PacingReportStats,
+  currentUserId?: string
 ): View {
   const blocks: any[] = [
     {
@@ -51,10 +52,42 @@ export function buildHomeTabView(
           style: "primary",
           action_id: "open_schedule_modal",
         },
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "🔄 Refresh",
+            emoji: true,
+          },
+          action_id: "refresh_home_tab",
+        },
       ],
     },
     { type: "divider" },
   ];
+
+  // Onboarding Guide (when no sessions exist)
+  if (activeMeetups.length === 0 && upcomingMeetups.length === 0) {
+    blocks.push(
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "👋 *Welcome to HuddlePace!*\nKeep your talks on schedule and respect everyone's time in 3 easy steps:\n\n1️⃣ *Schedule with Modules:* Click *Schedule New Meetup* above to divide your agenda into timed sections (e.g. Intro, Demo, Q&A).\n2️⃣ *Launch in a Huddle:* When you join a Slack Huddle, launch your session to attach a live progress tracker.\n3️⃣ *Pacing Alerts:* Speakers receive private, distraction-free DM checkpoints as modules advance.",
+        },
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: "💡 *Tip:* You can also type `/pace` in any channel to schedule or check timebox compliance anytime.",
+          },
+        ],
+      },
+      { type: "divider" }
+    );
+  }
 
   // Active Sessions
   blocks.push({
@@ -88,13 +121,21 @@ export function buildHomeTabView(
         : "🟢 *In Progress*";
 
       const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
+      const isSpeaker = currentUserId
+        ? MeetupService.parseSpeakerIds(meetup.speakerUserId).includes(currentUserId)
+        : false;
+      const roleBadge = currentUserId
+        ? isSpeaker
+          ? "  •  🌟 *You are a speaker*"
+          : "  •  👀 _Spectator_"
+        : "";
 
       blocks.push(
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*${meetup.title}*  •  ${statusBadge}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\nElapsed: *${elapsedMinutes} / ${meetup.totalMinutes} min*\n${renderProgressBar(percent, 16)}`,
+            text: `*${meetup.title}*  •  ${statusBadge}${roleBadge}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\nElapsed: *${elapsedMinutes} / ${meetup.totalMinutes} min*\n${renderProgressBar(percent, 16)}`,
           },
           accessory: {
             type: "button",
@@ -113,50 +154,155 @@ export function buildHomeTabView(
     }
   }
 
-  // Upcoming Scheduled Sessions
-  blocks.push({
-    type: "header",
-    text: {
-      type: "plain_text",
-      text: "📅 Upcoming Meetups",
-      emoji: true,
-    },
-  });
+  // Upcoming Scheduled Sessions (Personalized vs Team)
+  const isSpeakerMatch = (meetup: MeetupWithModules) =>
+    currentUserId ? MeetupService.parseSpeakerIds(meetup.speakerUserId).includes(currentUserId) : false;
 
-  if (upcomingMeetups.length === 0) {
+  const myUpcoming = currentUserId ? upcomingMeetups.filter(isSpeakerMatch) : [];
+  const teamUpcoming = currentUserId
+    ? upcomingMeetups.filter((m) => !isSpeakerMatch(m))
+    : upcomingMeetups;
+
+  if (currentUserId) {
+    // 1. My Upcoming Sessions
     blocks.push({
-      type: "section",
+      type: "header",
       text: {
-        type: "mrkdwn",
-        text: "_No upcoming scheduled meetups._",
+        type: "plain_text",
+        text: "🌟 My Scheduled Meetups",
+        emoji: true,
       },
     });
-  } else {
-    for (const meetup of upcomingMeetups) {
-      const breakdownText = meetup.modules
-        .map((m) => `• *${m.title}* (${m.percentage}% — ${formatMinutes(m.durationMinutes)})`)
-        .join("\n");
 
-      const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
-
+    if (myUpcoming.length === 0) {
       blocks.push({
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})\nSpeakers: ${speakers} in <#${meetup.channelId}>\n${breakdownText}`,
-        },
-        accessory: {
-          type: "button",
-          text: {
-            type: "plain_text",
-            text: "🚀 Start in Huddle",
-            emoji: true,
-          },
-          style: "primary",
-          value: meetup.id,
-          action_id: "start_scheduled_meetup_action",
+          text: "_You have no upcoming sessions assigned as speaker._",
         },
       });
+    } else {
+      for (const meetup of myUpcoming) {
+        const breakdownText = meetup.modules
+          .map((m) => `• *${m.title}* (${m.percentage}% — ${formatMinutes(m.durationMinutes)})`)
+          .join("\n");
+        const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
+
+        blocks.push({
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\n${breakdownText}`,
+          },
+          accessory: {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "🚀 Start in Huddle",
+              emoji: true,
+            },
+            style: "primary",
+            value: meetup.id,
+            action_id: "start_scheduled_meetup_action",
+          },
+        });
+      }
+    }
+
+    // 2. Team Sessions
+    blocks.push(
+      { type: "divider" },
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: "📅 Workspace Meetups",
+          emoji: true,
+        },
+      }
+    );
+
+    if (teamUpcoming.length === 0) {
+      blocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "_No other scheduled meetups in the workspace._",
+        },
+      });
+    } else {
+      for (const meetup of teamUpcoming) {
+        const breakdownText = meetup.modules
+          .map((m) => `• *${m.title}* (${m.percentage}% — ${formatMinutes(m.durationMinutes)})`)
+          .join("\n");
+        const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
+
+        blocks.push({
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\n${breakdownText}`,
+          },
+          accessory: {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "🚀 Start in Huddle",
+              emoji: true,
+            },
+            style: "primary",
+            value: meetup.id,
+            action_id: "start_scheduled_meetup_action",
+          },
+        });
+      }
+    }
+  } else {
+    // Non-personalized fallback
+    blocks.push({
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: "📅 Upcoming Meetups",
+        emoji: true,
+      },
+    });
+
+    if (upcomingMeetups.length === 0) {
+      blocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "_No upcoming scheduled meetups._",
+        },
+      });
+    } else {
+      for (const meetup of upcomingMeetups) {
+        const breakdownText = meetup.modules
+          .map((m) => `• *${m.title}* (${m.percentage}% — ${formatMinutes(m.durationMinutes)})`)
+          .join("\n");
+        const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
+
+        blocks.push({
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})\nSpeakers: ${speakers} in <#${meetup.channelId}>\n${breakdownText}`,
+          },
+          accessory: {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "🚀 Start in Huddle",
+              emoji: true,
+            },
+            style: "primary",
+            value: meetup.id,
+            action_id: "start_scheduled_meetup_action",
+          },
+        });
+      }
     }
   }
 
@@ -211,8 +357,23 @@ export function buildHomeTabView(
     );
   }
 
+  // Safety: Slack caps Home tab view to 100 blocks maximum
+  let finalBlocks = blocks;
+  if (blocks.length > 98) {
+    finalBlocks = blocks.slice(0, 98);
+    finalBlocks.push({
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: "⚠️ _Additional meetups truncated to respect Slack's 100-block limit._",
+        },
+      ],
+    });
+  }
+
   return {
     type: "home",
-    blocks,
+    blocks: finalBlocks,
   };
 }

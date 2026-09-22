@@ -4,23 +4,41 @@ import { buildHomeTabView } from "../ui/homeTab.js";
 import { buildScheduleModal } from "../ui/scheduleModal.js";
 import { buildPacingReportBlocks } from "../ui/reportBlock.js";
 
+/**
+ * Centralized publisher for a user's App Home view.
+ */
+export async function publishHomeTab(client: any, userId: string, teamId?: string): Promise<void> {
+  try {
+    const [active, upcoming, stats] = await Promise.all([
+      MeetupService.getActiveMeetups(teamId),
+      MeetupService.getUpcomingMeetups(teamId),
+      MeetupService.getPacingReportStats(30, teamId),
+    ]);
+
+    await client.views.publish({
+      user_id: userId,
+      view: buildHomeTabView(active, upcoming, stats, userId),
+    });
+  } catch (error) {
+    console.error(`Error publishing App Home tab for user ${userId}:`, error);
+  }
+}
+
 export function registerHomeHandlers(app: App) {
   // Publish Home tab whenever a user opens the App Home
   app.event("app_home_opened", async ({ event, client, context }) => {
-    try {
-      const teamId = (event as any).view?.team_id || context.teamId;
-      const [active, upcoming, stats] = await Promise.all([
-        MeetupService.getActiveMeetups(teamId),
-        MeetupService.getUpcomingMeetups(teamId),
-        MeetupService.getPacingReportStats(30, teamId),
-      ]);
+    const teamId = (event as any).view?.team_id || context.teamId;
+    await publishHomeTab(client, event.user, teamId);
+  });
 
-      await client.views.publish({
-        user_id: event.user,
-        view: buildHomeTabView(active, upcoming, stats),
-      });
-    } catch (error) {
-      console.error("Error publishing App Home tab:", error);
+  // Action: Refresh Home Tab manually
+  app.action("refresh_home_tab", async ({ ack, body, client, context }) => {
+    await ack();
+    const b = body as any;
+    const teamId = b.team?.id || context.teamId;
+    const userId = b.user?.id;
+    if (userId) {
+      await publishHomeTab(client, userId, teamId);
     }
   });
 

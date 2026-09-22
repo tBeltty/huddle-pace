@@ -5,6 +5,7 @@ import { findChannelHuddles, DetectedHuddle } from "../utils/huddleDiscovery.js"
 import { launchMeetupInThread } from "./actionHandlers.js";
 import { scheduleModalInputSchema } from "../schemas/scheduleSchema.js";
 import { ensureBotInChannel } from "../utils/channelUtils.js";
+import { publishHomeTab } from "./homeHandlers.js";
 
 export function registerModalHandlers(app: App) {
   // Action: Dynamically refresh Huddle list when user selects a target channel in the modal
@@ -223,6 +224,14 @@ export function registerModalHandlers(app: App) {
         : threadTs === "main"
         ? "main channel feed"
         : "auto-detect active Huddle on launch";
+
+      // Refresh App Home for creator and speakers so the session appears immediately
+      const usersToRefresh = Array.from(new Set([body.user.id, ...MeetupService.parseSpeakerIds(speakerUserId)]));
+      for (const uid of usersToRefresh) {
+        publishHomeTab(client, uid, teamId).catch((err) => {
+          console.warn(`Failed to auto-refresh App Home for user ${uid}:`, err);
+        });
+      }
 
       // Silent scheduling: post ephemeral confirmation to creator without public channel spam
       try {
