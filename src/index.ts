@@ -31,6 +31,12 @@ async function main() {
 
   console.log("⏱️ Periodic scheduler is tracking active meetups.");
 
+  // Proactively push updated App Home views to all workspace members on boot
+  const { syncAllAppHomes } = await import("./slack/handlers/homeHandlers.js");
+  syncAllAppHomes(app).catch((err) =>
+    console.warn("Notice: Startup App Home sync deferred:", err?.message || err)
+  );
+
   // Graceful shutdown handling
   const shutdown = async () => {
     console.log("\nStopping HuddlePace gracefully...");
