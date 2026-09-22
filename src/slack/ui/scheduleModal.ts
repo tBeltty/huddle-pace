@@ -99,11 +99,12 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
 
   const durationOptions = [
     { text: { type: "plain_text" as const, text: "15 minutes" }, value: "15" },
+    { text: { type: "plain_text" as const, text: "20 minutes" }, value: "20" },
     { text: { type: "plain_text" as const, text: "30 minutes" }, value: "30" },
     { text: { type: "plain_text" as const, text: "45 minutes" }, value: "45" },
-    { text: { type: "plain_text" as const, text: "60 minutes" }, value: "60" },
-    { text: { type: "plain_text" as const, text: "90 minutes" }, value: "90" },
-    { text: { type: "plain_text" as const, text: "120 minutes" }, value: "120" },
+    { text: { type: "plain_text" as const, text: "60 minutes (1 hour)" }, value: "60" },
+    { text: { type: "plain_text" as const, text: "90 minutes (1.5 hours)" }, value: "90" },
+    { text: { type: "plain_text" as const, text: "120 minutes (2 hours)" }, value: "120" },
   ];
 
   const durationStr = (initialState?.duration || 60).toString();
@@ -121,7 +122,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         action_id: "title_input",
         placeholder: {
           type: "plain_text",
-          text: "e.g., Docker & Kubernetes Architecture Deep-Dive",
+          text: "e.g. Onboarding Sprint, Architecture Sync",
         },
         initial_value: initialState?.title || "",
       },
@@ -209,36 +210,14 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         action_id: "duration_select",
         placeholder: {
           type: "plain_text",
-          text: "Select duration preset",
+          text: "Select duration",
         },
         initial_option: initialDuration,
         options: durationOptions,
       },
       label: {
         type: "plain_text",
-        text: "Quick Preset Duration",
-      },
-    },
-    {
-      type: "input",
-      block_id: "custom_duration_block",
-      optional: true,
-      element: {
-        type: "plain_text_input",
-        action_id: "custom_duration_input",
-        placeholder: {
-          type: "plain_text",
-          text: "e.g. 15, 45, 75 (Leave blank to use preset)",
-        },
-        initial_value: initialState?.customDuration || "",
-      },
-      label: {
-        type: "plain_text",
-        text: "Custom Duration in Minutes (Optional)",
-      },
-      hint: {
-        type: "plain_text",
-        text: "Overrides the quick preset above if specified.",
+        text: "Duration",
       },
     },
     {
