@@ -15,18 +15,21 @@ export async function publishHomeTab(client: any, userId: string, teamId?: strin
       MeetupService.getPacingReportStats(30, teamId),
     ]);
 
-    await client.views.publish({
+    const view = buildHomeTabView(active, upcoming, stats, userId);
+    const result = await client.views.publish({
       user_id: userId,
-      view: buildHomeTabView(active, upcoming, stats, userId),
+      view,
     });
-  } catch (error) {
-    console.error(`Error publishing App Home tab for user ${userId}:`, error);
+    console.info(`⚡ App Home tab published successfully for user ${userId} (blocks: ${view.blocks.length})`);
+  } catch (error: any) {
+    console.error(`Error publishing App Home tab for user ${userId}:`, error?.data || error.message || error);
   }
 }
 
 export function registerHomeHandlers(app: App) {
   // Publish Home tab whenever a user opens the App Home
   app.event("app_home_opened", async ({ event, client, context }) => {
+    console.info(`📥 app_home_opened received for user ${event.user}, tab: ${(event as any).tab}`);
     const teamId = (event as any).view?.team_id || context.teamId;
     await publishHomeTab(client, event.user, teamId);
   });
