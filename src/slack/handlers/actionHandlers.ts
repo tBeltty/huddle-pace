@@ -128,7 +128,7 @@ export function registerActionHandlers(app: App) {
         return;
       }
 
-      const targetThreadTs = active.length === 1 ? active[0].ts : undefined;
+      const targetThreadTs = active.length >= 1 ? active[0].ts : undefined;
       await launchMeetupInThread(client, meetupId, targetThreadTs);
 
       // Auto-refresh App Home for the user who initiated the action
@@ -137,6 +137,64 @@ export function registerActionHandlers(app: App) {
       }
     } catch (error) {
       console.error("Error starting meetup from action button:", error);
+    }
+  });
+
+  // Action: Quick Launch from Huddle standby presence card
+  app.action("quick_launch_huddle_action", async ({ ack, body, client }) => {
+    await ack();
+    try {
+      const b = body as any;
+      const payload = JSON.parse(b.actions[0]?.value || "{}");
+      const minutes = parseInt(payload.minutes, 10) || 15;
+      const threadTs = payload.threadTs || b.message?.thread_ts || b.message?.ts;
+      const channelId = b.channel?.id;
+      const userId = b.user?.id;
+      const teamId = b.team?.id;
+
+      if (!channelId || !userId) return;
+
+      // Ensure bot is in channel
+      await ensureBotInChannel(client, channelId, userId);
+
+      const title = `${minutes}m Huddle Sync`;
+      const modules = [
+        { title: "Context & Intro", percentage: 20 },
+        { title: "Core Topic", percentage: 60 },
+        { title: "Wrap-up & Next Steps", percentage: 20 },
+      ];
+
+      const newMeetup = await MeetupService.createMeetup({
+        title,
+        totalMinutes: minutes,
+        channelId,
+        speakerUserId: userId,
+        threadTs,
+        teamId,
+        modules,
+      });
+
+      await launchMeetupInThread(client, newMeetup.id, threadTs);
+
+      // Clean up the standby card or update it in-place
+      if (b.message?.ts) {
+        await client.chat.update({
+          channel: channelId,
+          ts: b.message.ts,
+          text: `🛫 *Flight Launched:* Started *"${title}"* (${minutes}m) in this Huddle!`,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `🛫 *Flight Launched:* <@${userId}> started *"${title}"* (${minutes}m). Live flight tracker is active!`,
+              },
+            },
+          ],
+        }).catch(() => {});
+      }
+    } catch (err) {
+      console.error("Error launching quick meetup from standby card:", err);
     }
   });
 

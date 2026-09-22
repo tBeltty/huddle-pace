@@ -5,6 +5,8 @@ import { prisma } from "../db/client.js";
 import { getBotTokenForTeam } from "../slack/oauth/installationStore.js";
 import { publishHomeTab } from "../slack/handlers/homeHandlers.js";
 import { formatMinutes } from "../utils/progressBar.js";
+import { findChannelHuddles, isHuddleEnded } from "../slack/utils/huddleDiscovery.js";
+import { launchMeetupInThread } from "../slack/handlers/actionHandlers.js";
 
 export class TimerWorker {
   private timer: NodeJS.Timeout | null = null;
@@ -38,6 +40,33 @@ export class TimerWorker {
     this.isRunning = true;
 
     try {
+      // 0. Safety Net: Check for pending scheduled meetups in channels with active Huddles
+      try {
+        const pendingScheduled = await prisma.meetup.findMany({
+          where: { status: "SCHEDULED" },
+          include: { modules: { orderBy: { orderIndex: "asc" } } },
+        });
+
+        for (const scheduled of pendingScheduled) {
+          const botToken = await getBotTokenForTeam(scheduled.teamId);
+          const huddles = await findChannelHuddles(this.app.client, scheduled.channelId);
+          const activeHuddle = huddles.find((h) => h.isActive);
+
+          if (activeHuddle) {
+            console.info(`⏱️ Timer worker detected active Huddle in channel ${scheduled.channelId}. Auto-launching scheduled meetup ${scheduled.id}.`);
+            await launchMeetupInThread(this.app.client, scheduled.id, activeHuddle.ts);
+            await this.app.client.chat.postMessage({
+              token: botToken,
+              channel: scheduled.channelId,
+              thread_ts: activeHuddle.ts,
+              text: `🛫 *Huddle Detected!* Vector has automatically launched your scheduled session: *"${scheduled.title}"* (${scheduled.totalMinutes}m).\nLive pacing has started in this thread!`,
+            }).catch(() => {});
+          }
+        }
+      } catch (scheduledErr) {
+        console.warn("Error checking pending scheduled meetups in timer worker:", scheduledErr);
+      }
+
       const activeMeetups = await MeetupService.getActiveMeetups();
       const activeIds = new Set(activeMeetups.map((m) => m.id));
 
@@ -66,17 +95,9 @@ export class TimerWorker {
             });
 
             const parentMsg = historyRes.messages?.[0] as any;
-            if (parentMsg) {
-              const isEnded =
-                parentMsg.room?.has_ended === true ||
-                (parentMsg.room?.date_end != null && parentMsg.room.date_end > 0) ||
-                (parentMsg.text &&
-                  (parentMsg.text.toLowerCase().includes("huddle ended") ||
-                    parentMsg.text.toLowerCase().includes("ended a huddle") ||
-                    parentMsg.text.toLowerCase().includes("call ended")));
+            if (parentMsg && isHuddleEnded(parentMsg)) {
+              console.info(`⏱️ Timer worker detected Huddle ${meetup.threadTs} has ended. Auto-concluding meetup ${meetup.id}.`);
 
-              if (isEnded) {
-                console.info(`⏱️ Timer worker detected Huddle ${meetup.threadTs} has ended. Auto-concluding meetup ${meetup.id}.`);
                 const updated = await MeetupService.concludeMeetup(meetup.id);
                 const started = new Date(meetup.startedAt).getTime();
                 const ended = updated.endsAt ? new Date(updated.endsAt).getTime() : Date.now();
@@ -120,7 +141,6 @@ export class TimerWorker {
                 }
                 continue;
               }
-            }
           } catch (err: any) {
             // Ignore transient Slack history lookup errors
           }
