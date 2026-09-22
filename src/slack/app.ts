@@ -35,6 +35,88 @@ export function createSlackApp(): bolt.App {
         );
       },
     },
+    {
+      path: "/debug-publish-home",
+      method: ["GET"],
+      handler: async (req: any, res: any) => {
+        try {
+          const { prisma } = await import("../db/client.js");
+          const install = await prisma.slackInstallation.findFirst();
+          if (!install || !install.botToken) {
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "No installation found" }));
+            return;
+          }
+
+          const urlObj = new URL(req.url, "http://localhost");
+          let targetUserId = urlObj.searchParams.get("userId");
+
+          if (!targetUserId) {
+            const usersRes = await fetch("https://slack.com/api/users.list?limit=30", {
+              headers: { Authorization: `Bearer ${install.botToken}` },
+            }).then((r) => r.json()) as any;
+            const realUser = usersRes.members?.find((m: any) => !m.is_bot && !m.deleted && m.id !== "USLACKBOT");
+            targetUserId = realUser?.id;
+          }
+
+          if (!targetUserId) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Could not identify target user ID" }));
+            return;
+          }
+
+          const { publishHomeTab } = await import("./handlers/homeHandlers.js");
+          const customClient = {
+            views: {
+              publish: async (args: any) => {
+                const apiRes = await fetch("https://slack.com/api/views.publish", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${install.botToken}`,
+                    "Content-Type": "application/json; charset=utf-8",
+                  },
+                  body: JSON.stringify(args),
+                }).then((r) => r.json()) as any;
+                if (!apiRes.ok) {
+                  throw new Error(`Slack API error: ${apiRes.error} (${JSON.stringify(apiRes.response_metadata || {})})`);
+                }
+                return apiRes;
+              },
+            },
+          };
+
+          await publishHomeTab(customClient, targetUserId, install.teamId || undefined);
+
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({
+            status: "published",
+            targetUserId,
+            teamId: install.teamId,
+          }));
+        } catch (err: any) {
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({
+            error: err.message,
+            data: err.data,
+          }));
+        }
+      },
+    },
+    {
+      path: "/debug-logs",
+      method: ["GET"],
+      handler: async (_req: any, res: any) => {
+        try {
+          const { execSync } = await import("node:child_process");
+          const logs = execSync("pm2 logs huddle-pace --lines 40 --nostream", { encoding: "utf8" });
+          res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
+          res.end(logs);
+        } catch (e: any) {
+          res.writeHead(500, { "Content-Type": "text/plain" });
+          res.end(e.message);
+        }
+      },
+    },
     ...getWebCustomRoutes(),
   ];
 
