@@ -47,13 +47,14 @@ describe("Zod Runtime Validation Schemas", () => {
       }
     });
 
-    test("succeeds with valid HTTP OAuth mode environment variables", () => {
+    test("succeeds with valid HTTP OAuth mode environment variables and optional SLACK_REDIRECT_URI", () => {
       const validOAuthEnv = {
         SOCKET_MODE: "false",
         SLACK_SIGNING_SECRET: "mock-signing-secret",
         SLACK_CLIENT_ID: "mock-client-id",
         SLACK_CLIENT_SECRET: "mock-client-secret",
         SLACK_STATE_SECRET: "mock-state-secret",
+        SLACK_REDIRECT_URI: "https://huddlepace.com/slack/oauth_redirect",
         PORT: 4000,
       };
       const result = envSchema.safeParse(validOAuthEnv);
@@ -61,6 +62,29 @@ describe("Zod Runtime Validation Schemas", () => {
       if (result.success) {
         assert.strictEqual(result.data.SOCKET_MODE, false);
         assert.strictEqual(result.data.PORT, 4000);
+        assert.strictEqual(
+          result.data.SLACK_REDIRECT_URI,
+          "https://huddlepace.com/slack/oauth_redirect"
+        );
+      }
+    });
+
+    test("fails when SLACK_REDIRECT_URI is not a valid URL (negative control)", () => {
+      const invalidOAuthEnv = {
+        SOCKET_MODE: "false",
+        SLACK_SIGNING_SECRET: "mock-signing-secret",
+        SLACK_CLIENT_ID: "mock-client-id",
+        SLACK_CLIENT_SECRET: "mock-client-secret",
+        SLACK_STATE_SECRET: "mock-state-secret",
+        SLACK_REDIRECT_URI: "not-a-valid-url",
+      };
+      const result = envSchema.safeParse(invalidOAuthEnv);
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        assert.strictEqual(
+          result.error.issues.some((i) => i.path[0] === "SLACK_REDIRECT_URI"),
+          true
+        );
       }
     });
 

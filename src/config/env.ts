@@ -8,6 +8,7 @@ export const envSchema = z
     SLACK_CLIENT_ID: z.string().optional(),
     SLACK_CLIENT_SECRET: z.string().optional(),
     SLACK_STATE_SECRET: z.string().optional(),
+    SLACK_REDIRECT_URI: z.string().url().optional(),
     SOCKET_MODE: z
       .string()
       .default("true")

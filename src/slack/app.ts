@@ -24,6 +24,7 @@ export function createSlackApp(): bolt.App {
         clientId: env.SLACK_CLIENT_ID,
         clientSecret: env.SLACK_CLIENT_SECRET,
         stateSecret: env.SLACK_STATE_SECRET,
+        redirectUri: env.SLACK_REDIRECT_URI || "https://huddlepace.com/slack/oauth_redirect",
         scopes: [
           "commands",
           "chat:write",
