@@ -163,6 +163,49 @@ describe("Zod Runtime Validation Schemas", () => {
       const result = scheduleModalInputSchema.safeParse(invalid);
       assert.strictEqual(result.success, false);
     });
+
+    test("passes with custom duration positive integers (15m, 25m, 75m)", () => {
+      for (const mins of [15, 25, 75]) {
+        const result = scheduleModalInputSchema.safeParse({
+          ...validPayload,
+          totalMinutes: mins,
+        });
+        assert.strictEqual(result.success, true);
+        if (result.success) {
+          assert.strictEqual(result.data.totalMinutes, mins);
+        }
+      }
+    });
+
+    test("fails when totalMinutes is non-positive (negative control)", () => {
+      const invalid = {
+        ...validPayload,
+        totalMinutes: 0,
+      };
+      const result = scheduleModalInputSchema.safeParse(invalid);
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        assert.strictEqual(
+          result.error.issues.some((i) => i.path[0] === "totalMinutes"),
+          true
+        );
+      }
+    });
+
+    test("fails when totalMinutes is a decimal (negative control)", () => {
+      const invalid = {
+        ...validPayload,
+        totalMinutes: 45.5,
+      };
+      const result = scheduleModalInputSchema.safeParse(invalid);
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        assert.strictEqual(
+          result.error.issues.some((i) => i.path[0] === "totalMinutes"),
+          true
+        );
+      }
+    });
   });
 
   describe("subtopicInputSchema", () => {

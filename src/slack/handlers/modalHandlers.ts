@@ -21,6 +21,7 @@ export function registerModalHandlers(app: App) {
       const title = values.title_block?.title_input?.value || "";
       const selectedSpeakers = values.speaker_block?.speaker_select?.selected_users || [];
       const duration = parseInt(values.duration_block?.duration_select?.selected_option?.value || "60", 10);
+      const customDuration = values.custom_duration_block?.custom_duration_input?.value || "";
       const customThreadTs = values.custom_thread_block?.custom_thread_input?.value || "";
       const metadata = JSON.parse(b.view.private_metadata || "{}");
       const count = metadata.subtopicCount || 3;
@@ -40,6 +41,7 @@ export function registerModalHandlers(app: App) {
           channelId: selectedChannel,
           speakerUserIds: selectedSpeakers,
           duration,
+          customDuration,
           subtopicCount: count,
           customThreadTs,
           availableHuddles: huddles,
@@ -68,6 +70,7 @@ export function registerModalHandlers(app: App) {
       const title = values.title_block?.title_input?.value || "";
       const selectedSpeakers = values.speaker_block?.speaker_select?.selected_users || [];
       const duration = parseInt(values.duration_block?.duration_select?.selected_option?.value || "60", 10);
+      const customDuration = values.custom_duration_block?.custom_duration_input?.value || "";
       const selectedHuddleChoice = values.huddle_select_block?.huddle_select?.selected_option?.value;
       const customThreadTs = values.custom_thread_block?.custom_thread_input?.value || "";
 
@@ -91,6 +94,7 @@ export function registerModalHandlers(app: App) {
           channelId,
           speakerUserIds: selectedSpeakers,
           duration,
+          customDuration,
           subtopicCount: newCount,
           selectedHuddleChoice,
           customThreadTs,
@@ -111,7 +115,14 @@ export function registerModalHandlers(app: App) {
 
     const title = values.title_block?.title_input?.value || "";
     const channelId = values.channel_block?.channel_select?.selected_conversation || "";
-    const totalMinutes = parseInt(values.duration_block?.duration_select?.selected_option?.value || "60", 10);
+    const presetMinutes = parseInt(values.duration_block?.duration_select?.selected_option?.value || "60", 10);
+    const customDurationStr = values.custom_duration_block?.custom_duration_input?.value?.trim() || "";
+
+    let totalMinutes = presetMinutes;
+    if (customDurationStr) {
+      const parsedCustom = Number(customDurationStr);
+      totalMinutes = isNaN(parsedCustom) ? -1 : parsedCustom;
+    }
 
     // Multi-speaker selection support
     const selectedSpeakers: string[] = values.speaker_block?.speaker_select?.selected_users || [];
@@ -174,7 +185,8 @@ export function registerModalHandlers(app: App) {
         } else if (path[0] === "channelId") {
           errors["channel_block"] = issue.message;
         } else if (path[0] === "totalMinutes") {
-          errors["duration_block"] = issue.message;
+          const targetBlock = customDurationStr ? "custom_duration_block" : "duration_block";
+          errors[targetBlock] = issue.message;
         }
       }
 
