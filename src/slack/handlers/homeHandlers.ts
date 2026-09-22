@@ -47,32 +47,43 @@ export function registerHomeHandlers(app: App) {
 
   // Action: Open Schedule Modal from Home Tab button
   app.action("open_schedule_modal", async ({ ack, body, client }) => {
-    await ack();
-    try {
-      const b = body as any;
-      const triggerId = b.trigger_id;
-      const currentUserId = b.user?.id;
+    const b = body as any;
+    const triggerId = b.trigger_id;
+    const currentUserId = b.user?.id;
+    const teamId = b.team?.id;
 
-      await client.views.open({
-        trigger_id: triggerId,
-        view: buildScheduleModal({
-          subtopicCount: 3,
-          currentUserId,
-        }),
+    console.info(`🎯 open_schedule_modal clicked by user ${currentUserId} in team ${teamId}, trigger: ${triggerId?.slice(0, 15)}...`);
+
+    try {
+      const modalView = buildScheduleModal({
+        subtopicCount: 3,
+        currentUserId,
       });
-    } catch (error) {
-      console.error("Error opening schedule modal from Home:", error);
+
+      await Promise.all([
+        ack(),
+        client.views.open({
+          trigger_id: triggerId,
+          view: modalView,
+        }),
+      ]);
+      console.info(`✅ Schedule modal opened successfully for user ${currentUserId}`);
+    } catch (error: any) {
+      console.error("Error opening schedule modal from Home:", error?.data || error.message || error);
     }
   });
 
   // Action: Open Detailed Pacing Report Modal
   app.action("open_report_modal", async ({ ack, body, client, context }) => {
-    await ack();
+    const b = body as any;
+    const triggerId = b.trigger_id;
+    const teamId = b.team?.id || context.teamId;
+
     try {
-      const b = body as any;
-      const triggerId = b.trigger_id;
-      const teamId = b.team?.id || context.teamId;
-      const stats = await MeetupService.getPacingReportStats(30, teamId);
+      const [, stats] = await Promise.all([
+        ack(),
+        MeetupService.getPacingReportStats(30, teamId),
+      ]);
 
       await client.views.open({
         trigger_id: triggerId,
@@ -90,8 +101,8 @@ export function registerHomeHandlers(app: App) {
           blocks: buildPacingReportBlocks(stats, 30),
         },
       });
-    } catch (error) {
-      console.error("Error opening pacing report modal:", error);
+    } catch (error: any) {
+      console.error("Error opening pacing report modal:", error?.data || error.message || error);
     }
   });
 }
