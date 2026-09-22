@@ -235,21 +235,40 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
   // Dynamically render subtopic rows
   for (let i = 0; i < count; i++) {
     const custom = initialState?.customSubtopics?.[i];
-    const preset = custom || defaultPresets[i] || { title: `Subtopic ${i + 1}`, pct: "0" };
+    const defaultSuggestion = defaultPresets[i] || { title: `Subtopic #${i + 1} Name`, pct: "25" };
+
+    const titlePlaceholder = defaultSuggestion.title;
+    const pctPlaceholder = defaultSuggestion.pct;
+
+    const titleElement: any = {
+      type: "plain_text_input",
+      action_id: `subtopic_title_input_${i}`,
+      placeholder: {
+        type: "plain_text",
+        text: titlePlaceholder,
+      },
+    };
+    if (custom?.title) {
+      titleElement.initial_value = custom.title;
+    }
+
+    const pctElement: any = {
+      type: "plain_text_input",
+      action_id: `subtopic_pct_input_${i}`,
+      placeholder: {
+        type: "plain_text",
+        text: pctPlaceholder,
+      },
+    };
+    if (custom?.pct) {
+      pctElement.initial_value = custom.pct;
+    }
 
     blocks.push(
       {
         type: "input",
         block_id: `subtopic_title_${i}`,
-        element: {
-          type: "plain_text_input",
-          action_id: `subtopic_title_input_${i}`,
-          placeholder: {
-            type: "plain_text",
-            text: `Subtopic #${i + 1} Name`,
-          },
-          initial_value: preset.title,
-        },
+        element: titleElement,
         label: {
           type: "plain_text",
           text: `Module ${i + 1} Topic`,
@@ -258,15 +277,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       {
         type: "input",
         block_id: `subtopic_pct_${i}`,
-        element: {
-          type: "plain_text_input",
-          action_id: `subtopic_pct_input_${i}`,
-          placeholder: {
-            type: "plain_text",
-            text: "e.g. 25",
-          },
-          initial_value: preset.pct,
-        },
+        element: pctElement,
         label: {
           type: "plain_text",
           text: `Module ${i + 1} Time Budget (%)`,
