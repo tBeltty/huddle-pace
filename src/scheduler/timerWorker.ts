@@ -49,7 +49,7 @@ export class TimerWorker {
 
         for (const scheduled of pendingScheduled) {
           const botToken = await getBotTokenForTeam(scheduled.teamId);
-          const huddles = await findChannelHuddles(this.app.client, scheduled.channelId);
+          const huddles = await findChannelHuddles(this.app.client, scheduled.channelId, botToken);
           const activeHuddle = huddles.find((h) => h.isActive);
 
           if (activeHuddle) {
