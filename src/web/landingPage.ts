@@ -36,7 +36,7 @@ function getLandingHtml(): string {
   return "<h1>HuddlePace — 15-minute huddles that actually take 15 minutes</h1>";
 }
 
-export function handleLandingPage(_req: IncomingMessage, res: ServerResponse): void {
+export function handleLandingPage(req: IncomingMessage, res: ServerResponse): void {
   const html = getLandingHtml();
   res.writeHead(200, {
     "Content-Type": "text/html; charset=utf-8",
@@ -45,6 +45,10 @@ export function handleLandingPage(_req: IncomingMessage, res: ServerResponse): v
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
   });
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
   res.end(html);
 }
 
@@ -77,6 +81,11 @@ export function handleStaticAsset(req: ParamsIncomingMessage, res: ServerRespons
     "X-Content-Type-Options": "nosniff",
   });
 
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
+
   const readStream = fs.createReadStream(filePath);
   readStream.pipe(res);
 }
@@ -85,22 +94,22 @@ export function getWebCustomRoutes() {
   return [
     {
       path: "/",
-      method: ["GET"],
+      method: ["GET", "HEAD"],
       handler: handleLandingPage,
     },
     {
       path: "/assets/:file",
-      method: ["GET"],
+      method: ["GET", "HEAD"],
       handler: (req: ParamsIncomingMessage, res: ServerResponse) => handleStaticAsset(req, res),
     },
     {
       path: "/favicon.ico",
-      method: ["GET"],
+      method: ["GET", "HEAD"],
       handler: (req: ParamsIncomingMessage, res: ServerResponse) => handleStaticAsset(req, res, "favicon.ico"),
     },
     {
       path: "/apple-touch-icon.png",
-      method: ["GET"],
+      method: ["GET", "HEAD"],
       handler: (req: ParamsIncomingMessage, res: ServerResponse) => handleStaticAsset(req, res, "apple-touch-icon.png"),
     },
   ];

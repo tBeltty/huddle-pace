@@ -42,9 +42,13 @@ export function createSlackApp(): bolt.App {
         customRoutes: [
           {
             path: "/healthz",
-            method: ["GET"],
+            method: ["GET", "HEAD"],
             handler: (_req, res) => {
               res.writeHead(200, { "Content-Type": "application/json" });
+              if (_req.method === "HEAD") {
+                res.end();
+                return;
+              }
               res.end(
                 JSON.stringify({
                   status: "ok",
