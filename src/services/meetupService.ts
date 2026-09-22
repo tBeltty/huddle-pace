@@ -234,6 +234,57 @@ export class MeetupService {
   }
 
   /**
+   * Appends a sent speaker DM (channel + ts) to the meetup's cleanup list so it can be
+   * deleted once the session concludes, instead of accumulating in the speaker's DM history.
+   */
+  static async recordDmMessage(meetupId: string, channel: string, ts: string) {
+    try {
+      const meetup = await prisma.meetup.findUnique({ where: { id: meetupId }, select: { dmMessageRefs: true } });
+      const refs: { channel: string; ts: string }[] = meetup?.dmMessageRefs ? JSON.parse(meetup.dmMessageRefs) : [];
+      refs.push({ channel, ts });
+      await prisma.meetup.update({
+        where: { id: meetupId },
+        data: { dmMessageRefs: JSON.stringify(refs) },
+      });
+    } catch (err) {
+      console.warn(`Failed to record DM reminder for meetup ${meetupId}:`, err);
+    }
+  }
+
+  /**
+   * Deletes every speaker DM reminder recorded for a meetup (1-minute warnings, module
+   * transitions, auto-launch notices) so the speaker's DM history doesn't fill up with stale
+   * pacing messages once the session is over.
+   */
+  static async cleanupReminderDMs(meetup: { id: string; dmMessageRefs?: string | null }, client: any, botToken?: string) {
+    if (!meetup.dmMessageRefs) return;
+
+    let refs: { channel: string; ts: string }[] = [];
+    try {
+      refs = JSON.parse(meetup.dmMessageRefs);
+    } catch {
+      return;
+    }
+
+    for (const ref of refs) {
+      try {
+        await client.chat.delete({
+          token: botToken,
+          channel: ref.channel,
+          ts: ref.ts,
+        });
+      } catch (err: any) {
+        // Ignore messages already deleted or too old to remove
+      }
+    }
+
+    await prisma.meetup.update({
+      where: { id: meetup.id },
+      data: { dmMessageRefs: null },
+    }).catch(() => {});
+  }
+
+  /**
    * Returns all active meetups currently in flight (ACTIVE or JUST_CHATTING).
    */
   static async getActiveMeetups(teamId?: string) {

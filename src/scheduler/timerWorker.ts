@@ -6,7 +6,7 @@ import { getBotTokenForTeam } from "../slack/oauth/installationStore.js";
 import { publishHomeTab } from "../slack/handlers/homeHandlers.js";
 import { formatMinutes } from "../utils/progressBar.js";
 import { findChannelHuddles, isHuddleEnded } from "../slack/utils/huddleDiscovery.js";
-import { launchMeetupInThread } from "../slack/handlers/actionHandlers.js";
+import { launchMeetupInThread, notifySpeakersOfAutoLaunch } from "../slack/handlers/actionHandlers.js";
 
 export class TimerWorker {
   private timer: NodeJS.Timeout | null = null;
@@ -55,12 +55,7 @@ export class TimerWorker {
           if (activeHuddle) {
             console.info(`⏱️ Timer worker detected active Huddle in channel ${scheduled.channelId}. Auto-launching scheduled meetup ${scheduled.id}.`);
             await launchMeetupInThread(this.app.client, scheduled.id, activeHuddle.ts);
-            await this.app.client.chat.postMessage({
-              token: botToken,
-              channel: scheduled.channelId,
-              thread_ts: activeHuddle.ts,
-              text: `🛫 *Huddle Detected!* Vector has automatically launched your scheduled session: *"${scheduled.title}"* (${scheduled.totalMinutes}m).\nLive pacing has started in this thread!`,
-            }).catch(() => {});
+            await notifySpeakersOfAutoLaunch(this.app.client, scheduled, botToken);
           }
         }
       } catch (scheduledErr) {
@@ -134,6 +129,9 @@ export class TimerWorker {
                   text: `🏁 *Huddle call ended.* Live pacing session concluded and logged (${formatMinutes(formalMin)}). Great work!`,
                 }).catch(() => {});
 
+                // Clean up speaker DM reminders (1-minute warnings, transitions, etc.)
+                await MeetupService.cleanupReminderDMs(updated, this.app.client, botToken);
+
                 // Refresh Home tabs
                 const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
                 for (const spkId of speakerIds) {
@@ -198,6 +196,7 @@ export class TimerWorker {
           if (slackError === "message_not_found" || slackError === "channel_not_found") {
             console.warn(`Tracker message missing for meetup ${meetup.id}. Concluding session.`);
             await MeetupService.concludeMeetup(meetup.id);
+            await MeetupService.cleanupReminderDMs(meetup, this.app.client, botToken);
             this.exitRampsSent.delete(meetup.id);
             continue;
           }
@@ -222,11 +221,14 @@ export class TimerWorker {
 
           for (const speakerId of speakerIds) {
             try {
-              await this.app.client.chat.postMessage({
+              const res = await this.app.client.chat.postMessage({
                 token: botToken,
                 channel: speakerId,
                 text: warningText,
               });
+              if (res?.ts && res?.channel) {
+                await MeetupService.recordDmMessage(meetup.id, res.channel as string, res.ts as string);
+              }
             } catch (err) {
               console.warn(`Failed to send 1-minute warning DM to speaker ${speakerId}:`, err);
             }
@@ -249,11 +251,14 @@ export class TimerWorker {
 
           for (const speakerId of speakerIds) {
             try {
-              await this.app.client.chat.postMessage({
+              const res = await this.app.client.chat.postMessage({
                 token: botToken,
                 channel: speakerId,
                 text: messageText,
               });
+              if (res?.ts && res?.channel) {
+                await MeetupService.recordDmMessage(meetup.id, res.channel as string, res.ts as string);
+              }
             } catch (err) {
               console.warn(`Failed to send pacing DM to speaker ${speakerId}:`, err);
             }
