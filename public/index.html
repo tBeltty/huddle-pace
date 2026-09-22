@@ -57,1112 +57,7 @@
   }
   </script>
 
-  <style>
-    :root {
-      --bg-base: #080b11;
-      --bg-surface: rgba(15, 23, 42, 0.72);
-      --bg-surface-hover: rgba(30, 41, 59, 0.85);
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-accent: rgba(6, 182, 212, 0.4);
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-      --accent-cyan: #06b6d4;
-      --accent-cyan-glow: rgba(6, 182, 212, 0.25);
-      --accent-amber: #f59e0b;
-      --accent-orange: #f97316;
-      --accent-slack: #611f69;
-      --accent-slack-hover: #4a154b;
-      --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 22px;
-      --radius-full: 9999px;
-      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-      color-scheme: dark;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html,
-    body {
-      overflow-x: clip;
-    }
-
-    body {
-      background-color: var(--bg-base);
-      color: var(--text-primary);
-      font-family: var(--font-main);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* Ambient Glows */
-    .ambient-glow-1 {
-      position: absolute;
-      top: -120px;
-      left: 10%;
-      width: 650px;
-      height: 650px;
-      background: radial-gradient(circle, rgba(6, 182, 212, 0.16) 0%, rgba(8, 11, 17, 0) 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .ambient-glow-2 {
-      position: absolute;
-      top: 280px;
-      right: 5%;
-      width: 700px;
-      height: 700px;
-      background: radial-gradient(circle, rgba(245, 158, 11, 0.14) 0%, rgba(8, 11, 17, 0) 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .telemetry-grid {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1100px;
-      background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 40px 40px;
-      mask-image: radial-gradient(circle at top center, black 30%, transparent 80%);
-      -webkit-mask-image: radial-gradient(circle at top center, black 30%, transparent 80%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Header */
-    header {
-      padding: 24px 0;
-      position: relative;
-      z-index: 10;
-    }
-
-    .navbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--bg-surface);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border-subtle);
-      padding: 12px 24px;
-      border-radius: var(--radius-full);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-      color: var(--text-primary);
-      font-weight: 800;
-      font-size: 1.15rem;
-      letter-spacing: -0.02em;
-    }
-
-    .brand-avatar-img {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: 1.5px solid var(--accent-cyan);
-      box-shadow: 0 0 12px var(--accent-cyan-glow);
-      object-fit: cover;
-    }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
-
-    .nav-link {
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.95rem;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-
-    .nav-link:hover {
-      color: var(--text-primary);
-    }
-
-    /* Language Switcher */
-    .lang-switcher {
-      display: inline-flex;
-      align-items: center;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-full);
-      padding: 3px;
-      gap: 2px;
-    }
-
-    .lang-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: var(--radius-full);
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-    }
-
-    .lang-btn.active {
-      background: #1e293b;
-      color: var(--text-primary);
-    }
-
-    .btn-nav-slack {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--accent-slack);
-      color: #ffffff;
-      padding: 8px 18px;
-      border-radius: var(--radius-full);
-      text-decoration: none;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: background 0.2s, transform 0.15s;
-    }
-
-    .btn-nav-slack:hover {
-      background: var(--accent-slack-hover);
-      transform: translateY(-1px);
-    }
-
-    /* Hero */
-    .hero {
-      padding: 70px 0 60px;
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      align-items: center;
-      gap: 48px;
-    }
-
-    .badge-pilot {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      background: rgba(6, 182, 212, 0.1);
-      border: 1px solid rgba(6, 182, 212, 0.3);
-      border-radius: var(--radius-full);
-      color: var(--accent-cyan);
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 24px;
-    }
-
-    .hero-title {
-      font-size: clamp(2.1rem, 5.5vw, 3.5rem);
-      font-weight: 800;
-      line-height: 1.14;
-      letter-spacing: -0.035em;
-      margin-bottom: 20px;
-      text-wrap: balance;
-    }
-
-    .hero-title span {
-      background: linear-gradient(135deg, #38bdf8 0%, #f59e0b 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero-lead {
-      font-size: 1.2rem;
-      color: var(--text-secondary);
-      margin-bottom: 36px;
-      max-width: 540px;
-      text-wrap: pretty;
-    }
-
-    .hero-actions {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 40px;
-    }
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: linear-gradient(135deg, #0284c7, #0369a1);
-      color: #ffffff;
-      padding: 14px 28px;
-      border-radius: var(--radius-md);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 1.05rem;
-      box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 30px -5px rgba(2, 132, 199, 0.6);
-    }
-
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-primary);
-      padding: 14px 24px;
-      border-radius: var(--radius-md);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 1.05rem;
-      backdrop-filter: blur(12px);
-      transition: background 0.2s, border-color 0.2s;
-    }
-
-    .btn-secondary:hover {
-      background: var(--bg-surface-hover);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .hero-trust {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    .trust-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .trust-item svg {
-      color: var(--accent-cyan);
-    }
-
-    /* Vector Hero Card */
-    .vector-card-wrap {
-      position: relative;
-    }
-
-    .vector-radar-backdrop {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: min(480px, 90vw);
-      height: min(480px, 90vw);
-      border: 1px dashed rgba(6, 182, 212, 0.22);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    .vector-radar-backdrop::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: min(320px, 60vw);
-      height: min(320px, 60vw);
-      border: 1px solid rgba(245, 158, 11, 0.16);
-      border-radius: 50%;
-    }
-
-    .vector-display-card {
-      position: relative;
-      background: var(--bg-surface);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-      overflow: hidden;
-    }
-
-    .vector-display-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-amber), transparent);
-    }
-
-    .vector-image-container {
-      width: 100%;
-      height: 380px;
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      position: relative;
-      background: #0d131f;
-    }
-
-    .vector-image-container img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-      transition: transform 0.4s ease;
-    }
-
-    .vector-image-container:hover img {
-      transform: scale(1.03);
-    }
-
-    .vector-floating-tag {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      right: 16px;
-      background: rgba(11, 15, 25, 0.88);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-subtle);
-      padding: 12px 16px;
-      border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .tag-identity h4 {
-      font-size: 0.95rem;
-      font-weight: 700;
-    }
-
-    .tag-identity p {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .tag-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.75rem;
-      font-family: var(--font-mono);
-      color: var(--accent-cyan);
-    }
-
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent-cyan);
-      box-shadow: 0 0 8px var(--accent-cyan);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 0.4; }
-      50% { opacity: 1; }
-      100% { opacity: 0.4; }
-    }
-
-    /* Simulation Section */
-    .simulation-section {
-      padding: 40px 0 80px;
-    }
-
-    .slack-mockup-card {
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 32px;
-      max-width: 860px;
-      margin: 0 auto;
-      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
-    }
-
-    .mockup-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border-subtle);
-      padding-bottom: 16px;
-      margin-bottom: 24px;
-    }
-
-    .mockup-channel {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--font-mono);
-      font-size: 0.95rem;
-      color: var(--text-secondary);
-    }
-
-    .mockup-badge {
-      background: rgba(245, 158, 11, 0.15);
-      border: 1px solid rgba(245, 158, 11, 0.4);
-      color: var(--accent-amber);
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: var(--radius-full);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .slack-message {
-      display: grid;
-      grid-template-columns: 48px 1fr;
-      gap: 16px;
-      background: rgba(8, 11, 17, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: var(--radius-md);
-      padding: 20px;
-    }
-
-    .bot-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      border: 1px solid var(--border-accent);
-    }
-
-    .bot-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .message-content h5 {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .bot-pill {
-      background: #1e293b;
-      color: var(--text-muted);
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      text-transform: uppercase;
-    }
-
-    .huddle-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #38bdf8;
-      margin-bottom: 12px;
-    }
-
-    .progress-box {
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .progress-meta {
-      display: flex;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      margin-bottom: 8px;
-      color: var(--text-secondary);
-    }
-
-    .progress-meta strong {
-      color: var(--accent-cyan);
-    }
-
-    .progress-track {
-      width: 100%;
-      height: 10px;
-      background: #1e293b;
-      border-radius: var(--radius-full);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .progress-fill {
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent-cyan), #38bdf8);
-      border-radius: var(--radius-full);
-      box-shadow: 0 0 10px var(--accent-cyan-glow);
-      transition: width 1s linear;
-    }
-
-    .mockup-alert {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      background: rgba(245, 158, 11, 0.1);
-      border-left: 3px solid var(--accent-amber);
-      padding: 12px 16px;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      font-size: 0.9rem;
-      color: #fde68a;
-    }
-
-    .mockup-context-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin-top: 14px;
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      flex-wrap: wrap;
-    }
-
-    .mockup-mention {
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent-cyan);
-      padding: 2px 6px;
-      border-radius: var(--radius-xs);
-      font-weight: 600;
-      font-size: 0.8rem;
-    }
-
-    .mockup-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 14px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      padding-top: 12px;
-    }
-
-    .mockup-btn {
-      padding: 6px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-primary);
-      cursor: default;
-    }
-
-    .mockup-btn-danger {
-      background: rgba(239, 68, 68, 0.15);
-      border-color: rgba(239, 68, 68, 0.4);
-      color: #fca5a5;
-    }
-
-    .mockup-footer {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-top: 10px;
-    }
-
-    /* Pillars */
-    .pillars-section {
-      padding: 60px 0 100px;
-    }
-
-    .section-headline {
-      text-align: center;
-      margin-bottom: 56px;
-    }
-
-    .section-headline h2 {
-      font-size: clamp(1.8rem, 4vw, 2.4rem);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 12px;
-      text-wrap: balance;
-    }
-
-    .section-headline p {
-      font-size: 1.1rem;
-      color: var(--text-secondary);
-      max-width: 580px;
-      margin: 0 auto;
-      text-wrap: pretty;
-    }
-
-    .pillars-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-    }
-
-    .pillar-card {
-      background: var(--bg-surface);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 32px 28px;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-
-    .pillar-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(255, 255, 255, 0.18);
-    }
-
-    .pillar-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: var(--radius-sm);
-      background: rgba(6, 182, 212, 0.12);
-      border: 1px solid rgba(6, 182, 212, 0.25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--accent-cyan);
-      margin-bottom: 20px;
-    }
-
-    .pillar-card h3 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 12px;
-      text-wrap: balance;
-    }
-
-    .pillar-card p {
-      color: var(--text-secondary);
-      font-size: 0.95rem;
-      line-height: 1.6;
-      text-wrap: pretty;
-    }
-
-    /* Modern Multi-Column Footer */
-    footer {
-      border-top: 1px solid var(--border-subtle);
-      background: rgba(8, 11, 17, 0.95);
-      backdrop-filter: blur(16px);
-      padding: 70px 0 36px;
-      margin-top: 40px;
-      position: relative;
-      z-index: 10;
-    }
-
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 1.8fr 1fr 1fr 1fr;
-      gap: 40px;
-      margin-bottom: 56px;
-    }
-
-    .footer-brand {
-      max-width: 320px;
-    }
-
-    .footer-brand .brand {
-      margin-bottom: 14px;
-    }
-
-    .footer-desc {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      line-height: 1.6;
-      margin-bottom: 20px;
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      border-radius: var(--radius-full);
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      color: #34d399;
-      text-decoration: none;
-      transition: background 0.2s, border-color 0.2s;
-    }
-
-    .status-badge:hover {
-      background: rgba(16, 185, 129, 0.18);
-      border-color: rgba(16, 185, 129, 0.45);
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 8px #10b981;
-      animation: pulse-green 2s infinite;
-    }
-
-    @keyframes pulse-green {
-      0% { opacity: 0.4; }
-      50% { opacity: 1; }
-      100% { opacity: 0.4; }
-    }
-
-    .footer-col h4 {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 18px;
-    }
-
-    .footer-col ul {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .footer-col a {
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.15s, transform 0.15s;
-      display: inline-block;
-    }
-
-    .footer-col a:hover {
-      color: var(--text-primary);
-      transform: translateX(2px);
-    }
-
-    .footer-bottom {
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      padding-top: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .footer-bottom a {
-      color: var(--text-secondary);
-      text-decoration: none;
-    }
-
-    .footer-bottom a:hover {
-      color: var(--text-primary);
-    }
-
-    .footer-meta-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    /* Meet Vector Section */
-    .vector-section {
-      padding: 70px 0 50px;
-    }
-
-    .vector-card {
-      background: var(--bg-surface);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 48px;
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      align-items: center;
-      gap: 52px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .vector-card::before {
-      content: '';
-      position: absolute;
-      top: -80px;
-      left: 60px;
-      width: 280px;
-      height: 280px;
-      background: radial-gradient(circle, rgba(6, 182, 212, 0.18) 0%, rgba(8, 11, 17, 0) 70%);
-      pointer-events: none;
-    }
-
-    .vector-visual {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      z-index: 1;
-    }
-
-    .vector-visual img {
-      max-width: 100%;
-      height: auto;
-      max-height: 380px;
-      object-fit: contain;
-      /* Subtle contour rim-light + soft glow + base depth shadow */
-      filter: 
-        drop-shadow(0 0 1.5px rgba(6, 182, 212, 0.7)) 
-        drop-shadow(0 0 10px rgba(6, 182, 212, 0.25)) 
-        drop-shadow(0 16px 32px rgba(0, 0, 0, 0.65));
-      transition: filter 0.3s ease, transform 0.3s ease;
-    }
-
-    .vector-card:hover .vector-visual img {
-      transform: translateY(-2px) scale(1.015);
-      filter: 
-        drop-shadow(0 0 2px rgba(6, 182, 212, 0.9)) 
-        drop-shadow(0 0 16px rgba(6, 182, 212, 0.35)) 
-        drop-shadow(0 20px 36px rgba(0, 0, 0, 0.7));
-    }
-
-    .vector-info {
-      position: relative;
-      z-index: 1;
-    }
-
-    .vector-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--accent-cyan);
-      background: rgba(6, 182, 212, 0.1);
-      border: 1px solid rgba(6, 182, 212, 0.25);
-      padding: 4px 12px;
-      border-radius: var(--radius-full);
-      margin-bottom: 16px;
-      letter-spacing: 0.04em;
-    }
-
-    .vector-info h2 {
-      font-size: clamp(1.8rem, 4vw, 2.2rem);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 8px;
-      text-wrap: balance;
-    }
-
-    .vector-sub {
-      font-size: 1.15rem;
-      color: var(--accent-cyan);
-      font-weight: 600;
-      margin-bottom: 16px;
-    }
-
-    .vector-desc {
-      color: var(--text-secondary);
-      font-size: 1rem;
-      line-height: 1.65;
-      margin-bottom: 24px;
-      text-wrap: pretty;
-    }
-
-    .vector-traits {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .vector-traits li {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.95rem;
-      color: var(--text-primary);
-    }
-
-    .vector-traits li svg {
-      color: var(--accent-cyan);
-      flex-shrink: 0;
-    }
-
-    @media (max-width: 900px) {
-      .hero {
-        grid-template-columns: 1fr;
-        text-align: center;
-      }
-      .hero-lead {
-        margin: 0 auto 32px;
-      }
-      .hero-actions {
-        justify-content: center;
-      }
-      .hero-trust {
-        justify-content: center;
-      }
-      .vector-card {
-        grid-template-columns: 1fr;
-        padding: 32px 20px;
-        text-align: center;
-        gap: 28px;
-      }
-      .vector-traits {
-        align-items: stretch;
-        max-width: 420px;
-        margin: 0 auto;
-        text-align: left;
-      }
-      .pillars-grid {
-        grid-template-columns: 1fr;
-      }
-      .footer-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 32px;
-      }
-      .footer-brand {
-        grid-column: 1 / -1;
-        max-width: 100%;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .navbar {
-        padding: 8px 16px;
-      }
-      .nav-link {
-        display: none;
-      }
-      .nav-actions {
-        gap: 10px;
-      }
-      .btn-nav-slack {
-        padding: 7px 14px;
-        font-size: 0.85rem;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .slack-mockup-card {
-        padding: 20px 14px;
-        border-radius: var(--radius-md);
-      }
-      .slack-message {
-        grid-template-columns: 40px 1fr;
-        gap: 12px;
-        padding: 14px 12px;
-      }
-      .bot-avatar {
-        width: 40px;
-        height: 40px;
-      }
-      .progress-meta {
-        flex-direction: column;
-        gap: 4px;
-      }
-      .mockup-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-      }
-      .footer-grid {
-        grid-template-columns: 1fr;
-        gap: 28px;
-      }
-      .footer-bottom {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .container {
-        padding: 0 16px;
-      }
-      .hero {
-        padding: 40px 0 40px;
-        gap: 36px;
-      }
-      .hero-actions {
-        flex-direction: column;
-        width: 100%;
-      }
-      .btn-primary,
-      .btn-secondary {
-        width: 100%;
-        justify-content: center;
-      }
-      .hero-trust {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-      }
-      .vector-card {
-        padding: 24px 14px;
-      }
-      .vector-image-container {
-        height: 300px;
-      }
-    }
-
-    @media (max-width: 420px) {
-      .btn-nav-slack span {
-        display: none;
-      }
-      .btn-nav-slack {
-        padding: 8px;
-        border-radius: 50%;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-      }
-      .pulse-dot,
-      .status-dot {
-        animation: none !important;
-      }
-    }
-
-    @supports not (backdrop-filter: blur(1px)) {
-      .navbar,
-      .vector-display-card,
-      .slack-mockup-card,
-      .pillar-card,
-      .vector-card,
-      footer {
-        background: rgba(15, 23, 42, 0.98) !important;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="/assets/site.css">
 </head>
 <body>
   <div class="ambient-glow-1"></div>
@@ -1263,10 +158,11 @@
             <span>·</span>
             <span data-i18n="simHuddleLive">Live Huddle Thread</span>
           </div>
-          <div class="mockup-badge" data-i18n="simBadge">⏱️ Pacing Active</div>
+          <div class="mockup-badge" id="sim-badge" data-i18n="simBadge">⏱️ Pacing Active</div>
         </div>
 
-        <div class="slack-message">
+        <!-- Live (in-progress) view -->
+        <div class="slack-message" id="sim-live-view">
           <div class="bot-avatar">
             <img src="/assets/avatar.png" alt="HuddlePace Bot Avatar" width="48" height="48" decoding="async">
           </div>
@@ -1283,31 +179,62 @@
                 <span><span data-i18n="simElapsed">Elapsed time:</span> <strong id="sim-elapsed">9m 12s / 15m</strong></span>
                 <span><span data-i18n="simRemaining">Remaining:</span> <strong id="sim-remaining">5m 48s</strong></span>
               </div>
-              <div class="progress-track" role="progressbar" id="sim-progress" aria-valuenow="61" aria-valuemin="0" aria-valuemax="100" aria-label="Meeting elapsed time">
-                <div class="progress-fill" id="sim-bar" style="width: 61%;"></div>
-              </div>
+              <div class="progress-ascii" role="progressbar" id="sim-progress" aria-valuenow="61" aria-valuemin="0" aria-valuemax="100" aria-label="Meeting elapsed time">[████████████░░░░] 61%</div>
             </div>
 
             <div class="mockup-alert">
               <span style="font-size:1.2rem;">🧭</span>
-              <div data-i18n="simAlert">
+              <div id="sim-alert-text" data-i18n="simAlert">
                 <strong>Midpoint Flight Check:</strong> Over 60% of estimated time has elapsed. If you have critical technical blockers, bring them to the table now before touchdown.
               </div>
             </div>
 
             <div class="mockup-context-row">
-              <div>👤 <strong>Speaker:</strong> <span class="mockup-mention">@guest</span></div>
-              <div>📍 <strong>Active Module:</strong> Core Topic <span style="color:var(--text-muted);">(5m left)</span></div>
+              <div>👤 <strong data-i18n="simSpeakerLabel">Speaker:</strong> <span class="mockup-mention">@guest</span></div>
+              <div>📍 <strong data-i18n="simActiveModuleLabel">Active Module:</strong> <span id="sim-active-module">Core Topic / Demo</span> <span style="color:var(--text-muted);" id="sim-module-time">(9m left)</span></div>
             </div>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">⏭️ <strong>Next Up:</strong> Wrap-up & Q&A</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">⏭️ <strong data-i18n="simNextUpLabel">Next Up:</strong> <span id="sim-next-module">Open Q&A &amp; Wrap-up</span></div>
 
             <div class="mockup-actions">
-              <button class="mockup-btn" type="button" aria-disabled="true">☕ Just Chatting</button>
-              <button class="mockup-btn mockup-btn-danger" type="button" aria-disabled="true">⏹️ Conclude Meetup</button>
+              <button class="mockup-btn" type="button" id="sim-btn-advance" data-i18n="simBtnAdvance">▶️ Advance Phase</button>
+              <button class="mockup-btn mockup-btn-danger" type="button" id="sim-btn-conclude" data-i18n="simBtnConclude">⏹️ Conclude Meetup</button>
             </div>
 
             <div class="mockup-footer">
               🔄 <em>In-place updates every 30s. Vector keeps your team on flight path.</em>
+            </div>
+          </div>
+        </div>
+
+        <!-- Concluded (wrap-up) view, shown after "Conclude Meetup" -->
+        <div class="slack-message" id="sim-concluded-view" style="display:none;">
+          <div class="bot-avatar">
+            <img src="/assets/avatar.png" alt="HuddlePace Bot Avatar" width="48" height="48" decoding="async">
+          </div>
+          <div class="message-content">
+            <h5>
+              <span>HuddlePace</span>
+              <span class="bot-pill">APP</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:400;" id="sim-concluded-clock">10:29 AM</span>
+            </h5>
+            <div class="sim-concluded-badge">✅ <span data-i18n="simConcludedTitle">Session Concluded</span></div>
+            <div class="huddle-title" data-i18n="simTitle">Daily Sync: Sprint Planning & Blockers</div>
+
+            <div class="sim-concluded-row">
+              <span data-i18n="simConcludedDuration">Total duration:</span>
+              <strong id="sim-concluded-duration">15m 0s</strong>
+            </div>
+            <div class="sim-concluded-row">
+              <span data-i18n="simConcludedModules">Modules covered:</span>
+              <strong id="sim-concluded-modules-list">Context & Introduction, Core Topic / Demo, Open Q&A & Wrap-up</strong>
+            </div>
+
+            <div class="mockup-footer" style="margin-top:12px;">
+              🦅 <em data-i18n="simConcludedFooter">Wrapped up by @HuddlePace · (Simulated)</em>
+            </div>
+
+            <div class="mockup-actions" style="margin-top:14px;">
+              <button class="mockup-btn" type="button" id="sim-btn-restart" data-i18n="simBtnRestart">🔁 Restart Simulation</button>
             </div>
           </div>
         </div>
@@ -1424,8 +351,8 @@
           <div class="footer-col">
             <h4 data-i18n="fCol3Title">Legal & Support</h4>
             <ul>
-              <li><a href="#features" data-i18n="fCol3Privacy">Privacy Policy</a></li>
-              <li><a href="#features" data-i18n="fCol3Terms">Terms of Service</a></li>
+              <li><a href="/privacy" data-i18n="fCol3Privacy">Privacy Policy</a></li>
+              <li><a href="/terms" data-i18n="fCol3Terms">Terms of Service</a></li>
               <li><a href="mailto:support@huddlepace.com" data-i18n="fCol3Support">Contact Support</a></li>
               <li><a href="#demo" data-i18n="fCol3Changelog">Release Notes</a></li>
             </ul>
@@ -1466,6 +393,20 @@
         simElapsed: "Elapsed time:",
         simRemaining: "Remaining:",
         simAlert: "<strong>Midpoint Flight Check:</strong> Over 60% of estimated time has elapsed. If you have critical technical blockers, bring them to the table now before touchdown.",
+        simSpeakerLabel: "Speaker:",
+        simActiveModuleLabel: "Active Module:",
+        simNextUpLabel: "Next Up:",
+        simBtnAdvance: "▶️ Advance Phase",
+        simBtnConclude: "⏹️ Conclude Meetup",
+        simBtnRestart: "🔁 Restart Simulation",
+        simConcludedTitle: "Session Concluded",
+        simConcludedDuration: "Total duration:",
+        simConcludedModules: "Modules covered:",
+        simConcludedFooter: "Wrapped up by @HuddlePace · (Simulated)",
+        simModule1: "Context & Introduction",
+        simModule2: "Core Topic / Demo",
+        simModule3: "Open Q&A & Wrap-up",
+        simMinLeftSuffix: "m left",
         vectorHeading: "Meet Vector",
         vectorSub: "The timekeeper for your Slack workspace.",
         vectorDesc: "Vector runs right inside your Huddle threads. He tracks elapsed time, prompts the team for blockers at midpoint, and signals the wrap-up when time is up—so nobody has to play meeting cop.",
@@ -1518,6 +459,20 @@
         simElapsed: "Tiempo transcurrido:",
         simRemaining: "Restante:",
         simAlert: "<strong>Alerta de Mitad de Vuelo:</strong> El 60% del tiempo estimado ha concluido. Si quedan bloqueos técnicos críticos, colócalos sobre la mesa ahora antes del aterrizaje.",
+        simSpeakerLabel: "Orador:",
+        simActiveModuleLabel: "Módulo Activo:",
+        simNextUpLabel: "Siguiente:",
+        simBtnAdvance: "▶️ Avanzar Fase",
+        simBtnConclude: "⏹️ Terminar Reunión",
+        simBtnRestart: "🔁 Reiniciar Simulación",
+        simConcludedTitle: "Sesión Concluida",
+        simConcludedDuration: "Duración total:",
+        simConcludedModules: "Módulos cubiertos:",
+        simConcludedFooter: "Cerrado por @HuddlePace · (Simulado)",
+        simModule1: "Contexto e Introducción",
+        simModule2: "Tema Principal / Demo",
+        simModule3: "Preguntas Abiertas y Cierre",
+        simMinLeftSuffix: "m restantes",
         vectorHeading: "Conoce a Vector",
         vectorSub: "El guardián del tiempo en tu workspace.",
         vectorDesc: "Vector acompaña tus Huddles directamente en el hilo de Slack. Monitorea la duración, avisa en el punto medio para revisar bloqueos y marca el cierre a tiempo, evitando que nadie tenga que hacer de policía en la reunión.",
@@ -1579,6 +534,25 @@
         localStorage.setItem('huddlepace_lang', lang);
         document.cookie = `huddlepace_lang=${lang};path=/;max-age=31536000;SameSite=Lax`;
       } catch (e) {}
+
+      // The Beacon SDK only localizes its UI at mount time; it has no public
+      // live locale-switch API. Update the locale and re-render the launcher
+      // label and panel body directly so the widget doesn't stay stuck in
+      // whichever language the page first loaded in.
+      if (window.Beacon && window.Beacon.config) {
+        window.Beacon.config.locale = lang;
+        try {
+          if (typeof window.Beacon._t === 'function' && window.Beacon.shadow) {
+            const label = window.Beacon.shadow.querySelector('.beacon-launcher-text');
+            if (label) label.textContent = window.Beacon._t('launcherText');
+            const title = window.Beacon.shadow.querySelector('.beacon-title-text');
+            if (title) title.textContent = window.Beacon._t('headerTitle');
+          }
+          if (typeof window.Beacon._renderBody === 'function') {
+            window.Beacon._renderBody();
+          }
+        } catch (e) {}
+      }
     }
 
     // Auto-detect language
@@ -1593,35 +567,99 @@
       setLanguage('es');
     }
 
-    // Dynamic Live Simulation Counter with Page Visibility Optimization
+    // Interactive Live Simulation: auto-ticking clock + manual phase
+    // advance/conclude/restart controls. Module boundaries are cumulative
+    // fractions of totalSeconds, matching the 15/60/25% default agenda split
+    // used elsewhere in the product (see scheduleModal defaults).
     let secondsElapsed = 552; // 9m 12s
     const totalSeconds = 900; // 15m
+    const MODULE_BOUNDARIES = [0.15, 0.75, 1.0];
+    let currentModuleIndex = 1;
     let simIntervalId = null;
+    let simConcluded = false;
 
-    function tickSimulation() {
-      secondsElapsed++;
-      if (secondsElapsed > totalSeconds) secondsElapsed = 60;
-      
+    function currentLang() {
+      return document.documentElement.lang === 'es' ? 'es' : 'en';
+    }
+
+    function getModuleNames() {
+      const t = translations[currentLang()];
+      return [t.simModule1, t.simModule2, t.simModule3];
+    }
+
+    function moduleIndexForSeconds(sec) {
+      const pct = sec / totalSeconds;
+      for (let i = 0; i < MODULE_BOUNDARIES.length; i++) {
+        if (pct < MODULE_BOUNDARIES[i]) return i;
+      }
+      return MODULE_BOUNDARIES.length - 1;
+    }
+
+    // Mirrors src/utils/progressBar.ts's renderProgressBar() exactly, so the
+    // marketing demo shows the same ASCII bar HuddlePace posts in Slack.
+    function renderAsciiBar(percent, length = 16) {
+      const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+      const filled = Math.round((clamped / 100) * length);
+      const empty = length - filled;
+      return `[${'█'.repeat(filled)}${'░'.repeat(empty)}] ${clamped}%`;
+    }
+
+    function formatDuration(secs) {
+      const m = Math.floor(secs / 60);
+      const s = secs % 60;
+      return `${m}m ${s < 10 ? '0' : ''}${s}s`;
+    }
+
+    function updateModuleDisplay() {
+      const names = getModuleNames();
+      const elActive = document.getElementById('sim-active-module');
+      const elNext = document.getElementById('sim-next-module');
+      const elModTime = document.getElementById('sim-module-time');
+      const isLast = currentModuleIndex >= MODULE_BOUNDARIES.length - 1;
+
+      if (elActive) elActive.innerText = names[currentModuleIndex];
+      if (elNext) elNext.innerText = isLast ? names[currentModuleIndex] : names[currentModuleIndex + 1];
+
+      const moduleEndSeconds = Math.round(MODULE_BOUNDARIES[currentModuleIndex] * totalSeconds);
+      const leftInModule = Math.max(0, moduleEndSeconds - secondsElapsed);
+      if (elModTime) elModTime.innerText = `(${Math.ceil(leftInModule / 60)}${translations[currentLang()].simMinLeftSuffix})`;
+
+      const advanceBtn = document.getElementById('sim-btn-advance');
+      if (advanceBtn) advanceBtn.style.visibility = isLast ? 'hidden' : 'visible';
+    }
+
+    function renderLiveState() {
       const m = Math.floor(secondsElapsed / 60);
       const s = secondsElapsed % 60;
       const rem = totalSeconds - secondsElapsed;
       const remM = Math.floor(rem / 60);
       const remS = rem % 60;
-
       const pct = Math.min(100, Math.floor((secondsElapsed / totalSeconds) * 100));
+
       const elElapsed = document.getElementById('sim-elapsed');
       const elRemaining = document.getElementById('sim-remaining');
-      const elBar = document.getElementById('sim-bar');
-      const elProgress = document.getElementById('sim-progress');
+      const elBar = document.getElementById('sim-progress');
 
       if (elElapsed) elElapsed.innerText = `${m}m ${s < 10 ? '0' : ''}${s}s / 15m`;
       if (elRemaining) elRemaining.innerText = `${remM}m ${remS < 10 ? '0' : ''}${remS}s`;
-      if (elBar) elBar.style.width = `${pct}%`;
-      if (elProgress) elProgress.setAttribute('aria-valuenow', pct);
+      if (elBar) {
+        elBar.innerText = renderAsciiBar(pct);
+        elBar.setAttribute('aria-valuenow', pct);
+      }
+
+      currentModuleIndex = moduleIndexForSeconds(secondsElapsed);
+      updateModuleDisplay();
+    }
+
+    function tickSimulation() {
+      if (simConcluded) return;
+      secondsElapsed++;
+      if (secondsElapsed > totalSeconds) secondsElapsed = 60;
+      renderLiveState();
     }
 
     function startSimulation() {
-      if (!simIntervalId) {
+      if (!simIntervalId && !simConcluded) {
         simIntervalId = setInterval(tickSimulation, 1000);
       }
     }
@@ -1633,6 +671,49 @@
       }
     }
 
+    function advancePhase() {
+      if (simConcluded) return;
+      const isLast = currentModuleIndex >= MODULE_BOUNDARIES.length - 1;
+      if (isLast) return;
+      secondsElapsed = Math.min(totalSeconds, Math.round(MODULE_BOUNDARIES[currentModuleIndex] * totalSeconds) + 5);
+      renderLiveState();
+    }
+
+    function concludeSimulation() {
+      simConcluded = true;
+      pauseSimulation();
+
+      const names = getModuleNames();
+      const covered = names.slice(0, currentModuleIndex + 1).join(', ');
+      const durationEl = document.getElementById('sim-concluded-duration');
+      const modulesEl = document.getElementById('sim-concluded-modules-list');
+      if (durationEl) durationEl.innerText = formatDuration(secondsElapsed);
+      if (modulesEl) modulesEl.innerText = covered;
+
+      const liveView = document.getElementById('sim-live-view');
+      const concludedView = document.getElementById('sim-concluded-view');
+      if (liveView) liveView.style.display = 'none';
+      if (concludedView) concludedView.style.display = 'grid';
+    }
+
+    function restartSimulation() {
+      simConcluded = false;
+      secondsElapsed = 0;
+      currentModuleIndex = 0;
+
+      const liveView = document.getElementById('sim-live-view');
+      const concludedView = document.getElementById('sim-concluded-view');
+      if (concludedView) concludedView.style.display = 'none';
+      if (liveView) liveView.style.display = 'grid';
+
+      renderLiveState();
+      startSimulation();
+    }
+
+    document.getElementById('sim-btn-advance')?.addEventListener('click', advancePhase);
+    document.getElementById('sim-btn-conclude')?.addEventListener('click', concludeSimulation);
+    document.getElementById('sim-btn-restart')?.addEventListener('click', restartSimulation);
+
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         pauseSimulation();
@@ -1641,7 +722,19 @@
       }
     });
 
+    renderLiveState();
     startSimulation();
+  </script>
+
+  <!-- tBelt Support Beacon SDK -->
+  <script src="https://finances.tbelt.online/beacon.js"></script>
+  <script>
+    window.Beacon.init({
+      key: '__BEACON_WIDGET_KEY__',
+      locale: document.documentElement.lang === 'es' ? 'es' : 'en',
+      color: '#06b6d4',
+      position: 'right'
+    });
   </script>
 </body>
 </html>
