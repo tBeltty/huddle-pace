@@ -408,7 +408,7 @@ export function registerActionHandlers(app: App) {
               type: "section",
               text: {
                 type: "mrkdwn",
-                text: `🎉 *This meetup has officially concluded.*\n\n• *Formal Duration:* ${formatMinutes(formalMinutes)} (Scheduled: ${formatMinutes(meetup.totalMinutes)})\n${chatMinutes > 0 ? `• *Casual Chatting:* ${formatMinutes(chatMinutes)}\n` : ""}• *Speakers:* ${speakers}\n\n🛬 Smooth landing — logged and ready for next time.`,
+                text: `🎉 *This meetup has officially concluded.*\n\n• *Formal Duration:* ${formatMinutes(formalMinutes)} (Scheduled: ${formatMinutes(meetup.totalMinutes)})\n${chatMinutes > 0 ? `• *Casual Chatting:* ${formatMinutes(chatMinutes)}\n` : ""}• *Speakers:* ${speakers}\n\n🦅 Great pacing — logged and ready for next time.`,
               },
             },
             {
