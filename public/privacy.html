@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy — HuddlePace</title>
+  <title>Privacy Policy | HuddlePace</title>
 
   <!-- Primary Meta Tags -->
-  <meta name="title" content="Privacy Policy — HuddlePace">
+  <meta name="title" content="Privacy Policy | HuddlePace">
   <meta name="description" content="How HuddlePace collects, uses, and protects data when you install the Slack app. Zero audio recording, zero transcripts, plain-language data practices.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://huddlepace.com/privacy">
@@ -14,7 +14,7 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://huddlepace.com/privacy">
-  <meta property="og:title" content="Privacy Policy — HuddlePace">
+  <meta property="og:title" content="Privacy Policy | HuddlePace">
   <meta property="og:description" content="How HuddlePace collects, uses, and protects data when you install the Slack app.">
   <meta property="og:image" content="https://huddlepace.com/assets/og-image.jpg">
   <meta property="og:site_name" content="HuddlePace">
@@ -68,7 +68,7 @@
         <span data-i18n="privacyBadge">🔒 Privacy Policy</span>
       </div>
       <h1 data-i18n="privacyTitle">Your data, plainly explained</h1>
-      <p data-i18n="privacyLead">HuddlePace never records audio, never stores transcripts, and only keeps what it needs to run your meeting timers.</p>
+      <p data-i18n="privacyLead">HuddlePace does not record audio or store transcripts. We only retain the timestamps and agenda modules needed to run your meeting timers.</p>
     </section>
 
     <section class="legal-content">
@@ -94,7 +94,7 @@
 
       <section>
         <h2 data-i18n="privacyS3Title">3. What We Never Collect</h2>
-        <p data-i18n="privacyS3Body">HuddlePace does not request Huddle audio, does not record calls, does not generate transcripts, and does not read the content of your channel messages beyond the slash commands and interactive actions (buttons, modals) you or your teammates trigger directly. This is a core design constraint of the product, not just a policy promise.</p>
+        <p data-i18n="privacyS3Body">HuddlePace does not request Huddle audio, does not record calls, does not generate transcripts, and does not read channel messages. We only process the slash commands and interactive buttons triggered directly by your team. This architectural constraint is built directly into our codebase.</p>
       </section>
 
       <section>
@@ -112,19 +112,19 @@
         <h2 data-i18n="privacyS5Title">5. Who We Share Data With</h2>
         <p data-i18n="privacyS5Intro">We do not sell your data. We share the minimum necessary with:</p>
         <ul>
-          <li data-i18n="privacyS5Item1"><strong>Slack Technologies, LLC</strong> — as the platform that transmits and receives our app's API calls. Slack's own privacy practices apply to your use of Slack itself.</li>
-          <li data-i18n="privacyS5Item2"><strong>tBelt Dashboard</strong> — our support ticketing platform (operated by tBeltty). If you submit a support request, the name, email, and message you provide are processed there so a human can reply to you.</li>
+          <li data-i18n="privacyS5Item1"><strong>Slack Technologies, LLC</strong>: the platform that transmits and receives our app's API calls. Slack's own privacy practices apply to your use of Slack itself.</li>
+          <li data-i18n="privacyS5Item2"><strong>tBelt Dashboard</strong>: our support ticketing platform (operated by tBeltty). When you submit a support request, the name, email, and message you provide are processed there so a human can reply to you.</li>
         </ul>
       </section>
 
       <section>
         <h2 data-i18n="privacyS6Title">6. Data Storage &amp; Retention</h2>
-        <p data-i18n="privacyS6Body">Workspace and session data is stored in a self-hosted database (SQLite via Prisma) that HuddlePace operates directly — it is not shared with third-party data warehouses or analytics platforms. OAuth access tokens are stored encrypted at rest. Session and agenda records are retained to power your 30-day pacing reports; you can request earlier deletion at any time (see Section 8). Uninstalling HuddlePace revokes our access token immediately; we delete the associated workspace record within 30 days of uninstallation.</p>
+        <p data-i18n="privacyS6Body">Workspace and session data is stored in a self-hosted database (SQLite via Prisma) that HuddlePace operates directly. It is never shared with third-party data warehouses or analytics platforms. OAuth access tokens are stored encrypted at rest. Session and agenda records are retained to power your 30-day pacing reports; you can request earlier deletion at any time (see Section 8). Uninstalling HuddlePace revokes our access token immediately; we delete the associated workspace record within 30 days of uninstallation.</p>
       </section>
 
       <section>
         <h2 data-i18n="privacyS7Title">7. Security</h2>
-        <p data-i18n="privacyS7Body">All traffic between Slack and HuddlePace is verified using HMAC-SHA256 request signing. Each workspace's credentials are isolated from every other workspace (multi-tenant isolation) — no workspace can access another's data, tokens, or session history.</p>
+        <p data-i18n="privacyS7Body">All traffic between Slack and HuddlePace is verified using HMAC-SHA256 request signing. Each workspace's credentials are isolated from every other workspace (multi-tenant isolation), ensuring no workspace can access another's data, tokens, or session history.</p>
       </section>
 
       <section>

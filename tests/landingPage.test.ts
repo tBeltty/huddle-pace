@@ -104,7 +104,7 @@ describe("Web Landing Page & Asset Delivery", () => {
       assert.match(res.body, /<html lang="es">/);
       assert.match(res.body, /Reuniones de 15 minutos que/);
       assert.match(res.body, /Conoce a Vector/);
-      assert.match(res.body, /El guardián del tiempo en tu workspace/);
+      assert.match(res.body, /El copiloto de tiempo en tu workspace/);
     });
 
     test("serves pre-rendered Spanish page when Accept-Language: es is sent", () => {

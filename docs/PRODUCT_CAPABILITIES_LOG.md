@@ -6,6 +6,39 @@
 
 ---
 
+## [2026-09-22] Auditoría Forense y Optimización del Copy de Todo el Sitio (Web & Legales)
+* **Erradicación estricta de em-dashes (`—`) y contrastes binarios**:
+  * Eliminación sistemática de guiones largos en títulos, descripciones y cuerpos de texto en `public/index.html`, `public/privacy.html`, `public/terms.html`, y los diccionarios i18n (`src/locales/en.json`, `src/locales/es.json`, `public/locales/en.json`, `public/locales/es.json`).
+  * Desactivación del patrón sintético de contraste binario (*"not just X, but Y"* / *"no solo X, sino Y"*) en las políticas de privacidad y términos, sustituyéndolo por declaraciones técnicas asertivas e integradas en la arquitectura.
+* **Calibración de cadencia humana y eliminación de simetría tripartita (AI-Slop)**:
+  * Sustitución de listas de tres elementos rítmicos artificiales (*"zero X, zero Y, 100% Z"*) por beneficios directos fundamentados en la realidad del trabajo remoto (evitar que la daily invada el bloque de desarrollo, sin grabar audio).
+  * Eliminación de revelaciones dramáticas con dos puntos en las alertas del simulador (`simAlert`), unificando en avisos claros y contextualizados con el dolor real de un standup ágil (destrabar PRs y bloqueos antes de que acabe el tiempo).
+* **Corrección idiomática en español (Tuteo estricto y eliminación de calcos)**:
+  * Corrección de la doble negación errónea en la descripción de Vector (*"evitando que nadie..."* -> *"para que nadie tenga que hacer de policía en la reunión"*).
+  * Sustitución del término anacrónico *"Orador"* por *"Speaker"* en los metadatos de sincronización diaria.
+  * Reemplazo de calcos literales anglosajones (*"valoran el foco"* -> *"cuidan su tiempo"*).
+* **Sincronización total SSR y cliente**:
+  * Alineación exacta de las cadenas de texto del servidor SSR (`src/web/landingPage.ts`) y del cliente interactivo en el DOM.
+  * Actualización de aserciones en la suite de pruebas automatizadas (`tests/landingPage.test.ts`), manteniendo 100% de tests en verde (96 pruebas pasando).
+
+## [2026-09-22] Suite de Redacción Avanzada, Playbook Editorial y Protocolo Anti-AI Slop
+* **Migración y adaptación desde `finances_app`**:
+  * Incorporación de la suite completa de 9 habilidades de redacción en `.agents/skills/` (versionadas en Git) y sincronizadas en `.claude/skills/`:
+    * `no-ai-slop`: Erradicación obligatoria de patrones sintéticos de IA (contrastes binarios, revelaciones dramáticas con dos puntos, aperturas de autoayuda, muletillas corporativas) contextualizada para Slack Block Kit, landing y documentación.
+    * `text-humanizer`: Calibración de burstiness, perplejidad, voz activa y escudo inmutable para tokens protegidos de Slack (`/pace`, menciones `<@U...>`, minutos y métricas).
+    * `copywriting`: Redacción persuasiva y de conversión para Slack App Directory, landing bento/atmos y páginas de producto.
+    * `copy-editing`: Framework de las Siete Pasadas (*Seven Sweeps*) y velocidad estructural.
+    * `proofreading`: Revisión mecánica y ortotipográfica en inglés y español (jerarquía RAE de coma vs. punto y coma vs. punto y seguido).
+    * `paragraph-structure`: Auditoría de límites de párrafos para evitar saltos de contexto ocultos.
+    * `ogilvy`: Principios de David Ogilvy de posicionamiento (*¿qué hace y para quién es?*), promesa única y segmentación psicológica de equipos ágiles.
+    * `content-strategy`: Planificación de contenidos enfocados en los dolores reales de Scrum Masters, Tech Leads y Agencias.
+    * `competitor-alternatives`: Arquitectura y plantillas para comparativas contra alternativas (Clockwise, temporizador nativo de Slack, Fellow, Standuply).
+    * `NOTICE-boraoztunc.md`: Atribución y trazabilidad de licencias MIT.
+* **Playbook Editorial Anti-IA de 14 Pasos (`docs/marketing/COPYWRITING_PLAYBOOK.md`)**:
+  * Protocolo integral de redacción pre-entrega diseñado para superar detectores de IA (GPTZero, Copyleaks) mediante escenas de fricción física y sensorial de reuniones remotas (lag al desmutear el micrófono, silencio incómodo de 10 segundos, debates de 40 minutos en el PR, calendar Tetris).
+* **Actualización normativa de estándares**:
+  * Actualización de [`docs/guidelines/EDITORIAL_STANDARDS.md`](guidelines/EDITORIAL_STANDARDS.md) y [`AGENTS.md`](../AGENTS.md) con la política estricta de 100% inglés en Slack UI y tuteo obligatorio (cero voseo) con traducción semántica en marketing y documentación.
+
 ## [2026-09-22] Estado Inicial Consolidado — Todo lo que hace HuddlePace hoy
 
 ### 1. Programación y Creación de Sesiones (`/pace` y Shortcuts)
