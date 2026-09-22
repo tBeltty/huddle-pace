@@ -12,6 +12,9 @@ import { getWebCustomRoutes } from "../web/landingPage.js";
 export function createSlackApp(): bolt.App {
   const env = getEnv();
 
+  const redirectUri = env.SLACK_REDIRECT_URI || "https://huddlepace.com/slack/oauth_redirect";
+  const redirectUriPath = new URL(redirectUri).pathname;
+
   const app = env.SOCKET_MODE
     ? new App({
         token: env.SLACK_BOT_TOKEN,
@@ -24,7 +27,7 @@ export function createSlackApp(): bolt.App {
         clientId: env.SLACK_CLIENT_ID,
         clientSecret: env.SLACK_CLIENT_SECRET,
         stateSecret: env.SLACK_STATE_SECRET,
-        redirectUri: env.SLACK_REDIRECT_URI || "https://huddlepace.com/slack/oauth_redirect",
+        redirectUri,
         scopes: [
           "commands",
           "chat:write",
@@ -39,6 +42,7 @@ export function createSlackApp(): bolt.App {
         installationStore: prismaInstallationStore,
         installerOptions: {
           directInstall: true,
+          redirectUriPath,
         },
         customRoutes: [
           {
