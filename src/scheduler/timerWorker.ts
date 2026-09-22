@@ -114,7 +114,7 @@ export class TimerWorker {
                         type: "section",
                         text: {
                           type: "mrkdwn",
-                          text: `🎉 *This meetup has officially concluded.*\n\n• *Formal Duration:* ${formatMinutes(formalMin)} (Scheduled: ${formatMinutes(meetup.totalMinutes)})\n• *Speakers:* ${speakers}\n\n🛬 Smooth landing — logged and ready for next time.`,
+                          text: `🎉 *This meetup has officially concluded.*\n\n• *Formal Duration:* ${formatMinutes(formalMin)} (Scheduled: ${formatMinutes(meetup.totalMinutes)})\n• *Speakers:* ${speakers}\n\n🦅 Great pacing — logged and ready for next time.`,
                         },
                       },
                     ],
