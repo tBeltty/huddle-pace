@@ -256,5 +256,42 @@ export function registerHuddleHandlers(app: App) {
       console.error("Error in app_mention listener:", err);
     }
   });
+
+  // Listen for user_huddle_changed events (when a user starts or joins a Huddle call)
+  app.event("user_huddle_changed", async ({ event, client, context }) => {
+    try {
+      const e = event as any;
+      const userId = e.user?.id;
+      const huddleState = e.user?.profile?.huddle_state;
+      const teamId = context.teamId || e.user?.team_id;
+
+      if (!userId) return;
+
+      console.info(`user_huddle_changed received for ${userId}: huddle_state=${huddleState}`);
+
+      if (huddleState === "in_a_huddle") {
+        // Speaker has entered a Huddle! Check for pending scheduled meetups
+        const pendingMeetups = await MeetupService.findPendingScheduledMeetupsForSpeaker(userId, teamId);
+
+        for (const meetup of pendingMeetups) {
+          console.info(`Auto-launching scheduled meetup ${meetup.id} ('${meetup.title}') in channel ${meetup.channelId} because speaker ${userId} started a Huddle.`);
+
+          const huddles = await findChannelHuddles(client, meetup.channelId);
+          const activeHuddle = huddles.find((h) => h.isActive);
+          const threadTs = activeHuddle ? activeHuddle.ts : undefined;
+
+          await launchMeetupInThread(client, meetup.id, threadTs);
+
+          await client.chat.postMessage({
+            channel: meetup.channelId,
+            thread_ts: threadTs || undefined,
+            text: `🛫 *Huddle Detected!* Vector has automatically launched your scheduled session: *"${meetup.title}"* (${meetup.totalMinutes}m).\nLive pacing is active!`,
+          }).catch(() => {});
+        }
+      }
+    } catch (err) {
+      console.error("Error in user_huddle_changed handler:", err);
+    }
+  });
 }
 

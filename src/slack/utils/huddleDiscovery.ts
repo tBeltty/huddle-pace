@@ -74,13 +74,13 @@ export function isHuddleEnded(msg: any): boolean {
  * Scans recent channel history for active and recent Huddle calls.
  * Automatically ensures bot is joined to public channels to prevent not_in_channel errors.
  */
-export async function findChannelHuddles(client: any, channelId: string): Promise<DetectedHuddle[]> {
+export async function findChannelHuddles(client: any, channelId: string, token?: string): Promise<DetectedHuddle[]> {
   if (!channelId) return [];
 
   try {
     // Proactively attempt to join channel (silently ignored if already a member or private)
     try {
-      await client.conversations.join({ channel: channelId });
+      await client.conversations.join({ channel: channelId, ...(token ? { token } : {}) });
     } catch {
       // Ignore join failures
     }
@@ -88,6 +88,7 @@ export async function findChannelHuddles(client: any, channelId: string): Promis
     const res = await client.conversations.history({
       channel: channelId,
       limit: 50,
+      ...(token ? { token } : {}),
     });
 
     if (!res.messages) return [];
@@ -143,8 +144,8 @@ export async function findChannelHuddles(client: any, channelId: string): Promis
 /**
  * Convenience helper to find the latest active Huddle thread ts, if any.
  */
-export async function findActiveHuddleThread(client: any, channelId: string): Promise<string | null> {
-  const huddles = await findChannelHuddles(client, channelId);
+export async function findActiveHuddleThread(client: any, channelId: string, token?: string): Promise<string | null> {
+  const huddles = await findChannelHuddles(client, channelId, token);
   const active = huddles.filter((h) => h.isActive);
   return active.length > 0 ? active[0].ts : null;
 }

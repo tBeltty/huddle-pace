@@ -283,6 +283,27 @@ export class MeetupService {
   }
 
   /**
+   * Finds pending scheduled meetups where the given user is an assigned speaker.
+   */
+  static async findPendingScheduledMeetupsForSpeaker(speakerUserId: string, teamId?: string) {
+    const scheduled = await prisma.meetup.findMany({
+      where: {
+        status: "SCHEDULED",
+        ...(teamId && teamId !== "default" ? { teamId } : {}),
+      },
+      orderBy: { scheduledFor: "asc" },
+      include: {
+        modules: { orderBy: { orderIndex: "asc" } },
+      },
+    });
+
+    return scheduled.filter((m) => {
+      const ids = this.parseSpeakerIds(m.speakerUserId);
+      return ids.includes(speakerUserId);
+    });
+  }
+
+  /**
    * Retrieves a single meetup by ID.
    */
   static async getMeetupById(id: string) {

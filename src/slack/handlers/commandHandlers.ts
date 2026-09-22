@@ -22,7 +22,34 @@ export function registerCommandHandlers(app: App) {
         await client.chat.postEphemeral({
           channel: command.channel_id,
           user: command.user_id,
-          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the interactive meetup scheduler\n• \`/pace 15m [Title]\` — Instant takeoff! Starts a 15m live session right inside this Huddle/channel\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to see your personalized sessions.`,
+          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the interactive meetup scheduler\n• \`/pace start\` — Immediately launch the pending scheduled session in this channel/Huddle\n• \`/pace 15m [Title]\` — Instant takeoff! Starts a 15m live session right inside this Huddle/channel\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to see your personalized sessions.`,
+        });
+        return;
+      }
+
+      if (subCommand === "start" || subCommand === "launch" || subCommand === "takeoff") {
+        const scheduled = await MeetupService.findPendingScheduledMeetup(command.channel_id, command.team_id);
+        if (!scheduled) {
+          await client.chat.postEphemeral({
+            channel: command.channel_id,
+            user: command.user_id,
+            text: `ℹ️ No pending scheduled meetups found for this channel. Type \`/pace 15m\` for instant takeoff, or \`/pace\` to schedule one.`,
+          });
+          return;
+        }
+
+        const explicitThreadTs = (command as any).thread_ts || (command as any).threadTs;
+        const huddles = await findChannelHuddles(client, command.channel_id);
+        const activeHuddle = huddles.find((h) => h.isActive);
+        const threadTs = explicitThreadTs || (activeHuddle ? activeHuddle.ts : undefined);
+
+        await launchMeetupInThread(client, scheduled.id, threadTs);
+
+        const locationText = threadTs ? "inside this live Huddle thread" : "in the channel feed";
+        await client.chat.postEphemeral({
+          channel: command.channel_id,
+          user: command.user_id,
+          text: `🛫 *Flight Initiated!* Vector launched your scheduled session: *"${scheduled.title}"* (${scheduled.totalMinutes}m) ${locationText}.`,
         });
         return;
       }
