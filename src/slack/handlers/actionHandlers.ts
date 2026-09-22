@@ -18,6 +18,31 @@ export function isUserAuthorizedForMeetup(speakerUserId: string, userId?: string
 }
 
 /**
+ * Privately DMs the designated speaker(s) that Vector auto-launched their scheduled session,
+ * instead of announcing it in the shared channel/thread. Tracks the DM so it can be cleaned
+ * up automatically once the session concludes.
+ */
+export async function notifySpeakersOfAutoLaunch(client: any, meetup: any, botToken?: string) {
+  const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
+  const text = `🛫 *Huddle Detected!* Vector has automatically launched your scheduled session: *"${meetup.title}"* (${meetup.totalMinutes}m).\nLive pacing has started in the Huddle thread!`;
+
+  for (const speakerId of speakerIds) {
+    try {
+      const res = await client.chat.postMessage({
+        token: botToken,
+        channel: speakerId,
+        text,
+      });
+      if (res?.ts && res?.channel) {
+        await MeetupService.recordDmMessage(meetup.id, res.channel as string, res.ts as string);
+      }
+    } catch (err) {
+      console.warn(`Failed to send auto-launch DM to speaker ${speakerId}:`, err);
+    }
+  }
+}
+
+/**
  * Starts a meetup and attaches its live tracker to the designated Huddle thread (or channel feed).
  */
 export async function launchMeetupInThread(client: any, meetupId: string, threadTs?: string) {
@@ -352,7 +377,8 @@ export function registerActionHandlers(app: App) {
         return;
       }
 
-      await MeetupService.concludeMeetup(meetupId);
+      const concluded = await MeetupService.concludeMeetup(meetupId);
+      await MeetupService.cleanupReminderDMs(concluded, client);
 
       const started = meetup.startedAt ? new Date(meetup.startedAt).getTime() : Date.now();
       const formalEnded = meetup.formalEndsAt ? new Date(meetup.formalEndsAt).getTime() : Date.now();

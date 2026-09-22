@@ -21,6 +21,7 @@ model Meetup {
   formalEndsAt     DateTime?
   endsAt           DateTime?
   status           String         @default("SCHEDULED") // SCHEDULED, ACTIVE, JUST_CHATTING, PAUSED, COMPLETED, CANCELLED
+  dmMessageRefs    String? // JSON array of {channel, ts} for speaker DM reminders, cleaned up on conclude
   modules          MeetupModule[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt

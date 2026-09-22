@@ -3,7 +3,7 @@ import { MeetupService } from "../../services/meetupService.js";
 import { formatMinutes } from "../../utils/progressBar.js";
 import { publishHomeTab } from "./homeHandlers.js";
 import { isHuddleMessage, isHuddleEnded, findChannelHuddles } from "../utils/huddleDiscovery.js";
-import { launchMeetupInThread } from "./actionHandlers.js";
+import { launchMeetupInThread, notifySpeakersOfAutoLaunch } from "./actionHandlers.js";
 
 // Cache of Huddle thread timestamps where standby or auto-start was already posted
 const greetedHuddleThreads = new Set<string>();
@@ -33,6 +33,7 @@ export function registerHuddleHandlers(app: App) {
         if (meetup) {
           console.info(`Detected Huddle end for channel ${channelId}. Auto-concluding meetup ${meetup.id}.`);
           const updated = await MeetupService.concludeMeetup(meetup.id);
+          await MeetupService.cleanupReminderDMs(updated, client);
 
           const started = meetup.startedAt ? new Date(meetup.startedAt).getTime() : Date.now();
           const formalEnded = updated.formalEndsAt ? new Date(updated.formalEndsAt).getTime() : Date.now();
@@ -101,11 +102,7 @@ export function registerHuddleHandlers(app: App) {
             greetedHuddleThreads.add(rootTs);
             console.info(`Active Huddle detected in channel ${channelId}. Auto-launching scheduled meetup ${scheduled.id}.`);
             await launchMeetupInThread(client, scheduled.id, rootTs);
-            await client.chat.postMessage({
-              channel: channelId,
-              thread_ts: rootTs,
-              text: `🛫 *Huddle Detected!* Vector has automatically launched your scheduled session: *"${scheduled.title}"* (${scheduled.totalMinutes}m).\nLive pacing has started in this thread!`,
-            }).catch(() => {});
+            await notifySpeakersOfAutoLaunch(client, scheduled);
           }
           return;
         }
@@ -281,12 +278,7 @@ export function registerHuddleHandlers(app: App) {
           const threadTs = activeHuddle ? activeHuddle.ts : undefined;
 
           await launchMeetupInThread(client, meetup.id, threadTs);
-
-          await client.chat.postMessage({
-            channel: meetup.channelId,
-            thread_ts: threadTs || undefined,
-            text: `🛫 *Huddle Detected!* Vector has automatically launched your scheduled session: *"${meetup.title}"* (${meetup.totalMinutes}m).\nLive pacing is active!`,
-          }).catch(() => {});
+          await notifySpeakersOfAutoLaunch(client, meetup);
         }
       }
     } catch (err) {
