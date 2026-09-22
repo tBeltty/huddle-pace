@@ -56,25 +56,30 @@ describe("Access Control & UI Resilience", () => {
       assert.strictEqual(hasCapNotice, true);
     });
 
-    test("includes quick preset duration options and custom duration input block", () => {
-      const modal = buildScheduleModal({ subtopicCount: 3, customDuration: "45" });
+    test("includes comprehensive duration options and omits separate custom block for cleaner UI", () => {
+      const modal = buildScheduleModal({ subtopicCount: 3 });
       const durationBlock = modal.blocks?.find(
         (b: any) => b.block_id === "duration_block"
       ) as any;
       assert.strictEqual(!!durationBlock, true);
       const options = durationBlock.element.options.map((o: any) => o.value);
       assert.strictEqual(options.includes("15"), true);
+      assert.strictEqual(options.includes("20"), true);
       assert.strictEqual(options.includes("30"), true);
+      assert.strictEqual(options.includes("45"), true);
       assert.strictEqual(options.includes("60"), true);
+      assert.strictEqual(options.includes("90"), true);
       assert.strictEqual(options.includes("120"), true);
 
+      // Custom duration input block was removed per design feedback
       const customDurationBlock = modal.blocks?.find(
         (b: any) => b.block_id === "custom_duration_block"
-      ) as any;
-      assert.strictEqual(!!customDurationBlock, true);
-      assert.strictEqual(customDurationBlock.element.type, "plain_text_input");
-      assert.strictEqual(customDurationBlock.element.initial_value, "45");
-      assert.strictEqual(customDurationBlock.optional, true);
+      );
+      assert.strictEqual(customDurationBlock, undefined);
+
+      // Verify updated title placeholder
+      const titleBlock = modal.blocks?.find((b: any) => b.block_id === "title_block") as any;
+      assert.match(titleBlock.element.placeholder.text, /Onboarding/);
     });
   });
 });
