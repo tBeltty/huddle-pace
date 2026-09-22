@@ -21,27 +21,45 @@ const MIME_TYPES: Record<string, string> = {
 
 const PUBLIC_DIR = path.resolve(process.cwd(), "public");
 const LOCALES_DIR = path.resolve(process.cwd(), "src", "locales");
-const INDEX_HTML_PATH = path.join(PUBLIC_DIR, "index.html");
 
-let cachedHtml: string | null = null;
-const cachedRendered: Record<string, string> = {};
+// Static pages served by the site, keyed by the URL path that serves them.
+// `metaKey` is the top-level key in the locale JSON holding that page's SEO meta block.
+const PAGES: Record<string, { file: string; metaKey: string }> = {
+  "/": { file: "index.html", metaKey: "meta" },
+  "/privacy": { file: "privacy.html", metaKey: "privacyMeta" },
+  "/terms": { file: "terms.html", metaKey: "termsMeta" },
+};
+
+const cachedHtml: Record<string, string> = {};
+const cachedRendered: Record<string, Record<string, string>> = {};
 const cachedLocales: Record<string, any> = {};
 
 export function clearLandingCache(): void {
-  cachedHtml = null;
+  for (const k of Object.keys(cachedHtml)) delete cachedHtml[k];
   for (const k of Object.keys(cachedRendered)) delete cachedRendered[k];
   for (const k of Object.keys(cachedLocales)) delete cachedLocales[k];
 }
 
-function getLandingHtml(): string {
-  if (process.env.NODE_ENV === "production" && cachedHtml) {
-    return cachedHtml;
+function getPageHtml(pagePath: string): string {
+  const page = PAGES[pagePath];
+  if (!page) return "<h1>Not Found</h1>";
+
+  if (process.env.NODE_ENV === "production" && cachedHtml[pagePath]) {
+    return cachedHtml[pagePath];
   }
-  if (fs.existsSync(INDEX_HTML_PATH)) {
-    cachedHtml = fs.readFileSync(INDEX_HTML_PATH, "utf-8");
-    return cachedHtml;
+
+  const filePath = path.join(PUBLIC_DIR, page.file);
+  if (!fs.existsSync(filePath)) {
+    return "<h1>HuddlePace — 15-minute huddles that actually take 15 minutes</h1>";
   }
-  return "<h1>HuddlePace — 15-minute huddles that actually take 15 minutes</h1>";
+
+  let html = fs.readFileSync(filePath, "utf-8");
+  html = html.replaceAll("__BEACON_WIDGET_KEY__", process.env.BEACON_WIDGET_KEY ?? "");
+
+  if (process.env.NODE_ENV === "production") {
+    cachedHtml[pagePath] = html;
+  }
+  return html;
 }
 
 export function getLocaleDictionary(lang: string): any {
@@ -89,13 +107,8 @@ export function detectLanguage(req: IncomingMessage): { lang: "en" | "es"; expli
   return { lang: "en", explicitQuery: false };
 }
 
-export function renderLocalizedHtml(baseHtml: string, lang: "en" | "es"): string {
-  if (process.env.NODE_ENV === "production" && cachedRendered[lang]) {
-    return cachedRendered[lang];
-  }
-
+export function renderLocalizedHtml(baseHtml: string, lang: "en" | "es", metaKey: string = "meta"): string {
   if (lang === "en") {
-    if (process.env.NODE_ENV === "production") cachedRendered.en = baseHtml;
     return baseHtml;
   }
 
@@ -108,25 +121,26 @@ export function renderLocalizedHtml(baseHtml: string, lang: "en" | "es"): string
   html = html.replace('<html lang="en">', '<html lang="es">');
 
   // 2. SEO Meta tags
-  if (locale.meta) {
-    if (locale.meta.title) {
-      html = html.replace(/<title>.*?<\/title>/, `<title>${locale.meta.title}</title>`);
-      html = html.replace(/<meta name="title" content=".*?">/, `<meta name="title" content="${locale.meta.title}">`);
+  const meta = locale[metaKey];
+  if (meta) {
+    if (meta.title) {
+      html = html.replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`);
+      html = html.replace(/<meta name="title" content=".*?">/, `<meta name="title" content="${meta.title}">`);
     }
-    if (locale.meta.description) {
-      html = html.replace(/<meta name="description" content=".*?">/, `<meta name="description" content="${locale.meta.description}">`);
+    if (meta.description) {
+      html = html.replace(/<meta name="description" content=".*?">/, `<meta name="description" content="${meta.description}">`);
     }
-    if (locale.meta.ogTitle) {
-      html = html.replace(/<meta property="og:title" content=".*?">/, `<meta property="og:title" content="${locale.meta.ogTitle}">`);
-      html = html.replace(/<meta property="twitter:title" content=".*?">/, `<meta property="twitter:title" content="${locale.meta.ogTitle}">`);
+    if (meta.ogTitle) {
+      html = html.replace(/<meta property="og:title" content=".*?">/, `<meta property="og:title" content="${meta.ogTitle}">`);
+      html = html.replace(/<meta property="twitter:title" content=".*?">/, `<meta property="twitter:title" content="${meta.ogTitle}">`);
     }
-    if (locale.meta.ogDescription) {
-      html = html.replace(/<meta property="og:description" content=".*?">/, `<meta property="og:description" content="${locale.meta.ogDescription}">`);
-      html = html.replace(/<meta property="twitter:description" content=".*?">/, `<meta property="twitter:description" content="${locale.meta.ogDescription}">`);
+    if (meta.ogDescription) {
+      html = html.replace(/<meta property="og:description" content=".*?">/, `<meta property="og:description" content="${meta.ogDescription}">`);
+      html = html.replace(/<meta property="twitter:description" content=".*?">/, `<meta property="twitter:description" content="${meta.ogDescription}">`);
     }
   }
 
-  // 3. Language button active class toggle
+  // 3. Language button active class toggle (home page's client-side EN/ES toggle)
   html = html.replace('id="btn-en" class="lang-btn active"', 'id="btn-en" class="lang-btn"');
   html = html.replace('class="lang-btn active" id="btn-en"', 'class="lang-btn" id="btn-en"');
   html = html.replace('id="btn-es" class="lang-btn"', 'id="btn-es" class="lang-btn active"');
@@ -141,38 +155,59 @@ export function renderLocalizedHtml(baseHtml: string, lang: "en" | "es"): string
     return match;
   });
 
-  if (process.env.NODE_ENV === "production") {
-    cachedRendered.es = html;
-  }
   return html;
 }
 
-export function handleLandingPage(req: IncomingMessage, res: ServerResponse): void {
+function renderPage(pagePath: string, req: IncomingMessage): { html: string; lang: "en" | "es"; explicitQuery: boolean } {
+  const page = PAGES[pagePath];
   const { lang, explicitQuery } = detectLanguage(req);
-  const baseHtml = getLandingHtml();
-  const html = renderLocalizedHtml(baseHtml, lang);
 
-  const headers: Record<string, string | number> = {
-    "Content-Type": "text/html; charset=utf-8",
-    "Content-Length": Buffer.byteLength(html),
-    "Content-Language": lang,
-    "Vary": "Accept-Language, Cookie",
-    "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600",
-    "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
-  };
-
-  if (explicitQuery) {
-    headers["Set-Cookie"] = `huddlepace_lang=${lang}; Path=/; Max-Age=31536000; SameSite=Lax`;
+  if (process.env.NODE_ENV === "production") {
+    cachedRendered[pagePath] = cachedRendered[pagePath] || {};
+    if (cachedRendered[pagePath][lang]) {
+      return { html: cachedRendered[pagePath][lang], lang, explicitQuery };
+    }
   }
 
-  res.writeHead(200, headers);
-  if (req.method === "HEAD") {
-    res.end();
-    return;
+  const baseHtml = getPageHtml(pagePath);
+  const html = renderLocalizedHtml(baseHtml, lang, page?.metaKey ?? "meta");
+
+  if (process.env.NODE_ENV === "production") {
+    cachedRendered[pagePath] = cachedRendered[pagePath] || {};
+    cachedRendered[pagePath][lang] = html;
   }
-  res.end(html);
+
+  return { html, lang, explicitQuery };
 }
+
+function handleStaticPage(pagePath: string) {
+  return (req: IncomingMessage, res: ServerResponse): void => {
+    const { html, lang, explicitQuery } = renderPage(pagePath, req);
+
+    const headers: Record<string, string | number> = {
+      "Content-Type": "text/html; charset=utf-8",
+      "Content-Length": Buffer.byteLength(html),
+      "Content-Language": lang,
+      "Vary": "Accept-Language, Cookie",
+      "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600",
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+    };
+
+    if (explicitQuery) {
+      headers["Set-Cookie"] = `huddlepace_lang=${lang}; Path=/; Max-Age=31536000; SameSite=Lax`;
+    }
+
+    res.writeHead(200, headers);
+    if (req.method === "HEAD") {
+      res.end();
+      return;
+    }
+    res.end(html);
+  };
+}
+
+export const handleLandingPage = handleStaticPage("/");
 
 export function handleStaticAsset(
   req: ParamsIncomingMessage,
@@ -222,6 +257,16 @@ export function getWebCustomRoutes() {
       path: "/",
       method: ["GET", "HEAD"],
       handler: handleLandingPage,
+    },
+    {
+      path: "/privacy",
+      method: ["GET", "HEAD"],
+      handler: handleStaticPage("/privacy"),
+    },
+    {
+      path: "/terms",
+      method: ["GET", "HEAD"],
+      handler: handleStaticPage("/terms"),
     },
     {
       path: "/assets/:file",
