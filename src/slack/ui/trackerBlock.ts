@@ -122,7 +122,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
       type: "header",
       text: {
         type: "plain_text",
-        text: `⏱️ ${data.title}`,
+        text: data.title,
         emoji: true,
       },
     },
@@ -149,7 +149,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
         },
         {
           type: "mrkdwn",
-          text: `📍 *Active Module*\n*${data.currentModuleName}* (${data.moduleRemainingMinutes}m left)`,
+          text: `*Active Module*\n*${data.currentModuleName}* (${data.moduleRemainingMinutes}m left)`,
         },
       ],
     },

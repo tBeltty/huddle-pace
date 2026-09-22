@@ -50,6 +50,7 @@ HANDOFF.md
 # Private Engineering Guidelines & Internal Docs
 docs/*
 !docs/README.md
+!docs/BRAND.md
 !docs/TARGET_NICHES.md
 !docs/PRODUCT_CAPABILITIES_LOG.md
 marketing/

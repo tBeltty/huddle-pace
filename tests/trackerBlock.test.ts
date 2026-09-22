@@ -19,7 +19,7 @@ describe("Live Tracker Block Kit Generation", () => {
     assert.ok(Array.isArray(blocks));
     // Header
     assert.strictEqual(blocks[0].type, "header");
-    assert.strictEqual(blocks[0].text.text, "⏱️ Sprint Planning");
+    assert.strictEqual(blocks[0].text.text, "Sprint Planning");
 
     // Telemetry section
     assert.strictEqual(blocks[1].type, "section");
