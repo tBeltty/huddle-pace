@@ -79,6 +79,7 @@
       --radius-full: 9999px;
       --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
+      color-scheme: dark;
     }
 
     * {
@@ -87,12 +88,16 @@
       padding: 0;
     }
 
+    html,
+    body {
+      overflow-x: clip;
+    }
+
     body {
       background-color: var(--bg-base);
       color: var(--text-primary);
       font-family: var(--font-main);
       line-height: 1.6;
-      overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -272,11 +277,12 @@
     }
 
     .hero-title {
-      font-size: 3.5rem;
+      font-size: clamp(2.1rem, 5.5vw, 3.5rem);
       font-weight: 800;
-      line-height: 1.12;
+      line-height: 1.14;
       letter-spacing: -0.035em;
       margin-bottom: 20px;
+      text-wrap: balance;
     }
 
     .hero-title span {
@@ -290,6 +296,7 @@
       color: var(--text-secondary);
       margin-bottom: 36px;
       max-width: 540px;
+      text-wrap: pretty;
     }
 
     .hero-actions {
@@ -369,8 +376,8 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 480px;
-      height: 480px;
+      width: min(480px, 90vw);
+      height: min(480px, 90vw);
       border: 1px dashed rgba(6, 182, 212, 0.22);
       border-radius: 50%;
       pointer-events: none;
@@ -382,8 +389,8 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 320px;
-      height: 320px;
+      width: min(320px, 60vw);
+      height: min(320px, 60vw);
       border: 1px solid rgba(245, 158, 11, 0.16);
       border-radius: 50%;
     }
@@ -638,10 +645,11 @@
     }
 
     .section-headline h2 {
-      font-size: 2.4rem;
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
       font-weight: 800;
       letter-spacing: -0.02em;
       margin-bottom: 12px;
+      text-wrap: balance;
     }
 
     .section-headline p {
@@ -649,6 +657,7 @@
       color: var(--text-secondary);
       max-width: 580px;
       margin: 0 auto;
+      text-wrap: pretty;
     }
 
     .pillars-grid {
@@ -688,12 +697,14 @@
       font-size: 1.25rem;
       font-weight: 700;
       margin-bottom: 12px;
+      text-wrap: balance;
     }
 
     .pillar-card p {
       color: var(--text-secondary);
       font-size: 0.95rem;
       line-height: 1.6;
+      text-wrap: pretty;
     }
 
     /* Modern Multi-Column Footer */
@@ -709,7 +720,7 @@
 
     .footer-grid {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      grid-template-columns: 1.8fr 1fr 1fr 1fr;
       gap: 40px;
       margin-bottom: 56px;
     }
@@ -905,10 +916,11 @@
     }
 
     .vector-info h2 {
-      font-size: 2.2rem;
+      font-size: clamp(1.8rem, 4vw, 2.2rem);
       font-weight: 800;
       letter-spacing: -0.02em;
       margin-bottom: 8px;
+      text-wrap: balance;
     }
 
     .vector-sub {
@@ -923,6 +935,7 @@
       font-size: 1rem;
       line-height: 1.65;
       margin-bottom: 24px;
+      text-wrap: pretty;
     }
 
     .vector-traits {
@@ -950,9 +963,6 @@
         grid-template-columns: 1fr;
         text-align: center;
       }
-      .hero-title {
-        font-size: 2.6rem;
-      }
       .hero-lead {
         margin: 0 auto 32px;
       }
@@ -964,12 +974,14 @@
       }
       .vector-card {
         grid-template-columns: 1fr;
-        padding: 32px 24px;
+        padding: 32px 20px;
         text-align: center;
-        gap: 32px;
+        gap: 28px;
       }
       .vector-traits {
-        align-items: center;
+        align-items: stretch;
+        max-width: 420px;
+        margin: 0 auto;
         text-align: left;
       }
       .pillars-grid {
@@ -985,7 +997,45 @@
       }
     }
 
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 8px 16px;
+      }
+      .nav-link {
+        display: none;
+      }
+      .nav-actions {
+        gap: 10px;
+      }
+      .btn-nav-slack {
+        padding: 7px 14px;
+        font-size: 0.85rem;
+      }
+    }
+
     @media (max-width: 600px) {
+      .slack-mockup-card {
+        padding: 20px 14px;
+        border-radius: var(--radius-md);
+      }
+      .slack-message {
+        grid-template-columns: 40px 1fr;
+        gap: 12px;
+        padding: 14px 12px;
+      }
+      .bot-avatar {
+        width: 40px;
+        height: 40px;
+      }
+      .progress-meta {
+        flex-direction: column;
+        gap: 4px;
+      }
+      .mockup-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
       .footer-grid {
         grid-template-columns: 1fr;
         gap: 28px;
@@ -993,6 +1043,73 @@
       .footer-bottom {
         flex-direction: column;
         align-items: flex-start;
+        gap: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 0 16px;
+      }
+      .hero {
+        padding: 40px 0 40px;
+        gap: 36px;
+      }
+      .hero-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+      .btn-primary,
+      .btn-secondary {
+        width: 100%;
+        justify-content: center;
+      }
+      .hero-trust {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .vector-card {
+        padding: 24px 14px;
+      }
+      .vector-image-container {
+        height: 300px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .btn-nav-slack span {
+        display: none;
+      }
+      .btn-nav-slack {
+        padding: 8px;
+        border-radius: 50%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .pulse-dot,
+      .status-dot {
+        animation: none !important;
+      }
+    }
+
+    @supports not (backdrop-filter: blur(1px)) {
+      .navbar,
+      .vector-display-card,
+      .slack-mockup-card,
+      .pillar-card,
+      .vector-card,
+      footer {
+        background: rgba(15, 23, 42, 0.98) !important;
       }
     }
   </style>
@@ -1005,9 +1122,9 @@
   <div class="container">
     <!-- Navbar -->
     <header>
-      <nav class="navbar">
+      <nav class="navbar" aria-label="Main Navigation">
         <a href="/" class="brand">
-          <img src="/assets/avatar.png" alt="Vector" class="brand-avatar-img">
+          <img src="/assets/avatar.png" alt="Vector" class="brand-avatar-img" width="34" height="34" decoding="async">
           <span>HuddlePace</span>
         </a>
         <div class="nav-actions">
@@ -1017,11 +1134,11 @@
           
           <!-- Language Toggle -->
           <div class="lang-switcher">
-            <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
-            <button class="lang-btn" id="btn-es" onclick="setLanguage('es')">ES</button>
+            <button type="button" class="lang-btn active" id="btn-en" onclick="setLanguage('en')" aria-label="Switch language to English" aria-pressed="true">EN</button>
+            <button type="button" class="lang-btn" id="btn-es" onclick="setLanguage('es')" aria-label="Cambiar idioma a Español" aria-pressed="false">ES</button>
           </div>
 
-          <a href="https://huddlepace.com/slack/install" class="btn-nav-slack">
+          <a href="https://huddlepace.com/slack/install" class="btn-nav-slack" aria-label="Add to Slack">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.528 2.528 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
             <span>Add to Slack</span>
           </a>
@@ -1071,7 +1188,7 @@
         <div class="vector-radar-backdrop"></div>
         <div class="vector-display-card">
           <div class="vector-image-container">
-            <img src="/assets/hero-vector.jpg" alt="Vector the Pacer Falcon" fetchpriority="high">
+            <img src="/assets/hero-vector.jpg" alt="Vector the Pacer Falcon" fetchpriority="high" width="800" height="800" decoding="async">
             <div class="vector-floating-tag">
               <div class="tag-identity">
                 <h4>Vector</h4>
@@ -1101,7 +1218,7 @@
 
         <div class="slack-message">
           <div class="bot-avatar">
-            <img src="/assets/avatar.png" alt="HuddlePace Bot Avatar">
+            <img src="/assets/avatar.png" alt="HuddlePace Bot Avatar" width="48" height="48" decoding="async">
           </div>
           <div class="message-content">
             <h5>
@@ -1116,7 +1233,7 @@
                 <span><span data-i18n="simElapsed">Elapsed time:</span> <strong id="sim-elapsed">9m 12s / 15m</strong></span>
                 <span><span data-i18n="simRemaining">Remaining:</span> <strong id="sim-remaining">5m 48s</strong></span>
               </div>
-              <div class="progress-track">
+              <div class="progress-track" role="progressbar" id="sim-progress" aria-valuenow="61" aria-valuemin="0" aria-valuemax="100" aria-label="Meeting elapsed time">
                 <div class="progress-fill" id="sim-bar" style="width: 61%;"></div>
               </div>
             </div>
@@ -1136,7 +1253,7 @@
     <section class="vector-section" id="vector">
       <div class="vector-card">
         <div class="vector-visual">
-          <img src="/assets/vectorfull.png" alt="Vector - The Meeting Timekeeper" loading="lazy">
+          <img src="/assets/vectorfull.png" alt="Vector - The Meeting Timekeeper" loading="lazy" width="467" height="534" decoding="async">
         </div>
         <div class="vector-info">
           <div class="vector-badge">⚡ COMPANION BOT</div>
@@ -1204,16 +1321,16 @@
           <!-- Brand Column -->
           <div class="footer-brand">
             <a href="/" class="brand">
-              <img src="/assets/avatar.png" alt="Vector" class="brand-avatar-img">
+              <img src="/assets/avatar.png" alt="Vector" class="brand-avatar-img" width="34" height="34" decoding="async">
               <span>HuddlePace</span>
             </a>
             <p class="footer-desc" data-i18n="footerDesc">
               Slack-native meeting cadence and speaker companion. Engineered for deep-work engineering teams who respect meeting timeboxes.
             </p>
-            <a href="/healthz" class="status-badge" target="_blank" rel="noopener">
+            <div class="status-badge" aria-label="System status">
               <div class="status-dot"></div>
               <span data-i18n="footerStatus">All Systems Operational</span>
-            </a>
+            </div>
           </div>
 
           <!-- Column 1: Product -->
@@ -1222,40 +1339,30 @@
             <ul>
               <li><a href="#demo" data-i18n="fCol1Demo">Live Simulation</a></li>
               <li><a href="#features" data-i18n="fCol1Pillars">Core Pillars</a></li>
+              <li><a href="#vector" data-i18n="fCol1Vector">Meet Vector</a></li>
               <li><a href="https://huddlepace.com/slack/install" data-i18n="fCol1Install">Add to Slack</a></li>
-              <li><a href="https://api.slack.com/apps" target="_blank" rel="noopener" data-i18n="fCol1Directory">Slack App Directory</a></li>
             </ul>
           </div>
 
-          <!-- Column 2: Commands -->
+          <!-- Column 2: Security & Trust -->
           <div class="footer-col">
-            <h4 data-i18n="fCol2Title">Platform</h4>
+            <h4 data-i18n="fCol2Title">Security & Trust</h4>
             <ul>
-              <li><a href="#demo"><code>/pace [duration]</code></a></li>
-              <li><a href="#demo"><code>/pace status</code></a></li>
-              <li><a href="#features" data-i18n="fCol2Agendas">Modular Agendas</a></li>
-              <li><a href="/healthz" target="_blank" data-i18n="fCol2Api">Uptime Health API</a></li>
+              <li><a href="#features" data-i18n="fCol2Zero">0% Audio Retention</a></li>
+              <li><a href="#features" data-i18n="fCol2Tenant">Multi-Tenant Isolation</a></li>
+              <li><a href="#features" data-i18n="fCol2Hmac">HMAC-SHA256 Signatures</a></li>
+              <li><a href="#features" data-i18n="fCol2Scopes">Verified Slack Scopes</a></li>
             </ul>
           </div>
 
-          <!-- Column 3: Privacy & Trust -->
+          <!-- Column 3: Legal & Support -->
           <div class="footer-col">
-            <h4 data-i18n="fCol3Title">Security</h4>
+            <h4 data-i18n="fCol3Title">Legal & Support</h4>
             <ul>
-              <li><a href="#features" data-i18n="fCol3Zero">0% Audio Retention</a></li>
-              <li><a href="#features" data-i18n="fCol3Hmac">HMAC-SHA256 Signatures</a></li>
-              <li><a href="#features" data-i18n="fCol3Tenant">Multi-Tenant Isolation</a></li>
-              <li><a href="https://letsencrypt.org/" target="_blank" rel="noopener">Let's Encrypt SSL</a></li>
-            </ul>
-          </div>
-
-          <!-- Column 4: Ecosystem -->
-          <div class="footer-col">
-            <h4 data-i18n="fCol4Title">Universe</h4>
-            <ul>
-              <li><a href="https://github.com/tBeltty/huddle-pace" target="_blank" rel="noopener">GitHub (Open Source)</a></li>
-              <li><a href="#demo" data-i18n="fCol4Crew">Vector & Cluck-O Crew</a></li>
-              <li><a href="https://huddlepace.com/slack/install" data-i18n="fCol4Deploy">Quick Deployment</a></li>
+              <li><a href="#features" data-i18n="fCol3Privacy">Privacy Policy</a></li>
+              <li><a href="#features" data-i18n="fCol3Terms">Terms of Service</a></li>
+              <li><a href="mailto:support@huddlepace.com" data-i18n="fCol3Support">Contact Support</a></li>
+              <li><a href="#demo" data-i18n="fCol3Changelog">Release Notes</a></li>
             </ul>
           </div>
         </div>
@@ -1266,11 +1373,7 @@
             © 2026 HuddlePace. Engineered for teams that value focus.
           </div>
           <div class="footer-meta-pill">
-            <span>⚡ Node.js + Slack Bolt</span>
-            <span>·</span>
-            <span>🛡️ Cloudflare Edge Cache</span>
-            <span>·</span>
-            <span>🦅 Vector Pacer v1.0</span>
+            <span data-i18n="footerPill">🛡️ Multi-Tenant OAuth · ⚡ 100% Cadence Control · 🦅 Vector Pacer v1.0</span>
           </div>
         </div>
       </div>
@@ -1317,18 +1420,19 @@
         fCol1Title: "Product",
         fCol1Demo: "Live Simulation",
         fCol1Pillars: "Core Pillars",
+        fCol1Vector: "Meet Vector",
         fCol1Install: "Add to Slack",
-        fCol1Directory: "Slack App Directory",
-        fCol2Title: "Platform",
-        fCol2Agendas: "Modular Agendas",
-        fCol2Api: "Uptime Health API",
-        fCol3Title: "Security",
-        fCol3Zero: "0% Audio Retention",
-        fCol3Hmac: "HMAC-SHA256 Signatures",
-        fCol3Tenant: "Multi-Tenant Isolation",
-        fCol4Title: "Universe",
-        fCol4Crew: "Vector & Cluck-O Crew",
-        fCol4Deploy: "Quick Deployment",
+        fCol2Title: "Security & Trust",
+        fCol2Zero: "0% Audio Retention",
+        fCol2Tenant: "Multi-Tenant Isolation",
+        fCol2Hmac: "HMAC-SHA256 Signatures",
+        fCol2Scopes: "Verified Slack Scopes",
+        fCol3Title: "Legal & Support",
+        fCol3Privacy: "Privacy Policy",
+        fCol3Terms: "Terms of Service",
+        fCol3Support: "Contact Support",
+        fCol3Changelog: "Release Notes",
+        footerPill: "🛡️ Multi-Tenant OAuth · ⚡ 100% Cadence Control · 🦅 Vector Pacer v1.0",
         footerCopy: "© 2026 HuddlePace. Engineered for teams that value focus."
       },
       es: {
@@ -1368,18 +1472,19 @@
         fCol1Title: "Producto",
         fCol1Demo: "Demostración en Vivo",
         fCol1Pillars: "Pilares Técnicos",
+        fCol1Vector: "Conoce a Vector",
         fCol1Install: "Instalar en Slack",
-        fCol1Directory: "Directorio de Apps de Slack",
-        fCol2Title: "Plataforma",
-        fCol2Agendas: "Agendas Modulares",
-        fCol2Api: "API de Uptime y Salud",
-        fCol3Title: "Seguridad",
-        fCol3Zero: "0% Grabación de Audio",
-        fCol3Hmac: "Firmas HMAC-SHA256",
-        fCol3Tenant: "Aislamiento Multi-Inquilino",
-        fCol4Title: "Universo",
-        fCol4Crew: "Tripulación Vector & Cluck-O",
-        fCol4Deploy: "Despliegue Rápido",
+        fCol2Title: "Seguridad y Privacidad",
+        fCol2Zero: "0% Grabación de Audio",
+        fCol2Tenant: "Aislamiento Multi-Inquilino",
+        fCol2Hmac: "Firmas HMAC-SHA256",
+        fCol2Scopes: "Permisos Slack Verificados",
+        fCol3Title: "Legal y Soporte",
+        fCol3Privacy: "Política de Privacidad",
+        fCol3Terms: "Términos del Servicio",
+        fCol3Support: "Contacto de Soporte",
+        fCol3Changelog: "Notas de Versión",
+        footerPill: "🛡️ Multi-Tenant OAuth · ⚡ 100% Control de Cadencia · 🦅 Vector Pacer v1.0",
         footerCopy: "© 2026 HuddlePace. Construido para equipos que valoran el foco."
       }
     };
@@ -1389,8 +1494,14 @@
       document.documentElement.lang = lang;
       const btnEn = document.getElementById('btn-en');
       const btnEs = document.getElementById('btn-es');
-      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
-      if (btnEs) btnEs.classList.toggle('active', lang === 'es');
+      if (btnEn) {
+        btnEn.classList.toggle('active', lang === 'en');
+        btnEn.setAttribute('aria-pressed', lang === 'en' ? 'true' : 'false');
+      }
+      if (btnEs) {
+        btnEs.classList.toggle('active', lang === 'es');
+        btnEs.setAttribute('aria-pressed', lang === 'es' ? 'true' : 'false');
+      }
 
       const dict = translations[lang];
       document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -1417,10 +1528,12 @@
       setLanguage('es');
     }
 
-    // Dynamic Live Simulation Counter
+    // Dynamic Live Simulation Counter with Page Visibility Optimization
     let secondsElapsed = 552; // 9m 12s
     const totalSeconds = 900; // 15m
-    setInterval(() => {
+    let simIntervalId = null;
+
+    function tickSimulation() {
       secondsElapsed++;
       if (secondsElapsed > totalSeconds) secondsElapsed = 60;
       
@@ -1431,10 +1544,39 @@
       const remS = rem % 60;
 
       const pct = Math.min(100, Math.floor((secondsElapsed / totalSeconds) * 100));
-      document.getElementById('sim-elapsed').innerText = `${m}m ${s < 10 ? '0' : ''}${s}s / 15m`;
-      document.getElementById('sim-remaining').innerText = `${remM}m ${remS < 10 ? '0' : ''}${remS}s`;
-      document.getElementById('sim-bar').style.width = `${pct}%`;
-    }, 1000);
+      const elElapsed = document.getElementById('sim-elapsed');
+      const elRemaining = document.getElementById('sim-remaining');
+      const elBar = document.getElementById('sim-bar');
+      const elProgress = document.getElementById('sim-progress');
+
+      if (elElapsed) elElapsed.innerText = `${m}m ${s < 10 ? '0' : ''}${s}s / 15m`;
+      if (elRemaining) elRemaining.innerText = `${remM}m ${remS < 10 ? '0' : ''}${remS}s`;
+      if (elBar) elBar.style.width = `${pct}%`;
+      if (elProgress) elProgress.setAttribute('aria-valuenow', pct);
+    }
+
+    function startSimulation() {
+      if (!simIntervalId) {
+        simIntervalId = setInterval(tickSimulation, 1000);
+      }
+    }
+
+    function pauseSimulation() {
+      if (simIntervalId) {
+        clearInterval(simIntervalId);
+        simIntervalId = null;
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        pauseSimulation();
+      } else {
+        startSimulation();
+      }
+    });
+
+    startSimulation();
   </script>
 </body>
 </html>
