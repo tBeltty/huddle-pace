@@ -3,6 +3,7 @@ import { buildScheduleModal } from "../ui/scheduleModal.js";
 import { buildPacingReportBlocks } from "../ui/reportBlock.js";
 import { MeetupService } from "../../services/meetupService.js";
 import { findChannelHuddles } from "../utils/huddleDiscovery.js";
+import { buildAppHomeMrkdwnLink } from "../utils/deepLinks.js";
 
 export function registerCommandHandlers(app: App) {
   // Slash command: /pace
@@ -13,11 +14,13 @@ export function registerCommandHandlers(app: App) {
       const parts = rawText.split(/\s+/);
       const subCommand = parts[0]?.toLowerCase() || "";
 
+      const homeLink = buildAppHomeMrkdwnLink("App Home Dashboard", { teamId: command.team_id });
+
       if (subCommand === "help") {
         await client.chat.postEphemeral({
           channel: command.channel_id,
           user: command.user_id,
-          text: "ℹ️ *HuddlePace Commands:*\n• `/pace` — Open the meetup scheduler modal\n• `/pace status` — Check active meetups in this channel\n• `/pace report [days]` — View pacing & timebox compliance report (default: 30 days)\n• `/pace help` — Show this help message",
+          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the meetup scheduler modal\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to see your personalized sessions.`,
         });
         return;
       }
@@ -27,6 +30,17 @@ export function registerCommandHandlers(app: App) {
         const days = !isNaN(daysArg) && daysArg > 0 ? Math.min(daysArg, 365) : 30;
         const stats = await MeetupService.getPacingReportStats(days, command.team_id);
         const blocks = buildPacingReportBlocks(stats, days);
+
+        // Add App Home link context
+        blocks.push({
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: `🏠 View full metrics and active sessions anytime in your ${homeLink}.`,
+            },
+          ],
+        });
 
         await client.chat.postEphemeral({
           channel: command.channel_id,

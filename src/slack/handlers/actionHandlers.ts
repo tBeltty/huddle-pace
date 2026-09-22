@@ -5,6 +5,8 @@ import { formatMinutes } from "../../utils/progressBar.js";
 import { findChannelHuddles } from "../utils/huddleDiscovery.js";
 import { buildHuddleSelectionModal } from "../ui/huddleSelectModal.js";
 import { ensureBotInChannel } from "../utils/channelUtils.js";
+import { publishHomeTab } from "./homeHandlers.js";
+import { buildAppHomeDeepLink } from "../utils/deepLinks.js";
 
 /**
  * Validates whether the user triggering an action is an authorized speaker/organizer.
@@ -59,7 +61,7 @@ export async function launchMeetupInThread(client: any, meetupId: string, thread
     threadTs || (trackerMsg.ts as string)
   );
 
-  // 3. Send private introductory pacing DM to all assigned speakers
+  // 3. Send private introductory pacing DM to all assigned speakers and refresh their App Home
   const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
   for (const spkId of speakerIds) {
     await client.chat.postMessage({
@@ -68,6 +70,8 @@ export async function launchMeetupInThread(client: any, meetupId: string, thread
     }).catch((err: any) => {
       console.warn(`Failed to send start DM to speaker ${spkId}:`, err);
     });
+
+    publishHomeTab(client, spkId, meetup.teamId).catch(() => {});
   }
 }
 
@@ -126,6 +130,11 @@ export function registerActionHandlers(app: App) {
 
       const targetThreadTs = active.length === 1 ? active[0].ts : undefined;
       await launchMeetupInThread(client, meetupId, targetThreadTs);
+
+      // Auto-refresh App Home for the user who initiated the action
+      if (b.user?.id) {
+        publishHomeTab(client, b.user.id, b.team?.id).catch(() => {});
+      }
     } catch (error) {
       console.error("Error starting meetup from action button:", error);
     }
@@ -184,6 +193,12 @@ export function registerActionHandlers(app: App) {
           channel: spkId,
           text: `☕ *Formal Agenda Finished:* '${meetup.title}' wrapped up at *${elapsedMinutes}m* (budget: ${meetup.totalMinutes}m). The session is now in casual chat mode. Pacing alerts are complete!`,
         }).catch(() => {});
+      }
+
+      // Auto-refresh App Home for triggering user and all speakers
+      const usersToRefresh = Array.from(new Set([b.user?.id, ...speakerIds].filter(Boolean)));
+      for (const uid of usersToRefresh) {
+        publishHomeTab(client, uid, b.team?.id).catch(() => {});
       }
     } catch (error) {
       console.error("Error switching to Just Chatting:", error);
@@ -244,6 +259,15 @@ export function registerActionHandlers(app: App) {
                 text: `🎉 *This meetup has officially concluded.*\n\n• *Formal Duration:* ${formatMinutes(formalMinutes)} (Scheduled: ${formatMinutes(meetup.totalMinutes)})\n${chatMinutes > 0 ? `• *Casual Chatting:* ${formatMinutes(chatMinutes)}\n` : ""}• *Speakers:* ${speakers}\n\nThank you for respecting everyone's time!`,
               },
             },
+            {
+              type: "context",
+              elements: [
+                {
+                  type: "mrkdwn",
+                  text: `📊 View workspace pacing reports and schedules in <${buildAppHomeDeepLink({ teamId: meetup.teamId })}|App Home>`,
+                },
+              ],
+            },
           ],
         });
       }
@@ -255,6 +279,12 @@ export function registerActionHandlers(app: App) {
           channel: spkId,
           text: `🏁 *Session Concluded:* '${meetup.title}' wrapped up at *${formatMinutes(formalMinutes)}*. Great session!`,
         }).catch(() => {});
+      }
+
+      // Auto-refresh App Home for triggering user and all speakers
+      const usersToRefresh = Array.from(new Set([b.user?.id, ...speakerIds].filter(Boolean)));
+      for (const uid of usersToRefresh) {
+        publishHomeTab(client, uid, b.team?.id).catch(() => {});
       }
     } catch (error) {
       console.error("Error concluding meetup:", error);
