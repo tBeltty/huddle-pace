@@ -177,8 +177,7 @@ export function handleLandingPage(req: IncomingMessage, res: ServerResponse): vo
 export function handleStaticAsset(
   req: ParamsIncomingMessage,
   res: ServerResponse,
-  explicitFile?: string,
-  subDir = ""
+  explicitFile?: string
 ): void {
   const filename = explicitFile || req.params?.file;
   if (!filename) {
@@ -189,10 +188,7 @@ export function handleStaticAsset(
 
   // Prevent directory traversal attacks
   const safeFilename = path.basename(filename);
-  const safeSubdir = subDir ? path.basename(subDir) : "";
-  const filePath = safeSubdir
-    ? path.join(PUBLIC_DIR, "assets", safeSubdir, safeFilename)
-    : path.join(PUBLIC_DIR, "assets", safeFilename);
+  const filePath = path.join(PUBLIC_DIR, "assets", safeFilename);
 
   if (!fs.existsSync(filePath)) {
     res.writeHead(404, { "Content-Type": "text/plain" });
@@ -226,11 +222,6 @@ export function getWebCustomRoutes() {
       path: "/",
       method: ["GET", "HEAD"],
       handler: handleLandingPage,
-    },
-    {
-      path: "/assets/tech/:file",
-      method: ["GET", "HEAD"],
-      handler: (req: ParamsIncomingMessage, res: ServerResponse) => handleStaticAsset(req, res, undefined, "tech"),
     },
     {
       path: "/assets/:file",
