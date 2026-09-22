@@ -28,6 +28,7 @@ coverage/
 # IDE & Editor Files
 .idea/
 .vscode/
+.claude/
 *.swp
 *.swo
 
@@ -47,5 +48,9 @@ HANDOFF.md
 *.tmp
 
 # Private Engineering Guidelines & Internal Docs
-docs/
+docs/*
+!docs/README.md
+!docs/TARGET_NICHES.md
+!docs/PRODUCT_CAPABILITIES_LOG.md
 marketing/
+
