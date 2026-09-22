@@ -19,6 +19,7 @@ export interface ModalStateData {
   customThreadTs?: string;
   availableHuddles?: DetectedHuddle[];
   customSubtopics?: ModalSubtopicState[];
+  customDuration?: string;
 }
 
 export function buildScheduleModal(initialState?: Partial<ModalStateData>): ModalView {
@@ -97,6 +98,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
   }
 
   const durationOptions = [
+    { text: { type: "plain_text" as const, text: "15 minutes" }, value: "15" },
     { text: { type: "plain_text" as const, text: "30 minutes" }, value: "30" },
     { text: { type: "plain_text" as const, text: "45 minutes" }, value: "45" },
     { text: { type: "plain_text" as const, text: "60 minutes" }, value: "60" },
@@ -105,7 +107,10 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
   ];
 
   const durationStr = (initialState?.duration || 60).toString();
-  const initialDuration = durationOptions.find((d) => d.value === durationStr) || durationOptions[2];
+  const initialDuration =
+    durationOptions.find((d) => d.value === durationStr) ||
+    durationOptions.find((d) => d.value === "60") ||
+    durationOptions[0];
 
   const blocks: any[] = [
     {
@@ -203,14 +208,36 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         action_id: "duration_select",
         placeholder: {
           type: "plain_text",
-          text: "Select duration",
+          text: "Select duration preset",
         },
         initial_option: initialDuration,
         options: durationOptions,
       },
       label: {
         type: "plain_text",
-        text: "Total Scheduled Duration",
+        text: "Quick Preset Duration",
+      },
+    },
+    {
+      type: "input",
+      block_id: "custom_duration_block",
+      optional: true,
+      element: {
+        type: "plain_text_input",
+        action_id: "custom_duration_input",
+        placeholder: {
+          type: "plain_text",
+          text: "e.g. 15, 45, 75 (Leave blank to use preset)",
+        },
+        initial_value: initialState?.customDuration || "",
+      },
+      label: {
+        type: "plain_text",
+        text: "Custom Duration in Minutes (Optional)",
+      },
+      hint: {
+        type: "plain_text",
+        text: "Overrides the quick preset above if specified.",
       },
     },
     {
