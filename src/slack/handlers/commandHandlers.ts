@@ -91,10 +91,13 @@ export function registerCommandHandlers(app: App) {
           // Ensure bot is in the channel
           await ensureBotInChannel(client, command.channel_id, command.user_id);
 
+          // Extract explicit thread_ts from slash command payload if invoked inside a thread/Huddle chat
+          const explicitThreadTs = (command as any).thread_ts || (command as any).threadTs;
+
           // Find active Huddle in this channel
           const huddles = await findChannelHuddles(client, command.channel_id);
           const activeHuddle = huddles.find((h) => h.isActive);
-          const threadTs = activeHuddle ? activeHuddle.ts : undefined;
+          const threadTs = explicitThreadTs || (activeHuddle ? activeHuddle.ts : undefined);
 
           const defaultTitle = activeHuddle?.roomName
             ? `Huddle: ${activeHuddle.roomName}`
@@ -131,6 +134,7 @@ export function registerCommandHandlers(app: App) {
       }
 
       // Default: ensure bot is joined and open schedule modal
+      const explicitThreadTs = (command as any).thread_ts || (command as any).threadTs;
       await ensureBotInChannel(client, command.channel_id, command.user_id);
       const huddles = await findChannelHuddles(client, command.channel_id);
 
@@ -141,8 +145,10 @@ export function registerCommandHandlers(app: App) {
           currentUserId: command.user_id,
           subtopicCount: 3,
           availableHuddles: huddles,
+          customThreadTs: explicitThreadTs || undefined,
         }),
       });
+
     } catch (error) {
       logger.error("Error executing /pace command:", error);
     }

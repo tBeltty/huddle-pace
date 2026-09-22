@@ -266,6 +266,23 @@ export class MeetupService {
   }
 
   /**
+   * Finds the next scheduled meetup awaiting launch in a specific channel.
+   */
+  static async findPendingScheduledMeetup(channelId: string, teamId?: string) {
+    return await prisma.meetup.findFirst({
+      where: {
+        channelId,
+        status: "SCHEDULED",
+        ...(teamId && teamId !== "default" ? { teamId } : {}),
+      },
+      orderBy: { scheduledFor: "asc" },
+      include: {
+        modules: { orderBy: { orderIndex: "asc" } },
+      },
+    });
+  }
+
+  /**
    * Retrieves a single meetup by ID.
    */
   static async getMeetupById(id: string) {
