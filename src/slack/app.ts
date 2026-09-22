@@ -29,6 +29,7 @@ export function createSlackApp(): bolt.App {
           JSON.stringify({
             status: "ok",
             mode: env.SOCKET_MODE ? "socket-mode" : "http-oauth",
+            version: "1.1.0-home-reactivity",
             timestamp: new Date().toISOString(),
           })
         );

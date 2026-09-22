@@ -77,7 +77,7 @@ jobs:
             pnpm install
             pnpm db:push
             pnpm build
-            pm2 reload huddle-pace --update-env
+            pm2 restart huddle-pace --update-env
             echo "Rollback completed. Checking healthz after rollback..."
             sleep 2
             curl -fsS http://127.0.0.1:3000/healthz || true
@@ -91,8 +91,8 @@ jobs:
           pnpm db:push
           pnpm build
           
-          echo "Reloading PM2 service with zero downtime..."
-          pm2 reload huddle-pace --update-env
+          echo "Restarting PM2 service with updated code and environment..."
+          pm2 restart huddle-pace --update-env
           
           echo "=== Running Smoke Test Gate ==="
           ATTEMPTS=0
@@ -105,8 +105,8 @@ jobs:
             
             HEALTH_RESPONSE=$(curl -sS -m 3 http://127.0.0.1:3000/healthz || true)
             
-            if echo "$HEALTH_RESPONSE" | grep -q '"status":"ok"' && echo "$HEALTH_RESPONSE" | grep -q '"mode":"http-oauth"'; then
-              echo "✅ Health check passed on localhost: $HEALTH_RESPONSE"
+            if echo "$HEALTH_RESPONSE" | grep -q '"status":"ok"' && echo "$HEALTH_RESPONSE" | grep -q '1.1.0-home-reactivity'; then
+              echo "✅ Health check passed with new code on localhost: $HEALTH_RESPONSE"
               SUCCESS=1
               break
             fi
