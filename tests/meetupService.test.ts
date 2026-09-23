@@ -120,4 +120,67 @@ describe("MeetupService calculations and parsing", () => {
       );
     });
   });
+
+  describe("skipToNextModule", () => {
+    test("advances active meetup to next module and transfers saved minutes", async () => {
+      const created = await MeetupService.createMeetup({
+        title: "Sprint Retro",
+        totalMinutes: 30,
+        channelId: "C123_SKIP",
+        speakerUserId: "U_SPEAKER",
+        teamId: "T_TEST_SKIP",
+        modules: [
+          { title: "Review", percentage: 50 }, // 15m (0-15)
+          { title: "Action Items", percentage: 50 }, // 15m (15-30)
+        ],
+      });
+
+      // Start meetup with startedAt 5 minutes ago
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
+      await MeetupService.startMeetup(created.id, "123.456", "123.456");
+      const { prisma } = await import("../src/db/client.js");
+      await prisma.meetup.update({
+        where: { id: created.id },
+        data: { startedAt: fiveMinAgo },
+      });
+
+      const updated = await MeetupService.skipToNextModule(created.id);
+      assert.ok(updated);
+      assert.strictEqual(updated.modules.length, 2);
+
+      const mod1 = updated.modules[0];
+      const mod2 = updated.modules[1];
+
+      // Mod 1 should end at ~5m
+      assert.strictEqual(mod1.endOffsetMin, 5);
+      assert.strictEqual(mod1.durationMinutes, 5);
+
+      // Mod 2 should start at 5m and absorb the 10m saved: 5 to 30 = 25m duration!
+      assert.strictEqual(mod2.startOffsetMin, 5);
+      assert.strictEqual(mod2.endOffsetMin, 30);
+      assert.strictEqual(mod2.durationMinutes, 25);
+    });
+
+    test("returns null when called on final module", async () => {
+      const created = await MeetupService.createMeetup({
+        title: "Single Topic",
+        totalMinutes: 10,
+        channelId: "C123_SINGLE",
+        speakerUserId: "U_SPEAKER",
+        teamId: "T_TEST_SINGLE",
+        modules: [{ title: "Solo Topic", percentage: 100 }],
+      });
+
+      await MeetupService.startMeetup(created.id, "123.456", "123.456");
+      const result = await MeetupService.skipToNextModule(created.id);
+      assert.strictEqual(result, null);
+    });
+
+    test("fails when called on non-existent meetup (negative control)", async () => {
+      await assert.rejects(
+        () => MeetupService.skipToNextModule("non-existent-id"),
+        /not found/
+      );
+    });
+  });
 });

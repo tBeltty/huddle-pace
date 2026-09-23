@@ -6,7 +6,31 @@
 
 ---
 
-## [2026-09-22] Adopción y Adaptación del Sistema Canónico de Branding (`docs/BRAND.md`)
+## [2026-09-22] Botón "Next Module" (⏭️), Comando `/pace clear` y Homologación de Nomenclatura
+* **Botón interactivo "Next Module" (`⏭️`) en el Live Tracker (`trackerBlock.ts`, `actionHandlers.ts`, `meetupService.ts`)**:
+  * Permite a los oradores saltar al siguiente tema si terminan antes de tiempo.
+  * **Transferencia de tiempo al módulo siguiente:** El módulo actual concluye en el minuto transcurrido real; el tiempo ahorrado se transfiere íntegramente al módulo inmediato siguiente para ampliar su duración, mientras que los módulos posteriores (módulo 3 en adelante) conservan inalterados sus horarios de inicio y fin originales.
+  * **Control de acceso estricto (`role-gated`):** Solo los speakers asignados o el organizador pueden activar el salto; espectadores reciben un aviso efímero de acceso denegado.
+  * Notificación privada por DM a los speakers confirmando el avance de tema y refresco en tiempo real del App Home.
+* **Comando `/pace clear` (`commandHandlers.ts`)**:
+  * Limpieza del historial de mensajes privados (DMs) del usuario con el bot de HuddlePace.
+  * Localiza la conversación 1 a 1 mediante `conversations.open`, recupera los mensajes y elimina en lote los mensajes emitidos por el bot.
+* **Homologación de Nomenclatura en Instrucciones y Copys de Usuario**:
+  * Sustitución sistemática de menciones de "Vector" en guías e instrucciones operativas por **"HuddlePace bot"** o **"HuddlePace"**.
+  * Actualización del artículo del Help Center (`aefc06b6-abe7-4f89-9ef3-19bb2c19478a`) en producción reflejando el botón `Next Module`, `/pace clear` y las alertas reales.
+
+* **Corrección de precisión operativa en producción (`aefc06b6-abe7-4f89-9ef3-19bb2c19478a`)**:
+  * Sustitución de explicaciones ambiguas sobre la detección automática de Huddles por los flujos reales de la arquitectura:
+    * Sesiones programadas (`/pace` modal): auto-inicio directo en el hilo del Huddle al detectar la llamada en el canal o al entrar el speaker responsable.
+    * Huddles espontáneos sin programar: tarjeta en standby en el hilo del Huddle con botones de despegue rápido (`15m Quick Flight`, `25m Sync`), menciones `@HuddlePace 15m` o `/pace 15m [Título]`.
+    * Lanzamiento manual de agenda pendiente mediante `/pace start`.
+  * Documentación de controles interactivos con restricción de roles (`role-gated`): protección de botones (`Siguiente Tema`, `Just Chatting`, `Concluir`) para evitar interrupciones por parte de espectadores no autorizados.
+  * Documentación de notificaciones privadas por DM al speaker para avisos de mitad de tiempo y relevo de turnos sin interrumpir el audio.
+  * Documentación de auto-cierre al finalizar el Huddle y visualización de analíticas de 30 días en el App Home y `/pace report`.
+  * Erradicación de patrones sintéticos de IA y guiones largos en el HTML publicado en producción.
+* **Guía de integración del CLI (`docs/guides/HELP_ARTICLES_CLI.md`)**:
+  * Documentación del puente multi-tenant con el CRM central (`capylite.co/api`, `appId: 07dc5cf9-2bc9-4f85-a7fa-e9eb76fe4ff1`) para gestionar artículos de soporte desde la terminal.
+
 * **Adaptación arquitectónica desde `finances_app`**:
   * Creación del documento canónico de referencia de marca [`docs/BRAND.md`](BRAND.md), formalizando las decisiones de diseño e identidad visual de HuddlePace.
   * **Paleta Atmos "Aerospace Telemetry"**: Especificación formal de tokens CSS y roles semánticos:

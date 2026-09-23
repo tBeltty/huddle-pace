@@ -18,13 +18,13 @@ export function isUserAuthorizedForMeetup(speakerUserId: string, userId?: string
 }
 
 /**
- * Privately DMs the designated speaker(s) that Vector auto-launched their scheduled session,
+ * Privately DMs the designated speaker(s) that HuddlePace bot auto-launched their scheduled session,
  * instead of announcing it in the shared channel/thread. Tracks the DM so it can be cleaned
  * up automatically once the session concludes.
  */
 export async function notifySpeakersOfAutoLaunch(client: any, meetup: any, botToken?: string) {
   const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
-  const text = `🛫 *Huddle Detected!* Vector has automatically launched your scheduled session: *"${meetup.title}"* (${meetup.totalMinutes}m).\nLive pacing has started in the Huddle thread!`;
+  const text = `🛫 *Huddle Detected!* HuddlePace bot has automatically launched your scheduled session: *"${meetup.title}"* (${meetup.totalMinutes}m).\nLive pacing has started in the Huddle thread!`;
 
   for (const speakerId of speakerIds) {
     try {
@@ -220,6 +220,76 @@ export function registerActionHandlers(app: App) {
       }
     } catch (err) {
       console.error("Error launching quick meetup from standby card:", err);
+    }
+  });
+
+  // Action: Skip / Advance immediately to next module
+  app.action("next_module_action", async ({ ack, body, client }) => {
+    await ack();
+    try {
+      const b = body as any;
+      const meetupId = b.actions[0].value;
+      const meetup = await MeetupService.getMeetupById(meetupId);
+
+      if (!meetup || !meetup.startedAt) return;
+
+      if (!isUserAuthorizedForMeetup(meetup.speakerUserId, b.user?.id)) {
+        try {
+          await client.chat.postEphemeral({
+            channel: b.channel?.id || meetup.channelId,
+            user: b.user?.id,
+            text: "⚠️ *Access Denied:* Only designated speaker(s) can skip to the next module.",
+          });
+        } catch {}
+        return;
+      }
+
+      const updated = await MeetupService.skipToNextModule(meetupId);
+      if (!updated) return;
+
+      const currentStatus = MeetupService.getCurrentModule(updated);
+      const elapsedMinutes = currentStatus?.elapsedMinutes || 0;
+
+      // 1. Update live tracker block in-place
+      if (updated.trackerMessageTs) {
+        await client.chat.update({
+          channel: updated.channelId,
+          ts: updated.trackerMessageTs,
+          text: `⏱️ Meetup Progress: ${updated.title} (${elapsedMinutes}/${updated.totalMinutes}m)`,
+          blocks: buildLiveTrackerBlocks({
+            meetupId: updated.id,
+            title: updated.title,
+            totalMinutes: updated.totalMinutes,
+            speakerUserId: updated.speakerUserId,
+            elapsedMinutes,
+            currentModuleName: currentStatus?.module?.title || "Discussion",
+            moduleRemainingMinutes: currentStatus?.remainingMinutes || 0,
+            nextModuleName: currentStatus?.nextModule ? currentStatus.nextModule.title : null,
+            isOvertime: elapsedMinutes >= updated.totalMinutes,
+          }),
+        }).catch(() => {});
+      }
+
+      // 2. Notify speakers privately about the transition
+      if (currentStatus?.module) {
+        const speakerIds = MeetupService.parseSpeakerIds(updated.speakerUserId);
+        const transitionNotice = `⏭️ *Advanced to Next Module:* Switched to "*${currentStatus.module.title}*" (${currentStatus.module.durationMinutes}m allocated).`;
+        for (const spkId of speakerIds) {
+          await client.chat.postMessage({
+            channel: spkId,
+            text: transitionNotice,
+          }).catch(() => {});
+        }
+      }
+
+      // 3. Proactively refresh App Home for speakers
+      const speakerIds = MeetupService.parseSpeakerIds(updated.speakerUserId);
+      const usersToRefresh = Array.from(new Set([b.user?.id, ...speakerIds].filter(Boolean)));
+      for (const uid of usersToRefresh) {
+        publishHomeTab(client, uid, b.team?.id).catch(() => {});
+      }
+    } catch (error) {
+      console.error("Error advancing to next module:", error);
     }
   });
 

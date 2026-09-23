@@ -37,12 +37,13 @@ describe("Live Tracker Block Kit Generation", () => {
     assert.ok(blocks[3].fields[0].text.includes("<@U_GUEST>"));
     assert.ok(blocks[3].fields[1].text.includes("Core Topic"));
 
-    // Actions block with Just Chatting and Conclude
+    // Actions block with Next Module, Just Chatting and Conclude
     const actionsBlock = blocks.find((b: any) => b.type === "actions");
     assert.ok(actionsBlock);
-    assert.strictEqual(actionsBlock.elements.length, 2);
-    assert.strictEqual(actionsBlock.elements[0].action_id, "switch_to_chatting_action");
-    assert.strictEqual(actionsBlock.elements[1].action_id, "conclude_meetup_action");
+    assert.strictEqual(actionsBlock.elements.length, 3);
+    assert.strictEqual(actionsBlock.elements[0].action_id, "next_module_action");
+    assert.strictEqual(actionsBlock.elements[1].action_id, "switch_to_chatting_action");
+    assert.strictEqual(actionsBlock.elements[2].action_id, "conclude_meetup_action");
   });
 
   test("renders 1-minute warning alert when current module has <= 1 min left", () => {

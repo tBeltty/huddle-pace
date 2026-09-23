@@ -216,6 +216,58 @@ export class MeetupService {
   }
 
   /**
+   * Advances an active meetup immediately to the next module.
+   * Concludes the current module at the current elapsed time and transfers all
+   * saved minutes directly into the next module, keeping subsequent modules on their original schedule.
+   */
+  static async skipToNextModule(id: string) {
+    const meetup = await prisma.meetup.findUnique({
+      where: { id },
+      include: { modules: { orderBy: { orderIndex: "asc" } } },
+    });
+    if (!meetup || !meetup.startedAt) {
+      throw new Error(`Active meetup ${id} not found.`);
+    }
+
+    const currentModuleInfo = this.getCurrentModule(meetup);
+    if (!currentModuleInfo || !currentModuleInfo.nextModule) {
+      return null;
+    }
+
+    const currentMod = currentModuleInfo.module;
+    const nextMod = currentModuleInfo.nextModule;
+    const elapsedMinutes = currentModuleInfo.elapsedMinutes;
+
+    const newEndOffset = Math.max(currentMod.startOffsetMin + 1, elapsedMinutes);
+    const newCurrentDuration = Math.max(1, newEndOffset - currentMod.startOffsetMin);
+    const newNextDuration = Math.max(1, nextMod.endOffsetMin - newEndOffset);
+
+    await prisma.$transaction([
+      prisma.meetupModule.update({
+        where: { id: currentMod.id },
+        data: {
+          endOffsetMin: newEndOffset,
+          durationMinutes: newCurrentDuration,
+          isNotified: true,
+        },
+      }),
+      prisma.meetupModule.update({
+        where: { id: nextMod.id },
+        data: {
+          startOffsetMin: newEndOffset,
+          durationMinutes: newNextDuration,
+          isNotified: true,
+        },
+      }),
+    ]);
+
+    return await prisma.meetup.findUnique({
+      where: { id },
+      include: { modules: { orderBy: { orderIndex: "asc" } } },
+    });
+  }
+
+  /**
    * Concludes a meetup completely.
    */
   static async concludeMeetup(id: string) {
