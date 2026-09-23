@@ -20,12 +20,6 @@ coverage/
 *.db-wal
 *.db-shm
 
-.idea/
-.vscode/
-.claude/
-*.swp
-*.swo
-
 .DS_Store
 Thumbs.db
 
@@ -34,13 +28,3 @@ npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-HANDOFF.md
-*.tmp
-
-docs/*
-!docs/README.md
-!docs/BRAND.md
-!docs/TARGET_NICHES.md
-!docs/PRODUCT_CAPABILITIES_LOG.md
-marketing/
