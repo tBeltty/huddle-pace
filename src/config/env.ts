@@ -16,6 +16,9 @@ export const envSchema = z
     DATABASE_URL: z.string().default("file:./dev.db"),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     PORT: z.coerce.number().default(3000),
+    // Public client-side key for the support beacon widget (origin-restricted).
+    // Optional — widget is silently disabled when absent.
+    BEACON_WIDGET_KEY: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.SOCKET_MODE) {

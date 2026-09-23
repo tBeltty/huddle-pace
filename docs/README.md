@@ -13,6 +13,7 @@ This directory contains the normative engineering standards for HuddlePace, desi
 5. **[Infrastructure & Deployment](guidelines/INFRASTRUCTURE.md)**: VPS isolation, systemd daemon management, SQLite durability, and zero-ingress Socket Mode architecture.
 6. **[Security & Token Standards](guidelines/SECURITY.md)**: Secrets isolation, least privilege Slack scopes, and Zod runtime schema validation.
 7. **[Definition of Done (DoD)](guidelines/DEFINITION_OF_DONE.md)**: Non-negotiable checklist before any feature or PR is signed off.
+8. **[Dependency Pin Decisions](guidelines/DEPENDENCY_PINS.md)**: Deliberate major-version pins with rationale and upgrade path for each held dependency.
 
 ---
 
