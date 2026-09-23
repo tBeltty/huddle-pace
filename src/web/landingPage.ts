@@ -54,6 +54,9 @@ function getPageHtml(pagePath: string): string {
   }
 
   let html = fs.readFileSync(filePath, "utf-8");
+  // BEACON_WIDGET_KEY is a public, origin-restricted client-side key.
+  // It is declared in env.ts for type coverage but read here directly because
+  // this module runs before Slack credentials are validated.
   html = html.replaceAll("__BEACON_WIDGET_KEY__", process.env.BEACON_WIDGET_KEY ?? "");
 
   if (process.env.NODE_ENV === "production") {
