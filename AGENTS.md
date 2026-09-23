@@ -46,10 +46,15 @@ Any agent operating in this codebase must reference and respect the following co
   * **NEVER voseo. Always tuteo.** Use `tú`/`tu` conjugations (sube, tienes, puedes, elige), never `vos` (subí, tenés, podés, elegí).
   * **Translate meaning, never words.** Never translate literally; translate the *intent* in natural target idiom.
 
-### 3. CI/CD Monitoring Protocol on Push
-* Whenever changes are pushed to remote (`git push`), the agent **MUST proactively monitor** the triggered GitHub Actions workflow run (using `gh run list --limit 1` or `gh run view`) until it finishes.
-* The agent must verify that all automated builds, lints, and test suites succeeded (`✓`) before marking any task as complete.
+### 3. Zero Manual VPS Manipulation & Mandatory CI/CD Protocol
+* **Single Source of Truth for Deployment**: The GitHub Actions pipeline (`.github/workflows/ci.yml`) is the **only authoritative deployment mechanism**. Manual SSH operations (`scp`, manual file edits, manual build commands on the server) are strictly prohibited for applying changes.
+* **Mandatory Push on Feature/Fix Completion**: Any code change, bug fix, UI enhancement, schema update, or documentation adjustment **MUST be committed and pushed to remote `main` before marking the task as complete**.
+* **Zero Dirty Working Trees**: Never leave changes uncommitted or unpushed in the local repository. If a feature is implemented and tested locally, it does not exist in production until it is committed, pushed, and deployed via CI/CD.
+* **Proactive Monitoring**: Immediately after `git push`, the agent **MUST proactively monitor** the triggered GitHub Actions workflow run (using `gh run list --limit 1` or `gh run view`) until it completes with green checks (`✓`).
+* **SSH Scope Boundary**: SSH access to `mi-vps` is strictly restricted to read-only diagnostics (inspecting runtime logs, checking systemd/PM2 errors when CI fails). Any actual code or database changes must be introduced via version-controlled files, migrations, and CI/CD pipelines.
 
 ### 4. Verification Protocol
-* Always run `pnpm test` locally before committing or reporting changes.
+* Always run `pnpm test` and `pnpm build` locally before committing or reporting changes.
 * Ensure all tests (access control, time allocation math, progress bar rendering, Zod schemas) pass with 0 failures.
+* Confirm that post-deploy smoke checks on production (`https://huddlepace.com/healthz`) return HTTP 200 OK.
+

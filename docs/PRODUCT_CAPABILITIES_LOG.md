@@ -6,6 +6,13 @@
 
 ---
 
+## [2026-09-22] Protocolo de Cero Manipulación de VPS y Despliegue Continuo Obligatorio (CI/CD)
+* **Automatización y Regla de Despliegue Obligatorio en CI/CD (`AGENTS.md`, `DEFINITION_OF_DONE.md`)**:
+  * **Cero intervención manual en el VPS:** Queda formalmente prohibida la copia manual de archivos (`scp`), edición remota directa o reinicio manual de procesos para aplicar funcionalidades en producción.
+  * **Flujo único de entrega:** Toda feature, corrección, migración o ajuste debe pasar por commit con Conventional Commits, push a `origin/main` y ejecución exitosa del pipeline de GitHub Actions (`.github/workflows/ci.yml`).
+  * **Prohibición de cambios locales huérfanos:** Ninguna tarea se considera terminada si el código permanece en el árbol de trabajo local (`working tree dirty`). El agente debe verificar que el job de Continuous Deployment se ejecute y reporte éxito (`✓`) en la VPS automáticamente.
+  * **Límite operativo de SSH:** El acceso SSH al servidor queda acotado exclusivamente a tareas de diagnóstico de sólo lectura (inspección de logs de PM2 o systemd en caso de incidentes).
+
 ## [2026-09-22] Botón "Next Module" (⏭️), Comando `/pace clear` y Homologación de Nomenclatura
 * **Botón interactivo "Next Module" (`⏭️`) en el Live Tracker (`trackerBlock.ts`, `actionHandlers.ts`, `meetupService.ts`)**:
   * Permite a los oradores saltar al siguiente tema si terminan antes de tiempo.
