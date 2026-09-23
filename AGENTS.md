@@ -24,7 +24,7 @@ Any agent operating in this codebase must reference and respect the following co
    * **Security & Tokens**: [`docs/guidelines/SECURITY.md`](docs/guidelines/SECURITY.md)
    * **Definition of Done (DoD)**: [`docs/guidelines/DEFINITION_OF_DONE.md`](docs/guidelines/DEFINITION_OF_DONE.md)
 5. **[Advanced Writing Skills Suite](.agents/skills/)** (`.agents/skills/`):
-   * Tracked skills for automated assistance: `no-ai-slop`, `text-humanizer`, `copywriting`, `copy-editing`, `proofreading`, `paragraph-structure`, `ogilvy`, `content-strategy`, `competitor-alternatives`.
+   * Tracked skills for automated assistance: `no-ai-slop`, `text-humanizer`, `copywriting`, `copy-editing`, `proofreading`, `paragraph-structure`, `ogilvy`, `content-strategy`, `competitor-alternatives`, `slack-app-distribution`.
 6. **[Brand Identity & System Guide](docs/BRAND.md)** (`docs/BRAND.md`):
    * **Purpose**: Master source of truth for color palette (Aerospace Telemetry), typography, Vector mascot lore & generation prompts, wordmark, and visual assets.
    * **Rule**: Adhere to canonical hex tokens, character lore, and voice standards across all web, Slack, and marketing interfaces.

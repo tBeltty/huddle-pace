@@ -6,6 +6,14 @@
 
 ---
 
+## [2026-09-22] Skill Especializado: Ciclo de Vida y Distribución de Apps de Slack (`slack-app-distribution`)
+* **Incorporación del Skill de Distribución (`.agents/skills/slack-app-distribution/SKILL.md`, `AGENTS.md`)**:
+  * **Matriz de modelos de distribución:** Guía arquitectónica comparativa entre apps monotenant no distribuidas, apps multitenant no listadas (distribución pública mediante OAuth 2.0 y enlace directo) y aplicaciones listadas en el Slack Marketplace.
+  * **Requisitos técnicos previos de distribución:** Protocolo de cumplimiento obligatorio de SSL/TLS (HTTPS) para URLs de OAuth redirect, interactividad, carga de opciones externas de Block Kit y suscripciones a Events API; almacenamiento seguro multitenant y compatibilidad con Enterprise Grid (`is_enterprise_install`).
+  * **Mecánica de desinstalación y regla crítica de scopes:** Guía de manejo del evento `app_uninstalled` y alerta operativa sobre desinstalaciones automáticas cuando el usuario instalador abandona el workspace (impacto de solicitar scopes más allá de `bot`, `incoming-webhook`, `commands` e `identify`).
+  * **Matriz de actualizaciones de manifest y reinstalación:** Mapeo de cambios que detonan `permissions_updated: true` en `apps.manifest.update` (requiriendo reautorización de administradores) frente a cambios de aplicación inmediata (metadatos de display, comandos slash, configuración de Socket Mode).
+  * **Automatización CI/CD con Slack CLI:** Configuración de hooks de despliegue (`.slack/hooks.json`) y pipeline automatizado con GitHub Actions utilizando `slack deploy` y `SLACK_SERVICE_TOKEN`.
+
 ## [2026-09-22] Protocolo de Cero Manipulación de VPS y Despliegue Continuo Obligatorio (CI/CD)
 * **Automatización y Regla de Despliegue Obligatorio en CI/CD (`AGENTS.md`, `DEFINITION_OF_DONE.md`)**:
   * **Cero intervención manual en el VPS:** Queda formalmente prohibida la copia manual de archivos (`scp`), edición remota directa o reinicio manual de procesos para aplicar funcionalidades en producción.
