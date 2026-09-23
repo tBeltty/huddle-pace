@@ -6,11 +6,14 @@
 
 ---
 
-## [2026-09-22] Integración Soporte Bidireccional (huddlepace.com <-> vano.tbelt.online) y Captura de Leads
-* **Soporte de Leads y Entrega de Respuestas (`support-widget.js`, `vano.tbelt.online`)**:
-  * **Captura de Leads:** Los tickets iniciados desde el widget en `huddlepace.com` se registran con `contactId` y `userId: null`. El panel de "Contexto del cliente" en `vano.tbelt.online` ahora reconoce contactos externos/leads mostrando su nombre, correo electrónico y badge de lead sin arrojar error 404 ni el recuadro "Usuario no encontrado".
-  * **Envío de respuestas por correo al lead:** Al responder un agente de soporte desde el inbox de `vano.tbelt.online`, el mensaje redactado se despacha vía correo electrónico a la dirección registrada en el formulario del widget, utilizando remitente identificado como `HuddlePace Support <noreply@finances.tbelt.online>` y `reply-to: support@huddlepace.com`.
-  * **Protección ante bloqueadores de anuncios en páginas legales (`public/privacy.html`, `public/terms.html`):** Migración del script `beacon.js` a `support-widget.js` con verificación de existencia previa (`window.Beacon.init`), evitando el bloqueo silencioso del botón de ayuda por listas como EasyList.
+## [2026-09-22] Chat Bidireccional en Vivo en Widget y Erradicación de Despacho de Correo
+* **Chat Interactivo en Tiempo Real dentro del Widget (`support-widget.js`, `vano.tbelt.online`)**:
+  * **Hilo Conversacional en Vivo (`thread view`):** Tras enviar el formulario de contacto inicial en el widget de `huddlepace.com`, la vista ya no muestra un texto estático de confirmación ni finaliza el flujo: transiciona de inmediato a la vista interactiva de chat (`thread`), idéntica al sistema de soporte en vivo de Capylite.
+  * **Burbujas y Mensajería Dinámica:** Interfaz con flujo cronológico de mensajes. Los mensajes del visitante se alinean a la derecha con acento temático de marca (`#06b6d4`), y las respuestas del agente de soporte se alinean a la izquierda con avatar/nombre del equipo de soporte y marca temporal.
+  * **Respuestas de Seguimiento y Polling:** El visitante puede enviar réplicas continuas directamente desde el compositor del widget mediante `POST /api/v1/conversations/:id/messages` con rol de cliente (`senderRole: customer`). El widget sondea actualizaciones cada 5 segundos de forma silenciosa e incorpora las respuestas del agente al instante.
+  * **Persistencia de Sesión y Tarjeta en Home:** La conversación activa se preserva en `localStorage`. Si el visitante navega o refresca la web, la pestaña Home del widget destaca una tarjeta con acceso directo ("Conversación en curso") para retomar el chat o iniciar una nueva consulta.
+  * **Indicador de Mensajes No Leídos:** Notificación visual tipo insignia numérica en el botón flotante del widget (`launcher badge`) cuando ingresan mensajes del agente mientras el panel permanece cerrado.
+  * **Cero Correo a Visitantes del Widget:** Erradicación total del envío de correos electrónicos al responder a tickets generados desde el widget (`userId: null`). Toda la comunicación se canaliza exclusivamente a través del chat interactivo del widget en el navegador.
 
 ## [2026-09-22] Skill Especializado: Ciclo de Vida y Distribución de Apps de Slack (`slack-app-distribution`)
 * **Incorporación del Skill de Distribución (`.agents/skills/slack-app-distribution/SKILL.md`, `AGENTS.md`)**:
