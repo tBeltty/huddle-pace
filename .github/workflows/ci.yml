@@ -105,7 +105,7 @@ jobs:
             
             HEALTH_RESPONSE=$(curl -sS -m 3 http://127.0.0.1:3000/healthz || true)
             
-            if echo "$HEALTH_RESPONSE" | grep -q '"status":"ok"' && echo "$HEALTH_RESPONSE" | grep -q '1.1.0-home-reactivity'; then
+            if echo "$HEALTH_RESPONSE" | grep -q '"status":"ok"'; then
               echo "✅ Health check passed with new code on localhost: $HEALTH_RESPONSE"
               SUCCESS=1
               break

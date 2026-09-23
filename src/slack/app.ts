@@ -1,5 +1,8 @@
 import bolt from "@slack/bolt";
 const { App, LogLevel } = bolt;
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const { version: APP_VERSION } = require("../../package.json") as { version: string };
 import { registerHomeHandlers } from "./handlers/homeHandlers.js";
 import { registerModalHandlers } from "./handlers/modalHandlers.js";
 import { registerActionHandlers } from "./handlers/actionHandlers.js";
@@ -29,7 +32,7 @@ export function createSlackApp(): bolt.App {
           JSON.stringify({
             status: "ok",
             mode: env.SOCKET_MODE ? "socket-mode" : "http-oauth",
-            version: "1.1.0-home-reactivity",
+            version: APP_VERSION,
             timestamp: new Date().toISOString(),
           })
         );
