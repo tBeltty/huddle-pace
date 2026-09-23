@@ -881,16 +881,23 @@
     </div>
   </div>
 
-  <!-- tBelt Support Beacon SDK -->
-  <script src="https://finances.tbelt.online/beacon.js"></script>
+  <!-- tBelt Support Widget SDK. Served as support-widget.js, not beacon.js:
+       that filename is on default ad-blocker filter lists (EasyList et al.)
+       as a known tracking-script pattern and gets silently dropped. -->
+  <script src="https://finances.tbelt.online/support-widget.js"></script>
   <script>
-    window.Beacon.init({
-      key: '__BEACON_WIDGET_KEY__',
-      locale: document.documentElement.lang === 'es' ? 'es' : 'en',
-      color: '#06b6d4',
-      position: 'right',
-      theme: 'dark'
-    });
+    // Still guard the call: some blockers target broader patterns (e.g. any
+    // script from a "finances"/CRM-looking subdomain), so window.Beacon can
+    // still end up undefined even with the renamed file.
+    if (window.Beacon && typeof window.Beacon.init === 'function') {
+      window.Beacon.init({
+        key: '__BEACON_WIDGET_KEY__',
+        locale: document.documentElement.lang === 'es' ? 'es' : 'en',
+        color: '#06b6d4',
+        position: 'right',
+        theme: 'dark'
+      });
+    }
   </script>
 </body>
 </html>
