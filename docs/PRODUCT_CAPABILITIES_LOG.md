@@ -6,6 +6,12 @@
 
 ---
 
+## [2026-09-22] Integración Soporte Bidireccional (huddlepace.com <-> vano.tbelt.online) y Captura de Leads
+* **Soporte de Leads y Entrega de Respuestas (`support-widget.js`, `vano.tbelt.online`)**:
+  * **Captura de Leads:** Los tickets iniciados desde el widget en `huddlepace.com` se registran con `contactId` y `userId: null`. El panel de "Contexto del cliente" en `vano.tbelt.online` ahora reconoce contactos externos/leads mostrando su nombre, correo electrónico y badge de lead sin arrojar error 404 ni el recuadro "Usuario no encontrado".
+  * **Envío de respuestas por correo al lead:** Al responder un agente de soporte desde el inbox de `vano.tbelt.online`, el mensaje redactado se despacha vía correo electrónico a la dirección registrada en el formulario del widget, utilizando remitente identificado como `HuddlePace Support <noreply@finances.tbelt.online>` y `reply-to: support@huddlepace.com`.
+  * **Protección ante bloqueadores de anuncios en páginas legales (`public/privacy.html`, `public/terms.html`):** Migración del script `beacon.js` a `support-widget.js` con verificación de existencia previa (`window.Beacon.init`), evitando el bloqueo silencioso del botón de ayuda por listas como EasyList.
+
 ## [2026-09-22] Skill Especializado: Ciclo de Vida y Distribución de Apps de Slack (`slack-app-distribution`)
 * **Incorporación del Skill de Distribución (`.agents/skills/slack-app-distribution/SKILL.md`, `AGENTS.md`)**:
   * **Matriz de modelos de distribución:** Guía arquitectónica comparativa entre apps monotenant no distribuidas, apps multitenant no listadas (distribución pública mediante OAuth 2.0 y enlace directo) y aplicaciones listadas en el Slack Marketplace.
