@@ -1,16 +1,12 @@
-# Dependencies
 node_modules/
 .pnpm-store/
 
-# Build & TypeScript Cache
 dist/
 *.tsbuildinfo
 
-# Coverage & Test Artifacts
 coverage/
 .nyc_output/
 
-# Environment & Secrets
 .env
 .env.local
 .env.*.local
@@ -19,39 +15,32 @@ coverage/
 *.pem
 *.key
 
-# SQLite Databases & WAL/SHM Journals
 *.db
 *.db-journal
 *.db-wal
 *.db-shm
 
-# IDE & Editor Files
 .idea/
 .vscode/
 .claude/
 *.swp
 *.swo
 
-# Operating System Files
 .DS_Store
 Thumbs.db
 
-# Logs & Debug
 *.log
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Internal Session & Handoff Records
 HANDOFF.md
 *.tmp
 
-# Private Engineering Guidelines & Internal Docs
 docs/*
 !docs/README.md
 !docs/BRAND.md
 !docs/TARGET_NICHES.md
 !docs/PRODUCT_CAPABILITIES_LOG.md
 marketing/
-
