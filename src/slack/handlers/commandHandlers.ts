@@ -22,8 +22,62 @@ export function registerCommandHandlers(app: App) {
         await client.chat.postEphemeral({
           channel: command.channel_id,
           user: command.user_id,
-          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the interactive meetup scheduler\n• \`/pace start\` — Immediately launch the pending scheduled session in this channel/Huddle\n• \`/pace 15m [Title]\` — Instant takeoff! Starts a 15m live session right inside this Huddle/channel\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to see your personalized sessions.`,
+          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the interactive meetup scheduler\n• \`/pace start\` — Immediately launch the pending scheduled session in this channel/Huddle\n• \`/pace 15m [Title]\` — Instant takeoff! Starts a 15m live session right inside this Huddle/channel\n• \`/pace clear\` — Clean up your private DM conversation history with HuddlePace bot\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to see your personalized sessions.`,
         });
+        return;
+      }
+
+      if (subCommand === "clear") {
+        try {
+          const dmRes = await client.conversations.open({
+            users: command.user_id,
+          });
+
+          const dmChannelId = dmRes.channel?.id;
+          if (!dmChannelId) {
+            await client.chat.postEphemeral({
+              channel: command.channel_id,
+              user: command.user_id,
+              text: "⚠️ Unable to locate direct message conversation with HuddlePace bot.",
+            });
+            return;
+          }
+
+          const historyRes = await client.conversations.history({
+            channel: dmChannelId,
+            limit: 100,
+          });
+
+          const messages = historyRes.messages || [];
+          let deletedCount = 0;
+
+          for (const msg of messages) {
+            if (msg.ts && (msg.bot_id || msg.subtype === "bot_message" || msg.user !== command.user_id)) {
+              try {
+                await client.chat.delete({
+                  channel: dmChannelId,
+                  ts: msg.ts,
+                });
+                deletedCount++;
+              } catch (delErr) {
+                // Ignore messages that cannot be deleted
+              }
+            }
+          }
+
+          await client.chat.postEphemeral({
+            channel: command.channel_id,
+            user: command.user_id,
+            text: `🧹 *Conversation Cleared:* Removed ${deletedCount} message(s) from your direct messages with HuddlePace bot.`,
+          });
+        } catch (clearErr: any) {
+          logger.error("Error clearing bot DM history:", clearErr);
+          await client.chat.postEphemeral({
+            channel: command.channel_id,
+            user: command.user_id,
+            text: "⚠️ Failed to clear conversation with HuddlePace bot. Please try again.",
+          });
+        }
         return;
       }
 
@@ -49,7 +103,7 @@ export function registerCommandHandlers(app: App) {
         await client.chat.postEphemeral({
           channel: command.channel_id,
           user: command.user_id,
-          text: `🛫 *Flight Initiated!* Vector launched your scheduled session: *"${scheduled.title}"* (${scheduled.totalMinutes}m) ${locationText}.`,
+          text: `🛫 *Flight Initiated!* HuddlePace bot launched your scheduled session: *"${scheduled.title}"* (${scheduled.totalMinutes}m) ${locationText}.`,
         });
         return;
       }
@@ -154,7 +208,7 @@ export function registerCommandHandlers(app: App) {
           await client.chat.postEphemeral({
             channel: command.channel_id,
             user: command.user_id,
-            text: `🛫 *Flight Initiated!* Vector is now tracking *"${title}"* (${parsedMinutes}m) ${locationText}.\nI will provide private pacing checkpoints as you progress through each module.`,
+            text: `🛫 *Flight Initiated!* HuddlePace bot is now tracking *"${title}"* (${parsedMinutes}m) ${locationText}.\nI will provide private pacing checkpoints as you progress through each module.`,
           });
           return;
         }

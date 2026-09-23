@@ -168,6 +168,20 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
     {
       type: "actions",
       elements: [
+        ...(data.nextModuleName
+          ? [
+              {
+                type: "button",
+                text: {
+                  type: "plain_text",
+                  text: "⏭️ Next Module",
+                  emoji: true,
+                },
+                value: data.meetupId,
+                action_id: "next_module_action",
+              },
+            ]
+          : []),
         {
           type: "button",
           text: {
@@ -214,7 +228,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
       elements: [
         {
           type: "mrkdwn",
-          text: "🔄 _In-place updates every 30s. Vector keeps your team on flight path._",
+          text: "🔄 _In-place updates every 30s. HuddlePace bot keeps your team on flight path._",
         },
       ],
     },

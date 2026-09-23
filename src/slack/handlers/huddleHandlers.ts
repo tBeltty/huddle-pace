@@ -104,13 +104,13 @@ export function registerHuddleHandlers(app: App) {
           await client.chat.postMessage({
             channel: channelId,
             thread_ts: rootTs,
-            text: `✈️ *Vector Standby:* Huddle detected in this channel. Vector is ready to track pacing.`,
+            text: `✈️ *HuddlePace Standby:* Huddle detected in this channel. HuddlePace bot is ready to track pacing.`,
             blocks: [
               {
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: `✈️ *Vector Standby: Huddle Active*\nVector is ready to pace this session. Choose a quick flight plan or schedule an agenda:`,
+                  text: `✈️ *HuddlePace Standby: Huddle Active*\nHuddlePace bot is ready to pace this session. Choose a quick flight plan or schedule an agenda:`,
                 },
               },
               {
@@ -202,7 +202,7 @@ export function registerHuddleHandlers(app: App) {
         await client.chat.postMessage({
           channel: channelId,
           thread_ts: threadTs,
-          text: `🛫 *Flight Initiated!* Vector has launched your scheduled session: *"${scheduled.title}"* (${scheduled.totalMinutes}m) in this thread.`,
+          text: `🛫 *Flight Initiated!* HuddlePace bot has launched your scheduled session: *"${scheduled.title}"* (${scheduled.totalMinutes}m) in this thread.`,
         });
         return;
       }
@@ -211,13 +211,13 @@ export function registerHuddleHandlers(app: App) {
       await client.chat.postMessage({
         channel: channelId,
         thread_ts: threadTs,
-        text: `✈️ *Vector Flight Deck:* Ready to track this session. Choose a duration to initiate:`,
+        text: `✈️ *HuddlePace Flight Deck:* Ready to track this session. Choose a duration to initiate:`,
         blocks: [
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: `✈️ *Vector Flight Deck*\nReady to pace your talk. Select a flight timebox below or reply with \`@HuddlePace [minutes]\`:`,
+              text: `✈️ *HuddlePace Flight Deck*\nReady to pace your talk. Select a flight timebox below or reply with \`@HuddlePace [minutes]\`:`,
             },
           },
           {
