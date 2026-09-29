@@ -27,9 +27,9 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
 
   // Default suggested distribution presets for 3 rows
   const defaultPresets = [
-    { title: "Context & Introduction", pct: "15" },
+    { title: "Context + Introduction", pct: "15" },
     { title: "Core Topic / Demo", pct: "60" },
-    { title: "Open Q&A & Wrap-up", pct: "25" },
+    { title: "Open Q+A / Wrap-up", pct: "25" },
   ];
 
   const initialSpeakers = initialState?.speakerUserIds && initialState.speakerUserIds.length > 0
