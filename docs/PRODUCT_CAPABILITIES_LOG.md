@@ -4,7 +4,11 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
----
+## [2026-09-30] Reestructuración del README y Enfoque en Distribución SaaS Oficial
+* **Alineación de Documentación Pública con Modelo Source-Available (`README.md`)**:
+  * **Llamado a la Acción de Instalación Oficial:** Incorporación de botón destacado y enlaces directos a `https://huddlepace.com/install` en el encabezado principal, delimitando la vía de instalación para workspaces de Slack.
+  * **Sustitución de Setup Guide por Local Development:** Eliminación de instrucciones de autoalojamiento multi-tenant y creación de credenciales de producción para terceros; la guía técnica se concentra exclusivamente en el flujo para desarrolladores y auditores (`pnpm test`, base de datos local y pruebas con Socket Mode).
+  * **Eliminación de Guía de Despliegue en systemd:** Se retiran las directivas de servicio VPS del README público para mantener los detalles de infraestructura interna dentro del pipeline automatizado de CI/CD.
 
 ## [2026-09-30] Role-Gating Estricto en App Home, Estandarización de Releases y Transparencia Web
 * **Aislamiento de Controles por Rol en App Home (`homeTab.ts`, `tests/homeTab.test.ts`)**:
