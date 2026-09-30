@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Omitted the "Start in Huddle" button from "Workspace Meetups" for non-speakers.
   - Omitted the "Conclude" button from "Active Sessions" for spectators.
 
+### Fixed
+- **Application Entrypoint Guard**: Protected `src/index.ts` with a direct execution guard and removed redundant `main` property from `package.json`, preventing unwanted boot initialization when resolved as module in CI/CD test environments.
+
 ## [1.0.0] - 2026-09-22
 
 ### Added

@@ -11,6 +11,9 @@
   * **Ocultamiento de "Start in Huddle" a Espectadores:** En la sección "📅 Workspace Meetups", el botón accesorio `🚀 Start in Huddle` (`start_scheduled_meetup_action`) se omite para los usuarios que no figuran como oradores (`speakerUserId`) de la sesión. Los miembros que participan como espectadores visualizan los detalles de la agenda, los oradores y el desglose de módulos sin botones interactivos no ejecutables.
   * **Ocultamiento de "Conclude" en Sesiones Activas a No-Oradores:** En "🟢 Active Sessions", el botón `⏹️ Conclude` (`conclude_meetup_action`) queda condicionado a que el usuario sea orador asignado (`isSpeaker`). Los espectadores observan la barra de progreso y el estado en tiempo real sin controles destructivos de finalización.
   * **Coherencia UI / Backend:** Se elimina la discrepancia visual donde la interfaz mostraba acciones que el interceptor de seguridad del backend (`actionHandlers.ts: isUserAuthorizedForMeetup`) ya bloqueaba con `Access Denied`.
+* **Protección de Entrypoint del Servidor (`src/index.ts`, `package.json`)**:
+  * **Guarda de Ejecución Directa (`isDirectExecution`):** Se condiciona el arranque de `main()` en `src/index.ts` a que el archivo sea el punto de entrada directo (`process.argv[1]`), evitando inicializaciones no deseadas cuando herramientas o runners de pruebas resuelven el módulo.
+  * **Eliminación de `main` en `package.json`:** Como aplicación de servidor independiente (no librería empaquetada en npm), se retira la clave `"main": "dist/index.js"` para evitar resoluciones circulares de dependencias opcionales en entornos Linux.
 
 ## [2026-09-22] Chat Bidireccional en Vivo en Widget y Erradicación de Despacho de Correo
 * **Chat Interactivo en Tiempo Real dentro del Widget (`support-widget.js`, `vano.tbelt.online`)**:
