@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Omitted the "Conclude" button from "Active Sessions" for spectators.
 
 ### Fixed
-- **Application Entrypoint Guard**: Protected `src/index.ts` with a direct execution guard and removed redundant `main` property from `package.json`, preventing unwanted boot initialization when resolved as module in CI/CD test environments.
+- **Package Manifest Resolution**: Removed redundant `main` property from `package.json` for application service, resolving Linux runner symlink collision on optional dependencies (`fsevents`) during automated CI tests.
 
 ## [1.0.0] - 2026-09-22
 
