@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-09-30
+
 ### Changed
 - **Slack App Home Role-Gating**: Restricted interactive control buttons strictly to authorized speakers:
   - Omitted the "Start in Huddle" button from "Workspace Meetups" for non-speakers.
@@ -37,5 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/tBeltty/huddle-pace/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/tBeltty/huddle-pace/releases/tag/v1.0.0
