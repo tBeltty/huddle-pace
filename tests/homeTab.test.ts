@@ -126,7 +126,7 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
       assert.strictEqual(activeSection.accessory?.action_id, "conclude_meetup_action");
     });
 
-    test("negative control: marks user as spectator when currentUserId is not active speaker", () => {
+    test("negative control: marks user as spectator when currentUserId is not active speaker and omits conclude button", () => {
       const view = buildHomeTabView([dummyActiveMeetup], [], dummyStats, "U_SPECTATOR");
       const activeSection = view.blocks.find(
         (b: any) => b.type === "section" && b.text?.text?.includes("Daily Standup")
@@ -134,9 +134,10 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
       assert.ok(activeSection);
       assert.match(activeSection.text.text, /👀 _Spectator_/);
       assert.doesNotMatch(activeSection.text.text, /🌟 \*You are a speaker\*/);
+      assert.strictEqual(activeSection.accessory, undefined, "Spectators should not have Conclude button");
     });
 
-    test("partitions upcoming meetups into My Scheduled Meetups vs Workspace Meetups", () => {
+    test("partitions upcoming meetups into My Scheduled Meetups vs Workspace Meetups with role-gated launch buttons", () => {
       const view = buildHomeTabView(
         [],
         [dummyMeetup1, dummyMeetup2],
@@ -155,20 +156,18 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
       assert.ok(teamHeaderIndex !== -1, "Workspace Meetups header must exist");
 
       const mySection = view.blocks.slice(myHeaderIndex, teamHeaderIndex);
-      assert.strictEqual(
-        mySection.some((b: any) => b.text?.text?.includes("Sprint Planning")),
-        true
-      );
+      const myBlock = mySection.find((b: any) => b.text?.text?.includes("Sprint Planning"));
+      assert.ok(myBlock);
+      assert.strictEqual(myBlock.accessory?.action_id, "start_scheduled_meetup_action");
       assert.strictEqual(
         mySection.some((b: any) => b.text?.text?.includes("Engineering All-Hands")),
         false
       );
 
       const teamSection = view.blocks.slice(teamHeaderIndex);
-      assert.strictEqual(
-        teamSection.some((b: any) => b.text?.text?.includes("Engineering All-Hands")),
-        true
-      );
+      const teamBlock = teamSection.find((b: any) => b.text?.text?.includes("Engineering All-Hands"));
+      assert.ok(teamBlock);
+      assert.strictEqual(teamBlock.accessory, undefined, "Workspace meetups for spectators must not have Start in Huddle button");
     });
   });
 

@@ -6,6 +6,12 @@
 
 ---
 
+## [2026-09-30] Role-Gating Estricto en UI de App Home (Botones de Acción Restringidos a Speakers)
+* **Aislamiento de Controles por Rol en App Home (`homeTab.ts`, `tests/homeTab.test.ts`)**:
+  * **Ocultamiento de "Start in Huddle" a Espectadores:** En la sección "📅 Workspace Meetups", el botón accesorio `🚀 Start in Huddle` (`start_scheduled_meetup_action`) se omite para los usuarios que no figuran como oradores (`speakerUserId`) de la sesión. Los miembros que participan como espectadores visualizan los detalles de la agenda, los oradores y el desglose de módulos sin botones interactivos no ejecutables.
+  * **Ocultamiento de "Conclude" en Sesiones Activas a No-Oradores:** En "🟢 Active Sessions", el botón `⏹️ Conclude` (`conclude_meetup_action`) queda condicionado a que el usuario sea orador asignado (`isSpeaker`). Los espectadores observan la barra de progreso y el estado en tiempo real sin controles destructivos de finalización.
+  * **Coherencia UI / Backend:** Se elimina la discrepancia visual donde la interfaz mostraba acciones que el interceptor de seguridad del backend (`actionHandlers.ts: isUserAuthorizedForMeetup`) ya bloqueaba con `Access Denied`.
+
 ## [2026-09-22] Chat Bidireccional en Vivo en Widget y Erradicación de Despacho de Correo
 * **Chat Interactivo en Tiempo Real dentro del Widget (`support-widget.js`, `vano.tbelt.online`)**:
   * **Hilo Conversacional en Vivo (`thread view`):** Tras enviar el formulario de contacto inicial en el widget de `huddlepace.com`, la vista ya no muestra un texto estático de confirmación ni finaliza el flujo: transiciona de inmediato a la vista interactiva de chat (`thread`), idéntica al sistema de soporte en vivo de Capylite.
