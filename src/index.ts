@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { fileURLToPath } from "node:url";
 import { getEnv } from "./config/env.js";
 import { createSlackApp } from "./slack/app.js";
 import { TimerWorker } from "./scheduler/timerWorker.js";
@@ -50,7 +51,16 @@ async function main() {
   process.on("SIGTERM", shutdown);
 }
 
-main().catch((err) => {
-  console.error("Fatal error starting HuddlePace:", err);
-  process.exit(1);
-});
+// Guard main() to only execute when this file is launched directly as entrypoint
+const isDirectExecution =
+  process.argv[1] &&
+  (fileURLToPath(import.meta.url) === process.argv[1] ||
+    process.argv[1].endsWith("/index.js") ||
+    process.argv[1].endsWith("/index.ts"));
+
+if (isDirectExecution) {
+  main().catch((err) => {
+    console.error("Fatal error starting HuddlePace:", err);
+    process.exit(1);
+  });
+}

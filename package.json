@@ -4,7 +4,6 @@
   "description": "Slack-native meeting time tracker and speaker copilot",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
-  "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
