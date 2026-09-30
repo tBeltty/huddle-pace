@@ -62,6 +62,8 @@
   "fCol2Tenant": "Multi-Tenant Isolation",
   "fCol2Hmac": "HMAC-SHA256 Signatures",
   "fCol2Scopes": "Verified Slack Scopes",
+  "fCol2Github": "Auditable Source Code (GitHub)",
+  "navGithub": "GitHub",
   "fCol3Title": "Legal & Support",
   "fCol3Privacy": "Privacy Policy",
   "fCol3Terms": "Terms of Service",

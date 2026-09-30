@@ -1,0 +1,49 @@
+name: Publish GitHub Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish GitHub Release
+    runs-on: [self-hosted, huddle-pace]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Release Notes from CHANGELOG.md
+        id: extract_notes
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          RAW_VERSION="${TAG#v}"
+          export RAW_VERSION
+          node -e '
+            const fs = require("fs");
+            const changelog = fs.readFileSync("CHANGELOG.md", "utf8");
+            const version = process.env.RAW_VERSION;
+            const lines = changelog.split("\n");
+            const startIdx = lines.findIndex(l => l.startsWith(`## [${version}]`));
+            if (startIdx === -1) {
+              fs.writeFileSync("RELEASE_NOTES.tmp", `Release ${process.env.TAG}`);
+              process.exit(0);
+            }
+            const endIdx = lines.slice(startIdx + 1).findIndex(l => l.startsWith("## [") || l.startsWith("[Unreleased]:"));
+            const notes = lines.slice(startIdx + 1, endIdx === -1 ? undefined : startIdx + 1 + endIdx).join("\n").trim();
+            fs.writeFileSync("RELEASE_NOTES.tmp", notes || `Release ${process.env.TAG}`);
+          '
+          echo "Release notes extracted for $TAG"
+        env:
+          TAG: ${{ github.ref_name }}
+
+      - name: Create or Update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "${{ github.ref_name }}" >/dev/null 2>&1 && \
+            gh release edit "${{ github.ref_name }}" --title "HuddlePace ${{ github.ref_name }}" --notes-file RELEASE_NOTES.tmp || \
+            gh release create "${{ github.ref_name }}" --title "HuddlePace ${{ github.ref_name }}" --notes-file RELEASE_NOTES.tmp --verify-tag

@@ -23,6 +23,7 @@ Any agent operating in this codebase must reference and respect the following co
    * **Copywriting & Anti-AI Playbook**: [`docs/marketing/COPYWRITING_PLAYBOOK.md`](docs/marketing/COPYWRITING_PLAYBOOK.md)
    * **Security & Tokens**: [`docs/guidelines/SECURITY.md`](docs/guidelines/SECURITY.md)
    * **Definition of Done (DoD)**: [`docs/guidelines/DEFINITION_OF_DONE.md`](docs/guidelines/DEFINITION_OF_DONE.md)
+   * **Release Process & Versioning**: [`docs/guidelines/RELEASE_PROCESS.md`](docs/guidelines/RELEASE_PROCESS.md)
 5. **[Advanced Writing Skills Suite](.agents/skills/)** (`.agents/skills/`):
    * Tracked skills for automated assistance: `no-ai-slop`, `text-humanizer`, `copywriting`, `copy-editing`, `proofreading`, `paragraph-structure`, `ogilvy`, `content-strategy`, `competitor-alternatives`, `slack-app-distribution`.
 6. **[Brand Identity & System Guide](docs/BRAND.md)** (`docs/BRAND.md`):
@@ -57,4 +58,9 @@ Any agent operating in this codebase must reference and respect the following co
 * Always run `pnpm test` and `pnpm build` locally before committing or reporting changes.
 * Ensure all tests (access control, time allocation math, progress bar rendering, Zod schemas) pass with 0 failures.
 * Confirm that post-deploy smoke checks on production (`https://huddlepace.com/healthz`) return HTTP 200 OK.
+
+### 5. Versioning & GitHub Releases Protocol
+* **Strict SemVer & Keep a Changelog**: All releases adhere to SemVer (`package.json`) and `CHANGELOG.md` ([Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/)).
+* **Automated Tag Deployment**: Releases are published by pushing annotated tags (`git tag -a vX.Y.Z -m "Release vX.Y.Z"` followed by `git push origin vX.Y.Z`). The GitHub Actions workflow (`.github/workflows/release.yml`) automatically extracts changelog entries and creates/updates the official GitHub Release.
+* **Guideline Reference**: Follow [`docs/guidelines/RELEASE_PROCESS.md`](docs/guidelines/RELEASE_PROCESS.md) for step-by-step procedures.
 

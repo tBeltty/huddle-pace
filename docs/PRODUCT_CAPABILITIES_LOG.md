@@ -6,11 +6,20 @@
 
 ---
 
-## [2026-09-30] Role-Gating Estricto en UI de App Home (Botones de Acción Restringidos a Speakers)
+## [2026-09-30] Role-Gating Estricto en App Home, Estandarización de Releases y Transparencia Web
 * **Aislamiento de Controles por Rol en App Home (`homeTab.ts`, `tests/homeTab.test.ts`)**:
   * **Ocultamiento de "Start in Huddle" a Espectadores:** En la sección "📅 Workspace Meetups", el botón accesorio `🚀 Start in Huddle` (`start_scheduled_meetup_action`) se omite para los usuarios que no figuran como oradores (`speakerUserId`) de la sesión. Los miembros que participan como espectadores visualizan los detalles de la agenda, los oradores y el desglose de módulos sin botones interactivos no ejecutables.
   * **Ocultamiento de "Conclude" en Sesiones Activas a No-Oradores:** En "🟢 Active Sessions", el botón `⏹️ Conclude` (`conclude_meetup_action`) queda condicionado a que el usuario sea orador asignado (`isSpeaker`). Los espectadores observan la barra de progreso y el estado en tiempo real sin controles destructivos de finalización.
   * **Coherencia UI / Backend:** Se elimina la discrepancia visual donde la interfaz mostraba acciones que el interceptor de seguridad del backend (`actionHandlers.ts: isUserAuthorizedForMeetup`) ya bloqueaba con `Access Denied`.
+* **Sistema Oficial de Releases y Registro de Cambios (`CHANGELOG.md`, `release.yml`, `RELEASE_PROCESS.md`)**:
+  * **Adopción de SemVer 2.0.0 y Keep a Changelog 1.1.0:** Estructuración de `CHANGELOG.md` con categorías semánticas estandarizadas (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`) y enlaces de comparación diferencial entre etiquetas de Git.
+  * **Pipeline de GitHub Releases Automatizado (`.github/workflows/release.yml`):** Al enviar etiquetas `v*.*.*` al repositorio remoto, GitHub Actions extrae de forma autónoma la sección de notas del changelog y genera o actualiza el release correspondiente en GitHub.
+  * **Comandos de Versionado en `package.json`:** Incorporación de scripts `pnpm version:patch`, `version:minor` y `version:major` para sincronizar versiones sin etiquetas prematuras.
+  * **Guía Operativa de Publicación (`docs/guidelines/RELEASE_PROCESS.md`):** Protocolo normativo paso a paso para pruebas previas, actualización de changelog, bumping, verificación en CI/CD y despliegue de etiquetas.
+* **Transparencia de Código y Enlaces a GitHub en la Web Pública (`index.html`, `privacy.html`, `terms.html`, traducciones)**:
+  * **Acceso a Repositorio en Navbar:** Adición de botón con el ícono vectorial de GitHub en la barra superior de navegación en la landing principal y páginas legales.
+  * **Columna de Confianza y Seguridad en Footer:** Enlace directo a "Código Fuente Auditable (GitHub)" en el pie de página, reflejando el modelo de licencia Source-Available / Audit-Only.
+  * **Redirección de Release Notes:** El enlace de "Notas de la Versión" apunta directamente al historial de GitHub Releases (`https://github.com/tBeltty/huddle-pace/releases`).
 * **Corrección de Resolución de Manifiesto en CI (`package.json`)**:
   * **Eliminación de `main` en `package.json`:** Al tratarse de un servicio de aplicación independiente y no una librería npm, se retira la clave `"main": "dist/index.js"`. Esto previene que el sistema de resolución de paquetes de Node.js ejecute `dist/index.js` en Linux ante enlaces simbólicos de dependencias opcionales de plataforma (`fsevents`) durante la ejecución de pruebas automatizadas en CI.
 
