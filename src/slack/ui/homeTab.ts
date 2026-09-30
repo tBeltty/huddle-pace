@@ -123,27 +123,29 @@ export function buildHomeTabView(
           : "";
 
         const remainingMinutes = Math.max(0, meetup.totalMinutes - elapsedMinutes);
-        blocks.push(
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: `*${meetup.title}*  •  ${statusBadge}${roleBadge}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\nElapsed: *${elapsedMinutes} / ${meetup.totalMinutes} min* (${percent}%) • *${formatMinutes(remainingMinutes)} remaining*\n${renderProgressBar(percent, 16)}`,
-            },
-            accessory: {
-              type: "button",
-              text: {
-                type: "plain_text",
-                text: "⏹️ Conclude",
-                emoji: true,
-              },
-              style: "danger",
-              value: meetup.id,
-              action_id: "conclude_meetup_action",
-            },
+        const sectionBlock: any = {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*${meetup.title}*  •  ${statusBadge}${roleBadge}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\nElapsed: *${elapsedMinutes} / ${meetup.totalMinutes} min* (${percent}%) • *${formatMinutes(remainingMinutes)} remaining*\n${renderProgressBar(percent, 16)}`,
           },
-          { type: "divider" }
-        );
+        };
+
+        if (!currentUserId || isSpeaker) {
+          sectionBlock.accessory = {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "⏹️ Conclude",
+              emoji: true,
+            },
+            style: "danger",
+            value: meetup.id,
+            action_id: "conclude_meetup_action",
+          };
+        }
+
+        blocks.push(sectionBlock, { type: "divider" });
       }
     }
 
@@ -220,17 +222,6 @@ export function buildHomeTabView(
                 text: {
                   type: "mrkdwn",
                   text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\n${breakdownText}`,
-                },
-                accessory: {
-                  type: "button",
-                  text: {
-                    type: "plain_text",
-                    text: "🚀 Start in Huddle",
-                    emoji: true,
-                  },
-                  style: "primary",
-                  value: meetup.id,
-                  action_id: "start_scheduled_meetup_action",
                 },
               },
               { type: "divider" }
