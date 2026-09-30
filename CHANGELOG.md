@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-30
+
 ### Added
 - **Pacing Analytics Flexibility (Grace Period)**: Integrated smart grace margin (`calculateGraceMinutes`: 10m buffer for 60m calls, 5m for 30m, 3m for 15m) ensuring meetings wrapping up 3–5 minutes after scheduled budgets maintain team compliance (`isWithinGrace = true`) and display clear three-state status indicators (`✅ On Time`, `⏳ Flexible`, `⚠️ Overtime`).
 - **Single Non-Invasive Time Check Reminder**: Added automated gentle thread check dispatched once per session when ~16.7% of timebox remains (10m before close on 1-hour sessions), pairing concise contextual guidance with canonical Vector artwork (`reminder-healthy.jpg`).
@@ -46,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/tBeltty/huddle-pace/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/tBeltty/huddle-pace/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/tBeltty/huddle-pace/releases/tag/v1.0.0
