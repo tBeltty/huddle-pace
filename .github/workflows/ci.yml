@@ -36,6 +36,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Clear tsx transpile cache
+        run: rm -rf node_modules/.cache
+
       - name: Setup Test Database Schema & Generate Client
         run: pnpm db:push
         env:
