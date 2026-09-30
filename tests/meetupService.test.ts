@@ -183,4 +183,80 @@ describe("MeetupService calculations and parsing", () => {
       );
     });
   });
+
+  describe("calculateGraceMinutes & Flexibility Analytics", () => {
+    test("calculates proportional grace minutes with minimum of 3m", () => {
+      assert.strictEqual(MeetupService.calculateGraceMinutes(15), 3);
+      assert.strictEqual(MeetupService.calculateGraceMinutes(20), 3);
+      assert.strictEqual(MeetupService.calculateGraceMinutes(30), 5);
+      assert.strictEqual(MeetupService.calculateGraceMinutes(45), 8);
+      assert.strictEqual(MeetupService.calculateGraceMinutes(60), 10);
+      assert.strictEqual(MeetupService.calculateGraceMinutes(90), 15);
+      assert.strictEqual(MeetupService.calculateGraceMinutes(120), 20);
+    });
+
+    test("counts sessions within grace buffer as compliant (flexible) without penalizing team", async () => {
+      const { prisma } = await import("../src/db/client.js");
+      const teamId = "T_GRACE_TEST_" + Date.now();
+      
+      // Meeting 1: 60m budget, took 64m (4m over, within 10m grace) -> isOnTime = true, isWithinGrace = true
+      const m1 = await MeetupService.createMeetup({
+        title: "Architecture Sync",
+        totalMinutes: 60,
+        channelId: "C_GRACE",
+        speakerUserId: "U_GRACE_1",
+        teamId,
+        modules: [{ title: "Deep Dive", percentage: 100 }],
+      });
+      const started1 = new Date(Date.now() - 64 * 60 * 1000);
+      const ended1 = new Date();
+      await prisma.meetup.update({
+        where: { id: m1.id },
+        data: {
+          status: "COMPLETED",
+          startedAt: started1,
+          formalEndsAt: ended1,
+          endsAt: ended1,
+        },
+      });
+
+      // Meeting 2: 60m budget, took 75m (15m over, exceeds 10m grace) -> isOnTime = false, isWithinGrace = false
+      const m2 = await MeetupService.createMeetup({
+        title: "Extended Workshop",
+        totalMinutes: 60,
+        channelId: "C_GRACE",
+        speakerUserId: "U_GRACE_2",
+        teamId,
+        modules: [{ title: "Workshop", percentage: 100 }],
+      });
+      const started2 = new Date(Date.now() - 75 * 60 * 1000);
+      const ended2 = new Date();
+      await prisma.meetup.update({
+        where: { id: m2.id },
+        data: {
+          status: "COMPLETED",
+          startedAt: started2,
+          formalEndsAt: ended2,
+          endsAt: ended2,
+        },
+      });
+
+      const stats = await MeetupService.getPacingReportStats(30, teamId);
+      assert.strictEqual(stats.totalSessions, 2);
+      assert.strictEqual(stats.completedOnTime, 1);
+      assert.strictEqual(stats.complianceRate, 50);
+
+      const session1 = stats.recentSessions.find((s) => s.id === m1.id);
+      assert.ok(session1);
+      assert.strictEqual(session1.isOnTime, true);
+      assert.strictEqual(session1.isWithinGrace, true);
+      assert.strictEqual(session1.graceMinutes, 10);
+
+      const session2 = stats.recentSessions.find((s) => s.id === m2.id);
+      assert.ok(session2);
+      assert.strictEqual(session2.isOnTime, false);
+      assert.strictEqual(session2.isWithinGrace, false);
+    });
+  });
 });
+

@@ -62,7 +62,11 @@ export function buildPacingReportBlocks(stats: PacingReportStats, days = 30): an
     });
   } else {
     for (const session of stats.recentSessions) {
-      const statusIcon = session.isOnTime ? "✅" : "⚠️ Overtime";
+      const statusIcon = session.isWithinGrace
+        ? "⏳ Flexible"
+        : session.isOnTime
+        ? "✅ On Time"
+        : "⚠️ Overtime";
       const diff = session.formalDurationMin - session.totalBudgetMin;
       const diffText = diff > 0 ? `+${diff}m` : `${diff}m`;
 

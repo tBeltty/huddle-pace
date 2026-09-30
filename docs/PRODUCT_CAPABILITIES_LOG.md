@@ -4,6 +4,19 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-09-30] Flexibilidad en Analytics (Grace Period), Enrutamiento de Permisos a Threads y Recordatorio Amistoso Canónico de Vector
+* **Flexibilidad en Analytics y Margen de Tolerancia (`meetupService.ts`, `reportBlock.ts`)**:
+  * **Cálculo de Gracia Inteligente Proporcional (`calculateGraceMinutes`):** Se establece un margen de tolerancia equivalente a ~16.7% del tiempo programado con un piso de 3 minutos ($\max(3, \text{round}(\text{totalMinutes} \times 0.1667))$). En reuniones de 1 hora otorga 10 minutos de tolerancia (a tiempo hasta los 70m); en 30m otorga 5 minutos; en 15m otorga 3 minutos.
+  * **Preservación del Compliance Rate:** Las llamadas que terminan entre 3 y 5 minutos después de su presupuesto ya no se penalizan injustamente como `Overtime` ni degradan el porcentaje de puntualidad del equipo.
+  * **Visualización Tripartita en Reportes:** `/huddle report` y App Home reflejan tres estados en el registro histórico: `✅ On Time` (dentro del tiempo exacto), `⏳ Flexible (+Xm)` (dentro del margen de gracia) y `⚠️ Overtime` (fuera del margen).
+* **Enrutamiento de Advertencias de Permisos al Mismo Thread (`actionHandlers.ts`)**:
+  * **Inyección de `thread_ts` en `chat.postEphemeral`:** En los cinco manejadores de control interactivo (`start_scheduled_meetup_action`, `next_module_action`, `casual_chat_meetup_action`, `snooze_meetup_action`, `conclude_meetup_action`), las notificaciones privadas de `Access Denied` incluyen ahora el identificador del hilo (`b.message?.thread_ts || b.message?.ts || meetup.threadTs`).
+  * **Eliminación de Contaminación en Canal Raíz:** Las alertas privadas se despliegan en el mismo hilo del Huddle donde el espectador hizo clic, previniendo apariciones fuera de contexto en el feed principal del canal.
+* **Recordatorio Amistoso Poco Invasivo con Banner Canónico de Vector (`timerWorker.ts`, `public/assets/reminder-healthy.jpg`)**:
+  * **Despacho Único y No Invasivo por Sesión:** El motor del temporizador despacha exactamente un único aviso en el hilo del Huddle al ingresar en la ventana proporcional previa al cierre (10 minutos antes en sesiones de 1h, 5m antes en 30m, 3m antes en 15m).
+  * **Asset Canónico de Vector:** Composición visual limpia con el arte oficial de Vector sonriente (`vectorfull.png`), arnés táctico, visor ámbar, fondo aeroespacial y tipografía clásica Newsreader (*"Healthy reminder / We're approaching our scheduled finish line / Time check"*).
+  * **Mensaje de Cierre Colaborativo en Block Kit:** Acompañado de un bloque de contexto sutil en inglés estricto invitando al equipo a alinear tareas pendientes y cerrar acuerdos sin cortar abruptamente la conversación.
+
 ## [2026-09-30] Estándar Enterprise Audit-Only, Matriz de Permisos y Política de Seguridad
 * **Reingeniería de Documentación Pública y Postura de Seguridad (`README.md`, `SECURITY.md`)**:
   * **Alineación con Licencia Source-Available & Audit-Only:** Se erradican guías de despliegue local o configuración de bots en Slack para terceros; el repositorio se posiciona oficialmente como código abierto para auditoría de seguridad, privacidad y cumplimiento por parte de administradores de Slack.

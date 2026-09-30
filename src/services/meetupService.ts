@@ -31,6 +31,8 @@ export interface PacingReportStats {
     formalDurationMin: number;
     chattingDurationMin: number;
     isOnTime: boolean;
+    isWithinGrace?: boolean;
+    graceMinutes?: number;
     date: Date;
   }>;
 }
@@ -53,6 +55,14 @@ export class MeetupService {
     const ids = this.parseSpeakerIds(speakerUserId);
     if (ids.length === 0) return "Not specified";
     return ids.map((id) => `<@${id}>`).join(", ");
+  }
+
+  /**
+   * Calculates smart grace buffer in minutes based on total scheduled meeting minutes.
+   * Standard: ~16.7% (10 minutes for 60m call), with minimum 3 minutes for short huddles.
+   */
+  static calculateGraceMinutes(totalMinutes: number): number {
+    return Math.max(3, Math.round(totalMinutes * 0.1667));
   }
 
   /**
@@ -473,7 +483,10 @@ export class MeetupService {
 
       const formalDurationMin = Math.max(1, Math.round((formalEnded - started) / (60 * 1000)));
       const chattingDurationMin = Math.max(0, Math.round((ended - formalEnded) / (60 * 1000)));
-      const isOnTime = formalDurationMin <= m.totalMinutes;
+      const graceMinutes = this.calculateGraceMinutes(m.totalMinutes);
+      const isStrictOnTime = formalDurationMin <= m.totalMinutes;
+      const isWithinGrace = !isStrictOnTime && formalDurationMin <= (m.totalMinutes + graceMinutes);
+      const isOnTime = isStrictOnTime || isWithinGrace;
 
       if (isOnTime) completedOnTime++;
       totalFormalMinutes += formalDurationMin;
@@ -487,6 +500,8 @@ export class MeetupService {
         formalDurationMin,
         chattingDurationMin,
         isOnTime,
+        isWithinGrace,
+        graceMinutes,
         date: m.startedAt || m.createdAt,
       };
     });

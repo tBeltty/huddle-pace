@@ -13,6 +13,7 @@ export class TimerWorker {
   private isRunning = false;
   private exitRampsSent = new Set<string>();
   private moduleWarningsSent = new Set<string>();
+  private healthyRemindersSent = new Set<string>();
 
   constructor(private app: App) {}
 
@@ -71,6 +72,11 @@ export class TimerWorker {
           this.exitRampsSent.delete(id);
         }
       }
+      for (const id of this.healthyRemindersSent) {
+        if (!activeIds.has(id)) {
+          this.healthyRemindersSent.delete(id);
+        }
+      }
 
       for (const meetup of activeMeetups) {
         if (!meetup.startedAt || !meetup.trackerMessageTs) continue;
@@ -123,6 +129,8 @@ export class TimerWorker {
 
                 // Clean up speaker DM reminders (1-minute warnings, transitions, etc.)
                 await MeetupService.cleanupReminderDMs(updated, this.app.client, botToken);
+                this.exitRampsSent.delete(meetup.id);
+                this.healthyRemindersSent.delete(meetup.id);
 
                 // Refresh Home tabs
                 const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
@@ -190,6 +198,7 @@ export class TimerWorker {
             await MeetupService.concludeMeetup(meetup.id);
             await MeetupService.cleanupReminderDMs(meetup, this.app.client, botToken);
             this.exitRampsSent.delete(meetup.id);
+            this.healthyRemindersSent.delete(meetup.id);
             continue;
           }
         }
@@ -263,6 +272,47 @@ export class TimerWorker {
             });
           } catch (err) {
             console.warn(`Failed to mark module ${status.module.id} as notified:`, err);
+          }
+        }
+
+        // 4.5 Friendly Non-Invasive Time Check Reminder in Thread
+        // Fires once when remaining time reaches ~16.7% of total scheduled budget
+        // (10 min remaining for 60m calls, 5 min for 30m, 3 min for 15m)
+        const reminderRemainingMin = Math.max(2, Math.round(meetup.totalMinutes * 0.1667));
+        const reminderTriggerElapsed = meetup.totalMinutes - reminderRemainingMin;
+
+        if (
+          elapsedMinutes >= reminderTriggerElapsed &&
+          !isOvertime &&
+          meetup.status === "ACTIVE" &&
+          !this.healthyRemindersSent.has(meetup.id)
+        ) {
+          this.healthyRemindersSent.add(meetup.id);
+          try {
+            await this.app.client.chat.postMessage({
+              token: botToken,
+              channel: meetup.channelId,
+              thread_ts: meetup.threadTs || meetup.trackerMessageTs,
+              text: `⏱️ *Healthy Reminder:* Approaching our scheduled finish line (~${reminderRemainingMin}m remaining).`,
+              blocks: [
+                {
+                  type: "image",
+                  image_url: "https://huddlepace.com/assets/reminder-healthy.jpg",
+                  alt_text: "Healthy reminder: Approaching our scheduled finish line",
+                },
+                {
+                  type: "context",
+                  elements: [
+                    {
+                      type: "mrkdwn",
+                      text: `⏱️ *Healthy Reminder:* Approaching our scheduled finish line (~${reminderRemainingMin}m remaining). A natural moment to lock in action items and wrap up.`,
+                    },
+                  ],
+                },
+              ],
+            });
+          } catch (err) {
+            console.warn(`Failed to send healthy reminder in thread for meetup ${meetup.id}:`, err);
           }
         }
 
