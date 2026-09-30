@@ -4,6 +4,13 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-09-30] Inyección Dinámica de Versión en Footer Web e Indicador de Release
+* **Inyección Dinámica de SemVer en Footer Web (`landingPage.ts`, `site.css`, HTMLs y diccionarios de i18n)**:
+  * **Cero Versiones Hardcodeadas:** La versión oficial de la aplicación se lee dinámicamente desde `package.json` mediante `getAppVersion()` en el arranque y en tiempo de renderizado SSR (`getPageHtml` y `getLocaleDictionary`).
+  * **Insignia Visual `.version-tag` en Notas de Versión:** En el footer de la página principal (`index.html`), políticas de privacidad (`privacy.html`) y términos (`terms.html`), el enlace a *"Release Notes"* / *"Notas de Versión"* incorpora una insignia de telemetría (`v1.1.0`) estilizada con fondo translúcido y acento cian.
+  * **Sincronización con Píldora de Telemetría:** El indicador de metadatos en el pie de página (`footerPill`) actualiza dinámicamente la versión activa de Vector tanto en la renderización del servidor como en el cambio de idioma dinámico en el cliente.
+  * **Pruebas de Cobertura Automatizadas:** Se valida con pruebas unitarias que `getAppVersion()` retorne una cadena SemVer estricta y que el HTML servido nunca exponga el token crudo `__APP_VERSION__`.
+
 ## [2026-09-30] Flexibilidad en Analytics (Grace Period), Enrutamiento de Permisos a Threads y Recordatorio Amistoso Canónico de Vector
 * **Flexibilidad en Analytics y Margen de Tolerancia (`meetupService.ts`, `reportBlock.ts`)**:
   * **Cálculo de Gracia Inteligente Proporcional (`calculateGraceMinutes`):** Se establece un margen de tolerancia equivalente a ~16.7% del tiempo programado con un piso de 3 minutos ($\max(3, \text{round}(\text{totalMinutes} \times 0.1667))$). En reuniones de 1 hora otorga 10 minutos de tolerancia (a tiempo hasta los 70m); en 30m otorga 5 minutos; en 15m otorga 3 minutos.

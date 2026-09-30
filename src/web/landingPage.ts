@@ -40,6 +40,17 @@ export function clearLandingCache(): void {
   for (const k of Object.keys(cachedLocales)) delete cachedLocales[k];
 }
 
+export function getAppVersion(): string {
+  try {
+    const pkgPath = path.resolve(process.cwd(), "package.json");
+    if (fs.existsSync(pkgPath)) {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+      if (pkg.version) return pkg.version;
+    }
+  } catch {}
+  return "1.1.0";
+}
+
 function getPageHtml(pagePath: string): string {
   const page = PAGES[pagePath];
   if (!page) return "<h1>Not Found</h1>";
@@ -58,6 +69,7 @@ function getPageHtml(pagePath: string): string {
   // It is declared in env.ts for type coverage but read here directly because
   // this module runs before Slack credentials are validated.
   html = html.replaceAll("__BEACON_WIDGET_KEY__", process.env.BEACON_WIDGET_KEY ?? "");
+  html = html.replaceAll("__APP_VERSION__", getAppVersion());
 
   if (process.env.NODE_ENV === "production") {
     cachedHtml[pagePath] = html;
@@ -70,7 +82,8 @@ export function getLocaleDictionary(lang: string): any {
   const file = path.join(LOCALES_DIR, `${lang}.json`);
   if (fs.existsSync(file)) {
     try {
-      cachedLocales[lang] = JSON.parse(fs.readFileSync(file, "utf-8"));
+      const raw = fs.readFileSync(file, "utf-8").replaceAll("__APP_VERSION__", getAppVersion());
+      cachedLocales[lang] = JSON.parse(raw);
       return cachedLocales[lang];
     } catch {}
   }

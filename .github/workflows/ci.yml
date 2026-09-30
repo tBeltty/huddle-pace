@@ -19,9 +19,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Purge stale build artifacts from source tree
-        run: git clean -fdx -- src/ tests/
-
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -35,12 +32,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-
-      - name: Clear tsx transpile cache
-        run: |
-          rm -rf node_modules/.cache
-          rm -rf /tmp/tsx-* 2>/dev/null || true
-          find /tmp -maxdepth 1 -name '*-*' -type f -delete 2>/dev/null || true
 
       - name: Setup Test Database Schema & Generate Client
         run: pnpm db:push
