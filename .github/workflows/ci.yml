@@ -37,7 +37,10 @@ jobs:
         run: pnpm install
 
       - name: Clear tsx transpile cache
-        run: rm -rf node_modules/.cache
+        run: |
+          rm -rf node_modules/.cache
+          rm -rf /tmp/tsx-* 2>/dev/null || true
+          find /tmp -maxdepth 1 -name '*-*' -type f -delete 2>/dev/null || true
 
       - name: Setup Test Database Schema & Generate Client
         run: pnpm db:push
