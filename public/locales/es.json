@@ -62,6 +62,8 @@
   "fCol2Tenant": "Aislamiento Multi-Inquilino",
   "fCol2Hmac": "Firmas HMAC-SHA256",
   "fCol2Scopes": "Permisos Slack Verificados",
+  "fCol2Github": "Código Fuente Auditable (GitHub)",
+  "navGithub": "GitHub",
   "fCol3Title": "Legal y Soporte",
   "fCol3Privacy": "Política de Privacidad",
   "fCol3Terms": "Términos del Servicio",
