@@ -119,6 +119,7 @@ export function registerActionHandlers(app: App) {
           await client.chat.postEphemeral({
             channel: b.channel?.id || meetup.channelId,
             user: b.user?.id,
+            thread_ts: b.message?.thread_ts || b.message?.ts || meetup.threadTs || undefined,
             text: "⚠️ *Access Denied:* Only the designated speaker(s) or organizer can start this meetup.",
           });
         } catch {}
@@ -238,6 +239,7 @@ export function registerActionHandlers(app: App) {
           await client.chat.postEphemeral({
             channel: b.channel?.id || meetup.channelId,
             user: b.user?.id,
+            thread_ts: b.message?.thread_ts || b.message?.ts || meetup.threadTs || undefined,
             text: "⚠️ *Access Denied:* Only designated speaker(s) can skip to the next module.",
           });
         } catch {}
@@ -308,6 +310,7 @@ export function registerActionHandlers(app: App) {
           await client.chat.postEphemeral({
             channel: b.channel?.id || meetup.channelId,
             user: b.user?.id,
+            thread_ts: b.message?.thread_ts || b.message?.ts || meetup.threadTs || undefined,
             text: "⚠️ *Access Denied:* Only the designated speaker(s) can switch this session to casual chatting.",
           });
         } catch {}
@@ -376,6 +379,7 @@ export function registerActionHandlers(app: App) {
           await client.chat.postEphemeral({
             channel: b.channel?.id || meetup.channelId,
             user: b.user?.id,
+            thread_ts: b.message?.thread_ts || b.message?.ts || meetup.threadTs || undefined,
             text: "⚠️ *Access Denied:* Only designated speaker(s) can snooze or extend the session timebox.",
           });
         } catch {}
@@ -441,6 +445,7 @@ export function registerActionHandlers(app: App) {
           await client.chat.postEphemeral({
             channel: b.channel?.id || meetup.channelId,
             user: b.user?.id,
+            thread_ts: b.message?.thread_ts || b.message?.ts || meetup.threadTs || undefined,
             text: "⚠️ *Access Denied:* Only the designated speaker(s) can conclude this session.",
           });
         } catch {}

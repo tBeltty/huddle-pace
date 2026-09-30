@@ -172,6 +172,20 @@ describe("Web Landing Page & Asset Delivery", () => {
       handleStaticAsset(req, res as any);
     });
 
+    test("serves reminder-healthy.jpg with 200 OK and image/jpeg", (t, done) => {
+      const req: any = { params: { file: "reminder-healthy.jpg" } };
+      const res = new MockResponse();
+
+      res.on("finish", () => {
+        assert.strictEqual(res.statusCode, 200);
+        assert.strictEqual(res.headers["Content-Type"], "image/jpeg");
+        assert.strictEqual(res.headers["Cache-Control"], "public, max-age=86400, immutable");
+        done();
+      });
+
+      handleStaticAsset(req, res as any);
+    });
+
     test("blocks directory traversal and returns 404 for missing assets (negative control)", () => {
       const req: any = { params: { file: "../../../package.json" } };
       const res = new MockResponse();
