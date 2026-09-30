@@ -2,12 +2,13 @@
 
 > **Slack-native meeting timekeeper and speaker companion.**
 
-HuddlePace is a Slack bot built with **Node.js**, **TypeScript**, and **Slack Bolt**. It keeps technical presentations, design reviews, and syncs within agreed time limits by tracking modular agendas in real time.
+[![Install HuddlePace](https://img.shields.io/badge/Slack-Install%20HuddlePace-4A154B?style=for-the-badge&logo=slack&logoColor=white)](https://huddlepace.com/install)
 
-Infrastructure footprint:
-- **Dual-Mode Transport**: Run locally via outbound WebSockets (Socket Mode) with zero public IP or tunnel requirements, or in production via native Slack HTTP with OAuth v2 ("Add to Slack") to serve multiple external workspaces.
-- Self-hosted runtime with embedded SQLite and Prisma ORM.
-- Zero external LLM or paid API dependencies.
+**Website**: [huddlepace.com](https://huddlepace.com) | **Install to Slack**: [huddlepace.com/install](https://huddlepace.com/install)
+
+HuddlePace keeps technical presentations, design reviews, and engineering syncs within scheduled time limits by tracking modular agendas in real time inside Slack Huddles.
+
+This repository contains the source-available codebase of HuddlePace for security audits, data privacy verification, and local development.
 
 ---
 
@@ -65,84 +66,47 @@ Infrastructure footprint:
 
 ---
 
-## Setup Guide
+## Local Development
 
-### 1. Create Slack App via Manifest
+For developers auditing or contributing to the codebase:
 
-1. Navigate to [api.slack.com/apps](https://api.slack.com/apps).
-2. Click **Create New App** > **From an app manifest**.
-3. Select your workspace.
-4. Paste the contents of [`manifest.json`](./manifest.json) and confirm.
+### Prerequisites
 
-### 2. Choose Your Deployment Mode
+- Node.js (pinned in `.node-version`)
+- `pnpm`
 
-#### Option A: Native HTTP & OAuth v2 (Multi-Tenant / Public Workspaces)
-To allow external users to install HuddlePace into their own Slack workspaces without requiring admin access:
-1. In **App Credentials** (under Basic Information), note:
-   - `Client ID`
-   - `Client Secret`
-   - `Signing Secret`
-2. Under **OAuth & Permissions**, ensure the Redirect URL matches `https://<your-domain>/slack/oauth_redirect`.
-3. Under **Event Subscriptions** and **Interactivity**, set the Request URL to `https://<your-domain>/slack/events`.
-4. Configure `.env`:
-   ```env
-   SOCKET_MODE="false"
-   SLACK_SIGNING_SECRET="your-signing-secret"
-   SLACK_CLIENT_ID="your-client-id"
-   SLACK_CLIENT_SECRET="your-client-secret"
-   SLACK_STATE_SECRET="random-high-entropy-string"
-   PORT=3000
-   ```
+### 1. Installation & Database Setup
 
-#### Option B: Socket Mode (Single Workspace / Local Dev)
-To test locally behind a firewall without HTTPS ingress:
-1. In **Basic Information** > **App-Level Tokens**, generate a token named `socket-token` with the `connections:write` scope (`xapp-...`).
-2. Install the app to your development workspace and obtain the Bot Token (`xoxb-...`).
-3. Configure `.env`:
-   ```env
-   SOCKET_MODE="true"
-   SLACK_BOT_TOKEN="xoxb-your-bot-token"
-   SLACK_APP_TOKEN="xapp-your-app-token"
-   ```
-
-### 3. Environment File Permissions
-
-Lock file permissions on disk:
-```bash
-chmod 600 .env
-```
-
-### 4. Database Setup & Testing
-
-1. Install dependencies and generate the database schema:
+Install dependencies and run SQLite migrations:
 ```bash
 pnpm install
 pnpm db:push
 ```
 
-2. Run the automated test suite:
+### 2. Automated Test Suite
+
+Run unit and integration tests:
 ```bash
 pnpm test
 ```
 
-3. Build and run:
-```bash
-pnpm build
-pnpm start
-```
+### 3. Local Execution with Socket Mode
 
-For development with hot reloading:
-```bash
-pnpm dev
-```
+For local development without public IP or HTTPS tunnel requirements:
 
-Expected startup log:
-```text
-⏱️ Timer worker started (interval: 30s).
-⚡️ HuddlePace is live and connected via Slack Socket Mode!
-⏱️ Periodic scheduler is tracking active meetups.
-[INFO] socket-mode:SocketModeClient:0 Now connected to Slack
-```
+1. Create a test app in [api.slack.com/apps](https://api.slack.com/apps) from [`manifest.json`](./manifest.json).
+2. Generate an app-level token with the `connections:write` scope (`xapp-...`).
+3. Install the app to your development workspace and copy the Bot Token (`xoxb-...`).
+4. Configure `.env`:
+   ```env
+   SOCKET_MODE="true"
+   SLACK_BOT_TOKEN="xoxb-your-bot-token"
+   SLACK_APP_TOKEN="xapp-your-app-token"
+   ```
+5. Start development mode with hot reloading:
+   ```bash
+   pnpm dev
+   ```
 
 ---
 
@@ -210,39 +174,6 @@ huddle-pace/
 │   ├── progressBar.test.ts        # Progress bar and time formatting tests
 │   └── validation.test.ts         # Zod environment and modal schema tests
 └── README.md
-```
-
----
-
-## Production Deployment (systemd)
-
-On a Linux server or VPS, run HuddlePace as a systemd service:
-
-```ini
-# /etc/systemd/system/huddlepace.service
-[Unit]
-Description=HuddlePace Slack Companion
-After=network.target
-
-[Service]
-Type=simple
-User=<DEPLOY_USER>
-WorkingDirectory=/opt/huddle-pace
-ExecStart=/usr/bin/node /opt/huddle-pace/dist/index.js
-Restart=always
-RestartSec=5
-Environment=NODE_ENV=production
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Service management:
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable huddlepace.service
-sudo systemctl restart huddlepace.service
-sudo journalctl -u huddlepace.service -f
 ```
 
 ---
