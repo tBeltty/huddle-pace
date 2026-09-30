@@ -69,7 +69,7 @@
   "fCol3Terms": "Terms of Service",
   "fCol3Support": "Contact Support",
   "fCol3Changelog": "Release Notes",
-  "footerPill": "🛡️ Slack-Verified OAuth · ⚡ Live Cadence Updates · 🦅 Vector v1.0",
+  "footerPill": "🛡️ Slack-Verified OAuth · ⚡ Live Cadence Updates · 🦅 Vector v__APP_VERSION__",
   "footerCopy": "© 2026 HuddlePace. Engineered for teams that value focus.",
 
   "privacyMeta": {
