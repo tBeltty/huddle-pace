@@ -2,7 +2,8 @@
   "display_information": {
     "name": "HuddlePace",
     "description": "Slack-native meeting timekeeper and speaker copilot to prevent meeting drift",
-    "background_color": "#1a1d21"
+    "long_description": "HuddlePace is a Slack-native meeting timekeeper and speaker companion designed to run timeboxed meetings that end on schedule.\n\nMeet **Vector**, your pacing companion: a focused flight navigator that tracks your agenda directly inside Slack Huddle threads without audio interruptions.\n\n### Core Capabilities\n* **Modular Timeboxing**: Split your 15m or 30m syncs into balanced topics with clear percentage allocations.\n* **Visual Progress Bars**: Monospace progress meters and live timers posted directly in the Huddle thread.\n* **Speaker Guidance**: Private DM reminders at midpoint and final-minute marks to keep the speaker on track.\n* **Role-Gated Controls**: Action buttons reserved strictly for assigned speakers to prevent accidental interruptions.\n* **Instant Commands**: Launch pacing with `/pace` or quick-start a 15-minute sync with `/pace 15m`.",
+    "background_color": "#080b11"
   },
   "features": {
     "app_home": {
@@ -11,7 +12,7 @@
       "messages_tab_read_only_enabled": false
     },
     "bot_user": {
-      "display_name": "HuddlePace",
+      "display_name": "Vector",
       "always_online": true
     },
     "shortcuts": [

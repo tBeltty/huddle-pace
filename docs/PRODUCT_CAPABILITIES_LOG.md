@@ -20,6 +20,9 @@
   * **Acceso a Repositorio en Navbar:** Adición de botón con el ícono vectorial de GitHub en la barra superior de navegación en la landing principal y páginas legales.
   * **Columna de Confianza y Seguridad en Footer:** Enlace directo a "Código Fuente Auditable (GitHub)" en el pie de página, reflejando el modelo de licencia Source-Available / Audit-Only.
   * **Redirección de Release Notes:** El enlace de "Notas de la Versión" apunta directamente al historial de GitHub Releases (`https://github.com/tBeltty/huddle-pace/releases`).
+* **Identidad de Bot y Descripción Detallada en Manifiesto de Slack (`manifest.json`)**:
+  * **Nombre de Bot Diferenciado (`Vector`):** Configuración de `features.bot_user.display_name: "Vector"` para que el bot aparezca identificado como Vector en canales, mensajes directos e hilos de Huddles, manteniendo el nombre de producto `HuddlePace` a nivel de aplicación.
+  * **Descripción Extendida (`long_description`):** Incorporación de descripción estructurada en Markdown detallando las capacidades de HuddlePace (timeboxing modular, barra de progreso, alertas privadas al orador y controles por rol) visible en la pestaña informativa del perfil del bot en Slack.
 * **Corrección de Resolución de Manifiesto en CI (`package.json`)**:
   * **Eliminación de `main` en `package.json`:** Al tratarse de un servicio de aplicación independiente y no una librería npm, se retira la clave `"main": "dist/index.js"`. Esto previene que el sistema de resolución de paquetes de Node.js ejecute `dist/index.js` en Linux ante enlaces simbólicos de dependencias opcionales de plataforma (`fsevents`) durante la ejecución de pruebas automatizadas en CI.
 
