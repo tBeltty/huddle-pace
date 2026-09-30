@@ -7,6 +7,7 @@ import {
   detectLanguage,
   renderLocalizedHtml,
   clearLandingCache,
+  getAppVersion,
 } from "../src/web/landingPage.js";
 import { Writable } from "node:stream";
 
@@ -206,6 +207,23 @@ describe("Web Landing Page & Asset Delivery", () => {
       assert.ok(paths.includes("/assets/:file"));
       assert.ok(paths.includes("/favicon.ico"));
       assert.ok(paths.includes("/apple-touch-icon.png"));
+    });
+  });
+
+  describe("getAppVersion", () => {
+    test("returns a valid semver string from package.json", () => {
+      const version = getAppVersion();
+      assert.match(version, /^\d+\.\d+\.\d+$/);
+      assert.ok(!version.includes("__APP_VERSION__"));
+    });
+
+    test("rendered landing page contains real version, not placeholder", async () => {
+      const version = getAppVersion();
+      const req = { url: "/", headers: { "accept-language": "en" } } as any;
+      const res = new MockResponse();
+      await handleLandingPage(req, res as any);
+      assert.ok(res.body.includes(`v${version}`));
+      assert.ok(!res.body.includes("__APP_VERSION__"));
     });
   });
 });
