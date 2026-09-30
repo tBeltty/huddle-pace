@@ -39,7 +39,6 @@
     ],
     "scopes": {
       "bot": [
-        "app_mentions:read",
         "commands",
         "chat:write",
         "channels:join",
@@ -57,7 +56,6 @@
       "request_url": "https://huddlepace.com/slack/events",
       "bot_events": [
         "app_home_opened",
-        "app_mention",
         "message.channels",
         "message.groups",
         "user_huddle_changed"
