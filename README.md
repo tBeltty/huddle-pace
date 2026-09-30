@@ -2,111 +2,80 @@
 
 > **Slack-native meeting timekeeper and speaker companion.**
 
+[![CI/CD Pipeline](https://github.com/tBeltty/huddle-pace/actions/workflows/ci.yml/badge.svg)](https://github.com/tBeltty/huddle-pace/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/badge/Release-v1.0.1-06b6d4.svg)](https://github.com/tBeltty/huddle-pace/releases)
+[![License: Source-Available](https://img.shields.io/badge/License-Source--Available%20%2F%20Audit--Only-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-339933.svg?logo=nodedotjs&logoColor=white)](.node-version)
+
 [![Install HuddlePace](https://img.shields.io/badge/Slack-Install%20HuddlePace-4A154B?style=for-the-badge&logo=slack&logoColor=white)](https://huddlepace.com/install)
 
-**Website**: [huddlepace.com](https://huddlepace.com) | **Install to Slack**: [huddlepace.com/install](https://huddlepace.com/install)
+**Website**: [huddlepace.com](https://huddlepace.com) | **Install to Slack**: [huddlepace.com/install](https://huddlepace.com/install) | **Security Policy**: [SECURITY.md](SECURITY.md)
 
 HuddlePace keeps technical presentations, design reviews, and engineering syncs within scheduled time limits by tracking modular agendas in real time inside Slack Huddles.
 
-This repository contains the source-available codebase of HuddlePace for security audits, data privacy verification, and local development.
+This repository publishes the complete application codebase under a **Source-Available & Audit License**. Workspace administrators, security auditors, and technical leads can independently inspect our data handling practices, security boundaries, and execution logic before installing HuddlePace into their Slack workspaces.
+
+---
+
+## Security & Data Privacy Posture
+
+When evaluating third-party Slack applications, transparency regarding data access and processing boundaries is critical. HuddlePace enforces the following architectural safeguards:
+
+- **Zero Voice / Audio Capture**: HuddlePace does not join audio or video calls, connect to WebRTC media streams, or transcribe spoken speech. It coordinates meetings strictly through Slack channel metadata, thread messages, and interactive commands.
+- **Zero Third-Party AI / LLM Telemetry**: Meeting titles, agenda topics, and team messages are never forwarded to external AI services (OpenAI, Anthropic, or proprietary models).
+- **Data Minimization**: Stored records contain only meeting identifiers, timestamps (`startedAt`, `formalEndsAt`), percentage breakdowns, and speaker user IDs. Channel discussion text is not persisted in the database.
+- **Ephemeral Thread Tracking**: Active progress bars update in place on a single Slack message (`thread_ts`) within the Huddle thread, avoiding channel clutter and external data exports.
+- **Strict Role-Gated Actions**: Interactive controls (starting sessions, skipping modules, concluding meetings) verify the clicking user's Slack ID against assigned speakers. Unauthorized clicks receive an ephemeral rejection notice.
+
+---
+
+## Slack Permissions Audit
+
+HuddlePace requests only the minimum granular scopes required to coordinate meeting pacing. Below is the technical justification for every scope defined in [`manifest.json`](manifest.json):
+
+| Scope | Type | Technical Purpose |
+| :--- | :--- | :--- |
+| `commands` | Bot | Registers the `/pace` slash command for scheduling and status checks. |
+| `chat:write` | Bot | Posts and updates the live ASCII/Unicode progress bar in the Huddle chat thread. |
+| `im:write` | Bot | Sends private pacing warnings and midpoint alerts directly to assigned speakers. |
+| `channels:join` | Bot | Joins public channels automatically when an organizer schedules a meeting. |
+| `channels:history` | Bot | Scans channel message events solely to detect Huddle lifecycle boundaries (`room.has_ended: true`). |
+| `groups:history` | Bot | Detects Huddle start and completion events in private channels where the bot was explicitly invited. |
+| `mpim:history` | Bot | Detects Huddle lifecycle events when meetings take place in multi-party direct messages. |
+| `im:history` | Bot | Supports the `/pace clear` command to clean up past bot DM notifications for the calling user. |
+| `users:read` | Bot | Resolves speaker user IDs into display names for agenda mention blocks. |
 
 ---
 
 ## Key Capabilities
 
 1. **Slack App Home Dashboard**:
-   - Workspace dashboard showing live sessions, active modules, and quick controls.
-   - Schedule sessions using `[ ➕ Schedule New Meetup ]`.
-   - View 30-day team pacing stats and session logs.
+   - Workspace dashboard showing upcoming meetups, active sessions, and historical logs.
+   - Role-gated controls hide operational buttons from spectators while keeping agendas readable.
+   - Review 30-day team pacing compliance and duration records.
 
 2. **Modular Agendas & Strict Timeboxing**:
-   - Organizers divide meeting duration into percentage-based topics (e.g., *Context: 15%*, *Demo: 60%*, *Q&A: 25%*).
-   - Validated at runtime with Zod schemas to enforce that allocations sum to exactly 100%.
-   - Dynamic module rows support up to 10 agenda items, respecting Slack's 100-block view limit.
+   - Split meeting duration into percentage-based topics (e.g., *Context: 15%*, *Demo: 60%*, *Q&A: 25%*).
+   - Validates that agenda allocations total exactly 100% before saving.
+   - Dynamic module builder supporting up to 10 distinct topics per session.
 
 3. **In-Call Huddle Chat Threading**:
-   - Posts the live tracking card into the active Huddle chat thread (`thread_ts`), keeping the main channel clean.
-   - Updates every 30 seconds with a visual progress bar (`[████████░░░░░░░░] 50%`), current topic, and remaining time.
+   - Attaches the live tracker directly to the active Huddle chat thread (`thread_ts`).
+   - Updates every 30 seconds with a monospace progress bar (`[████████░░░░░░░░] 50%`), current topic, and remaining time.
 
-4. **Huddle Discovery & Disambiguation**:
-   - The scheduling modal detects active or recent Huddle calls in the target channel.
-   - Choose to link a detected call, auto-detect on start, post to channel feed, or supply a custom thread link.
-   - If multiple active Huddles exist at launch, HuddlePace opens a single-step selector modal.
+4. **Automated Huddle Lifecycle Detection**:
+   - Listens for Slack room closure events to conclude sessions automatically when all participants exit the Huddle.
+   - Posts a final duration summary comparing scheduled versus actual time.
 
-5. **Automated Huddle Lifecycle Detection**:
-   - Listens to channel message events for call completion markers (`room.has_ended: true`).
-   - Automatically concludes the session when participants leave the Huddle, posting the final duration summary.
+5. **Speaker Pacing Alerts**:
+   - Private notifications sent directly to active presenters via Slack DM at midpoint and 1-minute remaining marks.
+   - `⏭️ Next Module` action allows speakers who finish early to hand off remaining time to the next agenda item.
 
-6. **Role-Gated Speaker Controls & Private DMs**:
-   - Buttons to start, transition, or conclude sessions verify user identity against assigned speakers. Unauthorized clicks receive an ephemeral access denied notice.
-   - Transition alerts and time warnings are sent privately to assigned presenters via Slack DMs.
+6. **"Just Chatting" Wrap-Up Mode**:
+   - Organizers can switch to casual chat mode to freeze formal presentation metrics while keeping the Huddle open for open discussion.
 
-7. **Transparent Channel Membership**:
-   - Automatically joins public channels using the `channels:join` scope when a meeting is scheduled or launched.
-   - For private channels, provides a prompt to invite the bot (`/invite @HuddlePace`) if not already a member.
-
-8. **"Just Chatting" Wrap-Up Mode**:
-   - A `[ ☕ Switch to Just Chatting ]` button lets organizers close the formal agenda while keeping the Huddle open.
-   - Freezes formal presentation metrics for analytics while tracking casual conversation time.
-
-9. **On-Demand Pacing Reports**:
-   - Run `/pace report [days]` (default: 30 days) to review timebox compliance rates, formal presentation time, and recent session records.
-   - Access reports directly from the Slack App Home tab.
-
----
-
-## Tech Stack
-
-- **Runtime**: Node.js (ESM, TypeScript, pinned via `.node-version`)
-- **Framework**: `@slack/bolt`
-- **Validation**: `zod` runtime schema validation for environment variables and modal payloads
-- **Transport**: Dual-mode (Slack Socket Mode for local dev; native HTTP with OAuth v2 receiver for multi-tenant production)
-- **Database**: SQLite with Prisma ORM (`prisma/dev.db`, WAL journal mode enabled)
-- **Testing**: Built-in test runner via `tsx --test`
-
----
-
-## Local Development
-
-For developers auditing or contributing to the codebase:
-
-### Prerequisites
-
-- Node.js (pinned in `.node-version`)
-- `pnpm`
-
-### 1. Installation & Database Setup
-
-Install dependencies and run SQLite migrations:
-```bash
-pnpm install
-pnpm db:push
-```
-
-### 2. Automated Test Suite
-
-Run unit and integration tests:
-```bash
-pnpm test
-```
-
-### 3. Local Execution with Socket Mode
-
-For local development without public IP or HTTPS tunnel requirements:
-
-1. Create a test app in [api.slack.com/apps](https://api.slack.com/apps) from [`manifest.json`](./manifest.json).
-2. Generate an app-level token with the `connections:write` scope (`xapp-...`).
-3. Install the app to your development workspace and copy the Bot Token (`xoxb-...`).
-4. Configure `.env`:
-   ```env
-   SOCKET_MODE="true"
-   SLACK_BOT_TOKEN="xoxb-your-bot-token"
-   SLACK_APP_TOKEN="xapp-your-app-token"
-   ```
-5. Start development mode with hot reloading:
-   ```bash
-   pnpm dev
-   ```
+7. **On-Demand Pacing Reports**:
+   - Execute `/pace report [days]` (default: 30 days) in any channel to view timebox adherence rates and session logs.
 
 ---
 
@@ -115,66 +84,67 @@ For local development without public IP or HTTPS tunnel requirements:
 | Action | Invocation | Description |
 | :--- | :--- | :--- |
 | **Schedule Modal** | `/pace` or Global Shortcut | Opens the interactive meetup scheduling modal. |
-| **Channel Status** | `/pace status` | Lists active sessions running in the current channel. |
-| **Pacing Report** | `/pace report [days]` | Displays timebox compliance and duration stats (default: 30 days). |
-| **Help Guide** | `/pace help` | Shows available commands and usage hints. |
-| **App Home Tab** | Click `HuddlePace` under Apps | Opens the visual dashboard, active sessions, and reports. |
+| **Channel Status** | `/pace status` | Displays active pacing sessions running in the current channel. |
+| **Pacing Report** | `/pace report [days]` | Shows timebox compliance and duration metrics (default: 30 days). |
+| **Clear Bot DMs** | `/pace clear` | Deletes historical pacing alerts and direct messages sent by the bot. |
+| **Help Guide** | `/pace help` | Displays command syntax and operational hints. |
+| **App Home Tab** | Click `HuddlePace` under Apps | Opens the visual workspace dashboard, schedule modal, and stats. |
 
 ---
 
-## Project Structure
+## Code Integrity Verification (Auditing)
+
+Security reviewers can verify the codebase, business rules, and access control invariants locally using the automated test suite.
+
+### Prerequisites
+
+- Node.js (`>= 20.0.0`, pinned via `.node-version`)
+- `pnpm`
+
+### Running the Test Suite
+
+Clone the repository and run the automated test suite with SQLite:
+
+```bash
+# 1. Install dependencies
+pnpm install
+
+# 2. Run the test suite
+pnpm test
+```
+
+The test runner executes 99 automated test cases covering:
+- **Role-based authorization**: Verification that spectators cannot start, transition, or conclude sessions.
+- **Timebox mathematical reconciliation**: Verification that percentage-to-minute rounding sums to 100% of meeting duration.
+- **Data isolation**: Partitioning of meetup records strictly by `teamId`.
+- **Negative controls**: Explicit assertion tests proving that unauthorized actions, invalid percentage totals, and malformed inputs fail predictably.
+
+To verify TypeScript compilation:
+
+```bash
+pnpm build
+```
+
+---
+
+## Architecture Overview
 
 ```text
-huddle-pace/
-├── .github/
-│   └── workflows/
-│       └── ci.yml                 # CI pipeline: build, typecheck, and test suite
-├── .gitignore                     # Environment, SQLite, and build exclusions
-├── .node-version                  # Pinned Node.js runtime
-├── manifest.json                  # Slack App manifest with least-privilege scopes
-├── package.json                   # Dependencies, build, dev, and test scripts
-├── tsconfig.json                  # TypeScript compiler options
-├── prisma/
-│   ├── schema.prisma              # Relational models with performance indexes
-│   └── dev.db                     # Embedded SQLite database
-├── src/
-│   ├── index.ts                   # Entry point, runtime env validation, shutdown hooks
-│   ├── config/
-│   │   └── env.ts                 # Runtime environment validation with Zod
-│   ├── db/
-│   │   └── client.ts              # Prisma singleton with SQLite WAL mode
-│   ├── services/
-│   │   └── meetupService.ts       # Domain logic, minute allocations, report queries
-│   ├── scheduler/
-│   │   └── timerWorker.ts         # 30-second heartbeat loop and pacing notifications
-│   ├── utils/
-│   │   └── progressBar.ts         # ASCII/Unicode progress bar renderer
-│   └── slack/
-│       ├── app.ts                 # Slack Bolt app initialization (Socket Mode)
-│       ├── schemas/
-│       │   └── scheduleSchema.ts  # Zod schema for modal inputs and 100% timebox
-│       ├── utils/
-│       │   ├── channelUtils.ts    # Transparent auto-join and private channel handling
-│       │   └── huddleDiscovery.ts # Channel history scanner for active Huddles
-│       ├── ui/
-│       │   ├── homeTab.ts         # App Home tab builder
-│       │   ├── scheduleModal.ts   # Interactive modal with 10-module cap
-│       │   ├── huddleSelectModal.ts # Launch-time Huddle disambiguation modal
-│       │   ├── trackerBlock.ts    # Live progress bar block and chatting banner
-│       │   └── reportBlock.ts     # Pacing analytics report builder
-│       └── handlers/
-│           ├── homeHandlers.ts    # Home Tab events and report modal triggers
-│           ├── modalHandlers.ts   # Modal submissions with Zod validation
-│           ├── actionHandlers.ts  # Role-gated controls (start, chatting, conclude)
-│           ├── commandHandlers.ts # Slash commands (/pace, status, report, help)
-│           └── huddleHandlers.ts  # Native Huddle lifecycle detection
-├── tests/
-│   ├── accessControl.test.ts      # Speaker authorization and modal boundary tests
-│   ├── meetupService.test.ts      # Time allocation math and discrepancy tests
-│   ├── progressBar.test.ts        # Progress bar and time formatting tests
-│   └── validation.test.ts         # Zod environment and modal schema tests
-└── README.md
+src/
+├── index.ts                   # Application lifecycle, runtime validation, and graceful shutdown
+├── config/env.ts              # Zod validation for runtime environment variables
+├── db/client.ts               # Prisma ORM singleton with SQLite WAL mode enabled
+├── services/meetupService.ts  # Core domain logic, minute allocations, and report aggregations
+├── scheduler/timerWorker.ts   # 30-second heartbeat loop driving thread updates and DM alerts
+├── utils/progressBar.ts       # Monospace Unicode progress bar renderer
+└── slack/                     # Slack Bolt integration layer
+    ├── app.ts                 # Dual-mode Slack Bolt initialization (Socket Mode & Native HTTP)
+    ├── schemas/               # Zod validation schemas for modal submissions
+    ├── ui/                    # Block Kit builders (App Home, Modals, Live Tracker, Reports)
+    └── handlers/              # Role-gated action handlers, slash commands, and Huddle events
 ```
+
+For coding standards and design guidelines, consult [`docs/README.md`](docs/README.md).
 
 ---
 
@@ -182,4 +152,10 @@ huddle-pace/
 
 Source-Available & Audit License. Copyright (c) 2026 tBeltty. All rights reserved.
 
-Permission is granted solely for code inspection, security auditing, and personal evaluation. Plagiarism, modification, redistribution, and unauthorized commercial deployment are strictly prohibited. For commercial licensing, contact the repository owner. See [`LICENSE`](./LICENSE) for full legal terms.
+Permission is granted solely for code inspection, security auditing, and personal evaluation. Plagiarism, modification, redistribution, and unauthorized commercial deployment are strictly prohibited. For commercial licensing, contact the repository owner. See [`LICENSE`](LICENSE) for complete legal terms.
+
+---
+
+## Responsible Security Disclosure
+
+If you identify a security issue or vulnerability, please notify us responsibly by emailing **[support@huddlepace.com](mailto:support@huddlepace.com)**. Refer to our [Security Policy](SECURITY.md) for vulnerability handling timelines and guidelines.

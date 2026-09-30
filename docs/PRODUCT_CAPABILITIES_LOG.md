@@ -4,11 +4,14 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
-## [2026-09-30] Reestructuración del README y Enfoque en Distribución SaaS Oficial
-* **Alineación de Documentación Pública con Modelo Source-Available (`README.md`)**:
-  * **Llamado a la Acción de Instalación Oficial:** Incorporación de botón destacado y enlaces directos a `https://huddlepace.com/install` en el encabezado principal, delimitando la vía de instalación para workspaces de Slack.
-  * **Sustitución de Setup Guide por Local Development:** Eliminación de instrucciones de autoalojamiento multi-tenant y creación de credenciales de producción para terceros; la guía técnica se concentra exclusivamente en el flujo para desarrolladores y auditores (`pnpm test`, base de datos local y pruebas con Socket Mode).
-  * **Eliminación de Guía de Despliegue en systemd:** Se retiran las directivas de servicio VPS del README público para mantener los detalles de infraestructura interna dentro del pipeline automatizado de CI/CD.
+## [2026-09-30] Estándar Enterprise Audit-Only, Matriz de Permisos y Política de Seguridad
+* **Reingeniería de Documentación Pública y Postura de Seguridad (`README.md`, `SECURITY.md`)**:
+  * **Alineación con Licencia Source-Available & Audit-Only:** Se erradican guías de despliegue local o configuración de bots en Slack para terceros; el repositorio se posiciona oficialmente como código abierto para auditoría de seguridad, privacidad y cumplimiento por parte de administradores de Slack.
+  * **Sección de Postura de Seguridad y Privacidad:** Declaración explícita de invariantes arquitectónicos: cero captura o procesamiento de flujos de audio/voz, cero telemetría hacia LLMs externos (OpenAI, Anthropic), minimización estricta de datos (solo metadatos temporales de sesión) y controles por rol.
+  * **Matriz de Auditoría de Scopes de Slack:** Tabla técnica que justifica la necesidad operativa de cada uno de los 9 permisos solicitados en `manifest.json`, disipando inquietudes de seguridad sobre `channels:history` o `groups:history`.
+  * **Verificación de Integridad para Auditores:** Sustitución de guías de desarrollo por comandos deterministas de auditoría (`pnpm install && pnpm test`) para ejecutar la suite de 99 pruebas y controles negativos sin credenciales de red.
+  * **Resumen Arquitectónico de Alto Nivel:** Sustitución del árbol ASCII de 50 archivos por un mapa modular de 4 capas (`src/slack`, `src/services`, `src/scheduler`, `prisma`).
+  * **Política Oficial de Seguridad (`SECURITY.md`):** Creación del archivo canónico en la raíz del repositorio definiendo versiones soportadas, invariantes del sistema y procedimiento de divulgación responsable mediante correo privado (`support@huddlepace.com`).
 
 ## [2026-09-30] Role-Gating Estricto en App Home, Estandarización de Releases y Transparencia Web
 * **Aislamiento de Controles por Rol en App Home (`homeTab.ts`, `tests/homeTab.test.ts`)**:
