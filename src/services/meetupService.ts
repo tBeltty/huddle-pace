@@ -123,22 +123,31 @@ export class MeetupService {
 
   /**
    * Retrieves workspace settings for a given team, falling back to defaults
-   * (reminder text enabled: true, reminder image enabled: false, flexibilityMode: "STANDARD").
+   * (reminder text enabled: true, reminder image enabled: false, flexibilityMode: "STANDARD", managerUserIds: []).
    */
   static async getWorkspaceSettings(teamId = "default"): Promise<{
     reminderTextEnabled: boolean;
     reminderImageEnabled: boolean;
     flexibilityMode: "STRICT" | "STANDARD" | "RELAXED";
+    managerUserIds: string[];
   }> {
     try {
       const settings = await prisma.workspaceSettings.findUnique({
         where: { teamId },
       });
       if (settings) {
+        const managers = settings.managerUserIds
+          ? settings.managerUserIds
+              .split(",")
+              .map((id) => id.trim())
+              .filter(Boolean)
+          : [];
+
         return {
           reminderTextEnabled: settings.reminderTextEnabled,
           reminderImageEnabled: settings.reminderImageEnabled,
           flexibilityMode: (settings.flexibilityMode as any) || "STANDARD",
+          managerUserIds: managers,
         };
       }
     } catch (err) {
@@ -148,6 +157,7 @@ export class MeetupService {
       reminderTextEnabled: true,
       reminderImageEnabled: false,
       flexibilityMode: "STANDARD",
+      managerUserIds: [],
     };
   }
 
@@ -160,22 +170,94 @@ export class MeetupService {
       reminderTextEnabled?: boolean;
       reminderImageEnabled?: boolean;
       flexibilityMode?: "STRICT" | "STANDARD" | "RELAXED";
+      managerUserIds?: string[] | string | null;
     }
   ) {
+    let normalizedManagers: string | null | undefined = undefined;
+    if (settings.managerUserIds !== undefined) {
+      if (Array.isArray(settings.managerUserIds)) {
+        normalizedManagers = settings.managerUserIds.map((u) => u.trim()).filter(Boolean).join(",");
+      } else if (typeof settings.managerUserIds === "string") {
+        normalizedManagers = settings.managerUserIds.trim() || null;
+      } else {
+        normalizedManagers = null;
+      }
+    }
+
     return await prisma.workspaceSettings.upsert({
       where: { teamId },
       update: {
         ...(settings.reminderTextEnabled !== undefined ? { reminderTextEnabled: settings.reminderTextEnabled } : {}),
         ...(settings.reminderImageEnabled !== undefined ? { reminderImageEnabled: settings.reminderImageEnabled } : {}),
         ...(settings.flexibilityMode !== undefined ? { flexibilityMode: settings.flexibilityMode } : {}),
+        ...(normalizedManagers !== undefined ? { managerUserIds: normalizedManagers || null } : {}),
       },
       create: {
         teamId,
         reminderTextEnabled: settings.reminderTextEnabled ?? true,
         reminderImageEnabled: settings.reminderImageEnabled ?? false,
         flexibilityMode: settings.flexibilityMode || "STANDARD",
+        managerUserIds: normalizedManagers || null,
       },
     });
+  }
+
+  /**
+   * Verifies if a user has permission to manage workspace settings.
+   * Access is granted if:
+   * 1. The user is in the delegated managerUserIds list.
+   * 2. The user is the installer of the Slack app for this workspace.
+   * 3. The user is a Slack Workspace Admin or Owner (is_admin, is_owner, or is_primary_owner).
+   */
+  static async isUserWorkspaceManager(
+    client: any,
+    userId: string,
+    teamId = "default"
+  ): Promise<boolean> {
+    if (!userId) return false;
+
+    try {
+      // 1. Delegated Bot Managers configured in WorkspaceSettings
+      const wsSettings = await prisma.workspaceSettings.findUnique({
+        where: { teamId },
+      });
+      if (wsSettings?.managerUserIds) {
+        const managers = wsSettings.managerUserIds
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean);
+        if (managers.includes(userId)) {
+          return true;
+        }
+      }
+
+      // 2. Original Slack App Installer for this workspace
+      const installation = await prisma.slackInstallation.findUnique({
+        where: { teamId },
+      });
+      if (installation?.installedByUserId && installation.installedByUserId === userId) {
+        return true;
+      }
+
+      // 3. Slack Workspace Admins & Owners via Slack Web API
+      if (client?.users?.info && typeof client.users.info === "function") {
+        try {
+          const res = await client.users.info({ user: userId });
+          if (res?.ok && res?.user) {
+            const u = res.user;
+            if (u.is_admin || u.is_owner || u.is_primary_owner) {
+              return true;
+            }
+          }
+        } catch (userErr: any) {
+          console.warn(`Could not verify Slack admin status for ${userId}:`, userErr?.message || userErr);
+        }
+      }
+    } catch (err) {
+      console.warn(`Error checking workspace manager permission for ${userId} in team ${teamId}:`, err);
+    }
+
+    return false;
   }
 
   /**

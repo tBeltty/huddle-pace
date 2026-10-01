@@ -4,6 +4,14 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-09-30] Control de Acceso Basado en Roles y Rol Delegado "Bot Manager" para Ajustes
+* **Jerarquía de Permisos en Ajustes (`meetupService.ts`, `settingsModal.ts`, `homeHandlers.ts`, `commandHandlers.ts`, `modalHandlers.ts`)**:
+  * **Acceso de Edición Reservado (`canEdit`):** Solo pueden modificar los valores globales del espacio de trabajo los administradores/propietarios de Slack (`is_admin`, `is_owner`, `is_primary_owner`), el instalador original de la aplicación (`installedByUserId`) y los miembros designados con el rol delegado de "Bot Manager".
+  * **Modo de Solo Lectura para Miembros Generales:** Si un usuario sin privilegios abre el modal (desde el botón `Settings` en App Home o mediante `/pace settings`), visualiza una vista informativa bloqueada (`🔒 Read-Only View`) con los valores vigentes de recordatorios, margen de flexibilidad y la lista de Bot Managers, sin botón de guardado.
+  * **Selector de Bot Managers Delegados (`multi_users_select`):** Los administradores y gestores autorizados disponen de un selector múltiple de usuarios (`manager_settings_block`) para designar o remover compañeros con acceso a la configuración del bot sin necesidad de otorgarles permisos de administrador a nivel de todo el workspace de Slack.
+  * **Validación de Seguridad en el Backend:** El manejador `submit_settings_modal` revalida la autorización del usuario antes de persistir cambios en la base de datos, rechazando intentos de guardado no autorizados.
+  * **Persistencia en Base de Datos (`schema.prisma`):** Campo `managerUserIds` en el modelo `WorkspaceSettings` para almacenar los identificadores de Slack delegados.
+
 ## [2026-09-30] Modal de Ajustes de Workspace: Toggles Independientes de Recordatorio y Control de Flexibilidad
 * **Toggles Independientes de Recordatorio en Hilo (`settingsModal.ts`, `scheduleModal.ts`, `timerWorker.ts`, `schema.prisma`)**:
   * **Envío Sutil por Defecto:** El recordatorio de aproximación al cierre (~16.7% restante) ahora envía únicamente el bloque de texto mrkdwn de contexto (`⏱️ Healthy Reminder: Approaching our scheduled finish line...`), eliminando la interrupción de imágenes pesadas en el hilo del Huddle.

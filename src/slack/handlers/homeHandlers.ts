@@ -168,10 +168,12 @@ export function registerHomeHandlers(app: App) {
     const b = body as any;
     const triggerId = b.trigger_id;
     const teamId = b.team?.id || context.teamId || "default";
+    const userId = b.user?.id;
 
     try {
-      const [settings] = await Promise.all([
+      const [settings, canEdit] = await Promise.all([
         MeetupService.getWorkspaceSettings(teamId),
+        userId ? MeetupService.isUserWorkspaceManager(client, userId, teamId) : Promise.resolve(false),
         ack(),
       ]);
 
@@ -182,6 +184,8 @@ export function registerHomeHandlers(app: App) {
           reminderTextEnabled: settings.reminderTextEnabled,
           reminderImageEnabled: settings.reminderImageEnabled,
           flexibilityMode: settings.flexibilityMode,
+          managerUserIds: settings.managerUserIds,
+          canEdit,
         }),
       });
     } catch (error: any) {

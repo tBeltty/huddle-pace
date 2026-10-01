@@ -246,7 +246,7 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
   });
 
   describe("Settings Modal Layout & Defaults", () => {
-    test("renders settings modal with text reminder enabled and image disabled by default", () => {
+    test("renders settings modal with text reminder enabled, image disabled, and Bot Manager picker by default", () => {
       const modal = buildSettingsModal({
         reminderTextEnabled: true,
         reminderImageEnabled: false,
@@ -257,6 +257,7 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
       assert.strictEqual(modal.type, "modal");
       assert.strictEqual(modal.callback_id, "submit_settings_modal");
       assert.strictEqual(modal.title.text, "HuddlePace Settings");
+      assert.strictEqual(modal.submit?.text, "Save Settings");
 
       const reminderBlock = modal.blocks.find((b: any) => b.block_id === "reminder_settings_block") as any;
       assert.ok(reminderBlock);
@@ -268,14 +269,21 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
       assert.ok(flexBlock);
       assert.strictEqual(flexBlock.element.type, "static_select");
       assert.strictEqual(flexBlock.element.initial_option.value, "STANDARD");
+
+      const managerBlock = modal.blocks.find((b: any) => b.block_id === "manager_settings_block") as any;
+      assert.ok(managerBlock);
+      assert.strictEqual(managerBlock.element.type, "multi_users_select");
+      assert.strictEqual(managerBlock.element.initial_users, undefined);
     });
 
-    test("reflects custom reminder toggles and STRICT flexibility mode", () => {
+    test("reflects custom reminder toggles, STRICT flexibility mode, and pre-selected Bot Managers", () => {
       const modal = buildSettingsModal({
         reminderTextEnabled: false,
         reminderImageEnabled: true,
         flexibilityMode: "STRICT",
+        managerUserIds: ["U_MGR1", "U_MGR2"],
         teamId: "T_STRICT",
+        canEdit: true,
       });
 
       const reminderBlock = modal.blocks.find((b: any) => b.block_id === "reminder_settings_block") as any;
@@ -285,6 +293,10 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
 
       const flexBlock = modal.blocks.find((b: any) => b.block_id === "flexibility_settings_block") as any;
       assert.strictEqual(flexBlock.element.initial_option.value, "STRICT");
+
+      const managerBlock = modal.blocks.find((b: any) => b.block_id === "manager_settings_block") as any;
+      assert.ok(managerBlock);
+      assert.deepStrictEqual(managerBlock.element.initial_users, ["U_MGR1", "U_MGR2"]);
     });
 
     test("reflects RELAXED flexibility mode and both reminders active", () => {
@@ -299,6 +311,43 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
 
       const flexBlock = modal.blocks.find((b: any) => b.block_id === "flexibility_settings_block") as any;
       assert.strictEqual(flexBlock.element.initial_option.value, "RELAXED");
+    });
+
+    test("negative control: renders read-only settings modal when canEdit is false", () => {
+      const modal = buildSettingsModal({
+        reminderTextEnabled: true,
+        reminderImageEnabled: false,
+        flexibilityMode: "STANDARD",
+        managerUserIds: ["U_MGR_ALPHA"],
+        teamId: "T_READONLY",
+        canEdit: false,
+      });
+
+      assert.strictEqual(modal.type, "modal");
+      assert.strictEqual(modal.callback_id, "view_settings_modal_readonly");
+      assert.strictEqual(modal.submit, undefined, "Read-only modal must omit Save Settings button");
+      assert.strictEqual(modal.close.text, "Close");
+
+      // Verify Read-Only banner
+      const hasReadOnlyNotice = modal.blocks.some(
+        (b: any) => b.type === "section" && b.text?.text?.includes("Read-Only View")
+      );
+      assert.strictEqual(hasReadOnlyNotice, true);
+
+      // Verify formatted manager mentions
+      const managerSection = modal.blocks.find(
+        (b: any) => b.type === "section" && b.text?.text?.includes("Delegated Bot Managers")
+      ) as any;
+      assert.ok(managerSection);
+      assert.match(managerSection.text.text, /<@U_MGR_ALPHA>/);
+
+      // Verify reminder summary values
+      const reminderSection = modal.blocks.find(
+        (b: any) => b.type === "section" && b.text?.text?.includes("Thread Reminders")
+      ) as any;
+      assert.ok(reminderSection);
+      assert.match(reminderSection.text.text, /Finish-line text checkpoint:\* ✅ Active/);
+      assert.match(reminderSection.text.text, /Visual illustration banner:\* ❌ Disabled/);
     });
   });
 });
