@@ -20,6 +20,8 @@ export interface ModalStateData {
   availableHuddles?: DetectedHuddle[];
   customSubtopics?: ModalSubtopicState[];
   customDuration?: string;
+  reminderTextEnabled?: boolean;
+  reminderImageEnabled?: boolean;
 }
 
 export function buildScheduleModal(initialState?: Partial<ModalStateData>): ModalView {
@@ -117,6 +119,28 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     durationOptions.find((d) => d.value === durationStr) ||
     durationOptions.find((d) => d.value === "60") ||
     durationOptions[0];
+
+  const reminderTextEnabled = initialState?.reminderTextEnabled ?? true;
+  const reminderImageEnabled = initialState?.reminderImageEnabled ?? false;
+  const initialReminderOptions: any[] = [];
+  if (reminderTextEnabled) {
+    initialReminderOptions.push({
+      text: {
+        type: "mrkdwn" as const,
+        text: "*Send reminder text* (subtle finish-line check in thread)",
+      },
+      value: "reminder_text",
+    });
+  }
+  if (reminderImageEnabled) {
+    initialReminderOptions.push({
+      text: {
+        type: "mrkdwn" as const,
+        text: "*Send reminder image* (Vector illustration banner)",
+      },
+      value: "reminder_image",
+    });
+  }
 
   const blocks: any[] = [
     {
@@ -226,6 +250,40 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       label: {
         type: "plain_text",
         text: "Duration",
+      },
+    },
+    {
+      type: "input",
+      block_id: "reminder_options_block",
+      optional: true,
+      label: {
+        type: "plain_text",
+        text: "Finish-Line Reminders",
+      },
+      element: {
+        type: "checkboxes",
+        action_id: "schedule_reminder_checkboxes",
+        options: [
+          {
+            text: {
+              type: "mrkdwn",
+              text: "*Send reminder text* (subtle finish-line check in thread)",
+            },
+            value: "reminder_text",
+          },
+          {
+            text: {
+              type: "mrkdwn",
+              text: "*Send reminder image* (Vector illustration banner)",
+            },
+            value: "reminder_image",
+          },
+        ],
+        ...(initialReminderOptions.length > 0 ? { initial_options: initialReminderOptions } : {}),
+      },
+      hint: {
+        type: "plain_text",
+        text: "Dispatched once when ~16.7% time remains to wrap up action items.",
       },
     },
     {

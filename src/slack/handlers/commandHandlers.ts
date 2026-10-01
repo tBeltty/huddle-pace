@@ -1,5 +1,6 @@
 import { App } from "@slack/bolt";
 import { buildScheduleModal } from "../ui/scheduleModal.js";
+import { buildSettingsModal } from "../ui/settingsModal.js";
 import { buildPacingReportBlocks } from "../ui/reportBlock.js";
 import { MeetupService } from "../../services/meetupService.js";
 import { findChannelHuddles } from "../utils/huddleDiscovery.js";
@@ -22,7 +23,22 @@ export function registerCommandHandlers(app: App) {
         await client.chat.postEphemeral({
           channel: command.channel_id,
           user: command.user_id,
-          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the interactive meetup scheduler\n• \`/pace start\` — Immediately launch the pending scheduled session in this channel/Huddle\n• \`/pace 15m [Title]\` — Instant takeoff! Starts a 15m live session right inside this Huddle/channel\n• \`/pace clear\` — Clean up your private DM conversation history with HuddlePace bot\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to see your personalized sessions.`,
+          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the interactive meetup scheduler\n• \`/pace start\` — Immediately launch the pending scheduled session in this channel/Huddle\n• \`/pace 15m [Title]\` — Instant takeoff! Starts a 15m live session right inside this Huddle/channel\n• \`/pace settings\` — Configure workspace reminders and flexibility preferences\n• \`/pace clear\` — Clean up your private DM conversation history with HuddlePace bot\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to see your personalized sessions.`,
+        });
+        return;
+      }
+
+      if (subCommand === "settings" || subCommand === "config") {
+        const teamId = command.team_id || "default";
+        const settings = await MeetupService.getWorkspaceSettings(teamId);
+        await client.views.open({
+          trigger_id: command.trigger_id,
+          view: buildSettingsModal({
+            teamId,
+            reminderTextEnabled: settings.reminderTextEnabled,
+            reminderImageEnabled: settings.reminderImageEnabled,
+            flexibilityMode: settings.flexibilityMode,
+          }),
         });
         return;
       }

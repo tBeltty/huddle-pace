@@ -195,6 +195,42 @@ describe("MeetupService calculations and parsing", () => {
       assert.strictEqual(MeetupService.calculateGraceMinutes(120), 20);
     });
 
+    test("supports STRICT, STANDARD, and RELAXED flexibility modes in calculateGraceMinutes", () => {
+      // STRICT mode: 0 minutes grace buffer
+      assert.strictEqual(MeetupService.calculateGraceMinutes(15, "STRICT"), 0);
+      assert.strictEqual(MeetupService.calculateGraceMinutes(60, "STRICT"), 0);
+
+      // STANDARD mode: ~16.7% buffer (min 3m)
+      assert.strictEqual(MeetupService.calculateGraceMinutes(15, "STANDARD"), 3);
+      assert.strictEqual(MeetupService.calculateGraceMinutes(60, "STANDARD"), 10);
+
+      // RELAXED mode: 25% buffer (min 5m)
+      assert.strictEqual(MeetupService.calculateGraceMinutes(15, "RELAXED"), 5);
+      assert.strictEqual(MeetupService.calculateGraceMinutes(60, "RELAXED"), 15);
+    });
+
+    test("manages workspace settings lifecycle (get and update)", async () => {
+      const teamId = "T_SETTINGS_TEST_" + Date.now();
+
+      // Default settings
+      const defaultSettings = await MeetupService.getWorkspaceSettings(teamId);
+      assert.strictEqual(defaultSettings.reminderTextEnabled, true);
+      assert.strictEqual(defaultSettings.reminderImageEnabled, false);
+      assert.strictEqual(defaultSettings.flexibilityMode, "STANDARD");
+
+      // Update settings
+      await MeetupService.updateWorkspaceSettings(teamId, {
+        reminderTextEnabled: false,
+        reminderImageEnabled: true,
+        flexibilityMode: "STRICT",
+      });
+
+      const updatedSettings = await MeetupService.getWorkspaceSettings(teamId);
+      assert.strictEqual(updatedSettings.reminderTextEnabled, false);
+      assert.strictEqual(updatedSettings.reminderImageEnabled, true);
+      assert.strictEqual(updatedSettings.flexibilityMode, "STRICT");
+    });
+
     test("counts sessions within grace buffer as compliant (flexible) without penalizing team", async () => {
       const { prisma } = await import("../src/db/client.js");
       const teamId = "T_GRACE_TEST_" + Date.now();
@@ -256,6 +292,47 @@ describe("MeetupService calculations and parsing", () => {
       assert.ok(session2);
       assert.strictEqual(session2.isOnTime, false);
       assert.strictEqual(session2.isWithinGrace, false);
+    });
+
+    test("strict mode in workspace settings denies grace period", async () => {
+      const { prisma } = await import("../src/db/client.js");
+      const teamId = "T_STRICT_TEST_" + Date.now();
+
+      await MeetupService.updateWorkspaceSettings(teamId, {
+        flexibilityMode: "STRICT",
+      });
+
+      const m = await MeetupService.createMeetup({
+        title: "Strict Standup",
+        totalMinutes: 15,
+        channelId: "C_STRICT",
+        speakerUserId: "U_STRICT",
+        teamId,
+        modules: [{ title: "Status", percentage: 100 }],
+      });
+
+      // Took 17 minutes (2m over on a 15m budget)
+      const started = new Date(Date.now() - 17 * 60 * 1000);
+      const ended = new Date();
+      await prisma.meetup.update({
+        where: { id: m.id },
+        data: {
+          status: "COMPLETED",
+          startedAt: started,
+          formalEndsAt: ended,
+          endsAt: ended,
+        },
+      });
+
+      const stats = await MeetupService.getPacingReportStats(30, teamId);
+      assert.strictEqual(stats.completedOnTime, 0);
+      assert.strictEqual(stats.complianceRate, 0);
+
+      const session = stats.recentSessions.find((s) => s.id === m.id);
+      assert.ok(session);
+      assert.strictEqual(session.isOnTime, false);
+      assert.strictEqual(session.isWithinGrace, false);
+      assert.strictEqual(session.graceMinutes, 0);
     });
   });
 });

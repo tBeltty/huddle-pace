@@ -3,6 +3,7 @@ import { MeetupService } from "../../services/meetupService.js";
 import { buildHomeTabView, buildGuideModal } from "../ui/homeTab.js";
 import { buildScheduleModal } from "../ui/scheduleModal.js";
 import { buildPacingReportBlocks } from "../ui/reportBlock.js";
+import { buildSettingsModal } from "../ui/settingsModal.js";
 import { prisma } from "../../db/client.js";
 
 /**
@@ -159,6 +160,32 @@ export function registerHomeHandlers(app: App) {
       ]);
     } catch (error: any) {
       console.error("Error opening guide modal:", error?.data || error.message || error);
+    }
+  });
+
+  // Action: Open Settings Modal from Settings button
+  app.action("open_settings_modal", async ({ ack, body, client, context }) => {
+    const b = body as any;
+    const triggerId = b.trigger_id;
+    const teamId = b.team?.id || context.teamId || "default";
+
+    try {
+      const [settings] = await Promise.all([
+        MeetupService.getWorkspaceSettings(teamId),
+        ack(),
+      ]);
+
+      await client.views.open({
+        trigger_id: triggerId,
+        view: buildSettingsModal({
+          teamId,
+          reminderTextEnabled: settings.reminderTextEnabled,
+          reminderImageEnabled: settings.reminderImageEnabled,
+          flexibilityMode: settings.flexibilityMode,
+        }),
+      });
+    } catch (error: any) {
+      console.error("Error opening settings modal from Home:", error?.data || error.message || error);
     }
   });
 
