@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-09-30
+
+### Added
+- **Unified Workspace Settings Modal**: Added interactive Settings modal accessible via App Home and `/pace settings` allowing workspace-wide configuration of reminder formats and pacing flexibility.
+- **Independent Finish-Line Reminder Toggles**: Configurable thread checkpoints with separate toggles for text message (`reminderTextEnabled`, active by default) and visual Vector illustration banner (`reminderImageEnabled`, disabled by default), eliminating disruptive large images from active Huddle threads by default.
+- **Configurable Pacing Flexibility Modes**: Added workspace grace margin controls (`Standard` [15%], `Relaxed` [25%], `Strict` [0%]) directly integrated into the settings modal and compliance analytics.
+- **Per-Session Reminder Overrides**: Added finish-line reminder preference checkboxes to the agenda scheduler modal (`buildScheduleModal`) for granular meeting control.
+
 ## [1.1.0] - 2026-09-30
 
 ### Added
@@ -48,7 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/tBeltty/huddle-pace/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/tBeltty/huddle-pace/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/tBeltty/huddle-pace/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/tBeltty/huddle-pace/releases/tag/v1.0.0
