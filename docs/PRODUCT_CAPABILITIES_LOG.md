@@ -14,7 +14,7 @@
 
 ## [2026-09-30] Modal de Ajustes de Workspace: Toggles Independientes de Recordatorio y Control de Flexibilidad
 * **Toggles Independientes de Recordatorio en Hilo (`settingsModal.ts`, `scheduleModal.ts`, `timerWorker.ts`, `schema.prisma`)**:
-  * **Envío Sutil por Defecto:** El recordatorio de aproximación al cierre (~16.7% restante) ahora envía únicamente el bloque de texto mrkdwn de contexto (`⏱️ Healthy Reminder: Approaching our scheduled finish line...`), eliminando la interrupción de imágenes pesadas en el hilo del Huddle.
+  * **Envío Sutil vs. Visual:** El recordatorio de aproximación al cierre (~16.7% restante) envía de forma predeterminada un bloque de texto de contexto (`⏱️ Healthy Reminder: Approaching our scheduled finish line...`), permitiendo activar el banner ilustrado de Vector a quienes prefieran un formato más visual y llamativo en el hilo del Huddle.
   * **Controles Separados de Texto e Imagen:** Se implementan dos opciones configurables por separado: *"Send reminder text"* (activo por defecto) y *"Send reminder image"* (desactivado por defecto).
   * **Persistencia en Dos Niveles:** Los valores predeterminados del equipo se configuran en el modelo `WorkspaceSettings`. Al agendar una reunión específica en `Schedule Meetup` (`buildScheduleModal`), los organizadores pueden anular o personalizar estos controles para dicha sesión (`Meetup.reminderTextEnabled` y `Meetup.reminderImageEnabled`).
   * **Despacho Condicional en el Worker:** El motor en segundo plano (`timerWorker.ts`) evalúa las banderas de la sesión: si solo el texto está activo, despacha únicamente el bloque de contexto; si la imagen está activa, incluye el banner de Vector; si ambas están desactivadas, no envía ningún mensaje.
