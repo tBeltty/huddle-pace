@@ -22,12 +22,26 @@ model Meetup {
   endsAt           DateTime?
   status           String         @default("SCHEDULED") // SCHEDULED, ACTIVE, JUST_CHATTING, PAUSED, COMPLETED, CANCELLED
   dmMessageRefs    String? // JSON array of {channel, ts} for speaker DM reminders, cleaned up on conclude
+  reminderTextEnabled  Boolean        @default(true)
+  reminderImageEnabled Boolean        @default(false)
   modules          MeetupModule[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
   @@index([teamId, status])
   @@index([channelId, threadTs])
+}
+
+model WorkspaceSettings {
+  id                   String   @id @default(uuid())
+  teamId               String   @unique
+  reminderTextEnabled  Boolean  @default(true)
+  reminderImageEnabled Boolean  @default(false)
+  flexibilityMode      String   @default("STANDARD") // STRICT, STANDARD, RELAXED
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([teamId])
 }
 
 model SlackInstallation {

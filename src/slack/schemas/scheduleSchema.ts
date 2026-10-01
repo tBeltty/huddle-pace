@@ -21,6 +21,8 @@ export const scheduleModalInputSchema = z
       .positive("Duration must be a positive number."),
     speakerUserId: z.string().min(1, "Speaker is required."),
     threadTs: z.string().nullable(),
+    reminderTextEnabled: z.boolean().default(true),
+    reminderImageEnabled: z.boolean().default(false),
     modules: z
       .array(subtopicInputSchema)
       .min(1, "At least one subtopic is required."),

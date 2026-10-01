@@ -4,6 +4,22 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-09-30] Modal de Ajustes de Workspace: Toggles Independientes de Recordatorio y Control de Flexibilidad
+* **Toggles Independientes de Recordatorio en Hilo (`settingsModal.ts`, `scheduleModal.ts`, `timerWorker.ts`, `schema.prisma`)**:
+  * **Envío Sutil por Defecto:** El recordatorio de aproximación al cierre (~16.7% restante) ahora envía únicamente el bloque de texto mrkdwn de contexto (`⏱️ Healthy Reminder: Approaching our scheduled finish line...`), eliminando la interrupción de imágenes pesadas en el hilo del Huddle.
+  * **Controles Separados de Texto e Imagen:** Se implementan dos opciones configurables por separado: *"Send reminder text"* (activo por defecto) y *"Send reminder image"* (desactivado por defecto).
+  * **Persistencia en Dos Niveles:** Los valores predeterminados del equipo se configuran en el modelo `WorkspaceSettings`. Al agendar una reunión específica en `Schedule Meetup` (`buildScheduleModal`), los organizadores pueden anular o personalizar estos controles para dicha sesión (`Meetup.reminderTextEnabled` y `Meetup.reminderImageEnabled`).
+  * **Despacho Condicional en el Worker:** El motor en segundo plano (`timerWorker.ts`) evalúa las banderas de la sesión: si solo el texto está activo, despacha únicamente el bloque de contexto; si la imagen está activa, incluye el banner de Vector; si ambas están desactivadas, no envía ningún mensaje.
+* **Control de Flexibilidad y Margen de Tolerancia en Ajustes (`meetupService.ts`, `settingsModal.ts`)**:
+  * **Tres Modos de Margen de Gracia (`flexibilityMode`):**
+    * **Standard (15% grace buffer — Predeterminado):** Proporciona de 3 a 10 minutos según la duración programada, marcando reuniones extendidas como `⏳ Flexible` sin penalizar el cumplimiento del equipo.
+    * **Relaxed (25% grace buffer):** Margen de tolerancia ampliado (5 a 15 minutos) para sesiones de discusión abierta.
+    * **Strict (0% buffer):** Cero margen de gracia; cualquier minuto extra trascurrido se clasifica directamente como `⚠️ Overtime`.
+  * **Aplicación Automática en Analytics:** `getPacingReportStats` lee la configuración del espacio de trabajo para computar la tasa de puntualidad (`complianceRate`) según el modo seleccionado.
+* **Puntos de Acceso al Modal de Ajustes (`homeTab.ts`, `homeHandlers.ts`, `commandHandlers.ts`)**:
+  * **Botón en App Home:** Se agrega el botón interactivo `Settings` a la barra de acciones principales (`home_action_bar`), junto a `➕ Schedule Meetup`, `Analytics` y `Guide`.
+  * **Comando Slash:** Soporte para `/pace settings` y `/pace config`, abriendo de inmediato el modal de configuración nativo en Slack.
+
 ## [2026-09-30] Inyección Dinámica de Versión en Footer Web e Indicador de Release
 * **Inyección Dinámica de SemVer en Footer Web (`landingPage.ts`, `site.css`, HTMLs y diccionarios de i18n)**:
   * **Cero Versiones Hardcodeadas:** La versión oficial de la aplicación se lee dinámicamente desde `package.json` mediante `getAppVersion()` en el arranque y en tiempo de renderizado SSR (`getPageHtml` y `getLocaleDictionary`).

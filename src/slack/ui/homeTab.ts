@@ -70,6 +70,15 @@ export function buildHomeTabView(
           },
           action_id: "open_guide_modal",
         },
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "Settings",
+            emoji: true,
+          },
+          action_id: "open_settings_modal",
+        },
       ],
     },
     { type: "divider" },

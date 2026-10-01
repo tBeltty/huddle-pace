@@ -1,6 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { buildHomeTabView, buildGuideModal } from "../src/slack/ui/homeTab.js";
+import { buildSettingsModal } from "../src/slack/ui/settingsModal.js";
 import { buildAppHomeDeepLink, buildAppHomeMrkdwnLink } from "../src/slack/utils/deepLinks.js";
 
 describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", () => {
@@ -73,13 +74,13 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
       assert.ok(greetingBlock, "Should render generic greeting");
     });
 
-    test("renders action bar with Schedule Meetup, Analytics, and Guide buttons", () => {
+    test("renders action bar with Schedule Meetup, Analytics, Guide, and Settings buttons", () => {
       const view = buildHomeTabView([], [], dummyStats, "U_USER");
       const actionBar = view.blocks.find((b: any) => b.block_id === "home_action_bar");
       assert.ok(actionBar, "Action bar block should exist");
-      assert.strictEqual(actionBar.elements.length, 3);
+      assert.strictEqual(actionBar.elements.length, 4);
 
-      const [btnSchedule, btnAnalytics, btnGuide] = actionBar.elements;
+      const [btnSchedule, btnAnalytics, btnGuide, btnSettings] = actionBar.elements;
       assert.strictEqual(btnSchedule.action_id, "open_schedule_modal");
       assert.strictEqual(btnSchedule.style, "primary");
       assert.match(btnSchedule.text.text, /Schedule Meetup/);
@@ -89,6 +90,9 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
 
       assert.strictEqual(btnGuide.action_id, "open_guide_modal");
       assert.strictEqual(btnGuide.text.text, "Guide");
+
+      assert.strictEqual(btnSettings.action_id, "open_settings_modal");
+      assert.strictEqual(btnSettings.text.text, "Settings");
     });
 
     test("omits redundant 'Dashboard' header block for a cleaner, modern look", () => {
@@ -238,6 +242,63 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
         appId: "A123",
       });
       assert.strictEqual(link, "<slack://app?team=T123&id=A123&tab=home|Open Dashboard>");
+    });
+  });
+
+  describe("Settings Modal Layout & Defaults", () => {
+    test("renders settings modal with text reminder enabled and image disabled by default", () => {
+      const modal = buildSettingsModal({
+        reminderTextEnabled: true,
+        reminderImageEnabled: false,
+        flexibilityMode: "STANDARD",
+        teamId: "T_TEST_TEAM",
+      });
+
+      assert.strictEqual(modal.type, "modal");
+      assert.strictEqual(modal.callback_id, "submit_settings_modal");
+      assert.strictEqual(modal.title.text, "HuddlePace Settings");
+
+      const reminderBlock = modal.blocks.find((b: any) => b.block_id === "reminder_settings_block") as any;
+      assert.ok(reminderBlock);
+      assert.strictEqual(reminderBlock.element.type, "checkboxes");
+      assert.strictEqual(reminderBlock.element.initial_options?.length, 1);
+      assert.strictEqual(reminderBlock.element.initial_options[0].value, "reminder_text");
+
+      const flexBlock = modal.blocks.find((b: any) => b.block_id === "flexibility_settings_block") as any;
+      assert.ok(flexBlock);
+      assert.strictEqual(flexBlock.element.type, "static_select");
+      assert.strictEqual(flexBlock.element.initial_option.value, "STANDARD");
+    });
+
+    test("reflects custom reminder toggles and STRICT flexibility mode", () => {
+      const modal = buildSettingsModal({
+        reminderTextEnabled: false,
+        reminderImageEnabled: true,
+        flexibilityMode: "STRICT",
+        teamId: "T_STRICT",
+      });
+
+      const reminderBlock = modal.blocks.find((b: any) => b.block_id === "reminder_settings_block") as any;
+      assert.ok(reminderBlock);
+      assert.strictEqual(reminderBlock.element.initial_options?.length, 1);
+      assert.strictEqual(reminderBlock.element.initial_options[0].value, "reminder_image");
+
+      const flexBlock = modal.blocks.find((b: any) => b.block_id === "flexibility_settings_block") as any;
+      assert.strictEqual(flexBlock.element.initial_option.value, "STRICT");
+    });
+
+    test("reflects RELAXED flexibility mode and both reminders active", () => {
+      const modal = buildSettingsModal({
+        reminderTextEnabled: true,
+        reminderImageEnabled: true,
+        flexibilityMode: "RELAXED",
+      });
+
+      const reminderBlock = modal.blocks.find((b: any) => b.block_id === "reminder_settings_block") as any;
+      assert.strictEqual(reminderBlock.element.initial_options?.length, 2);
+
+      const flexBlock = modal.blocks.find((b: any) => b.block_id === "flexibility_settings_block") as any;
+      assert.strictEqual(flexBlock.element.initial_option.value, "RELAXED");
     });
   });
 });

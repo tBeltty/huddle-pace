@@ -13,6 +13,8 @@ export interface CreateMeetupDTO {
   teamId?: string;
   threadTs?: string | null;
   scheduledFor?: Date;
+  reminderTextEnabled?: boolean;
+  reminderImageEnabled?: boolean;
   modules: SubtopicInput[];
 }
 
@@ -58,11 +60,21 @@ export class MeetupService {
   }
 
   /**
-   * Calculates smart grace buffer in minutes based on total scheduled meeting minutes.
-   * Standard: ~16.7% (10 minutes for 60m call), with minimum 3 minutes for short huddles.
+   * Calculates smart grace buffer in minutes based on total scheduled meeting minutes and flexibility mode.
+   * Standard: ~16.7% (10m buffer for 60m call, min 3m).
+   * Relaxed: 25% (15m buffer for 60m call, min 5m).
+   * Strict: 0m (zero grace buffer).
    */
-  static calculateGraceMinutes(totalMinutes: number): number {
-    return Math.max(3, Math.round(totalMinutes * 0.1667));
+  static calculateGraceMinutes(totalMinutes: number, flexibilityMode = "STANDARD"): number {
+    switch (flexibilityMode.toUpperCase()) {
+      case "STRICT":
+        return 0;
+      case "RELAXED":
+        return Math.max(5, Math.round(totalMinutes * 0.25));
+      case "STANDARD":
+      default:
+        return Math.max(3, Math.round(totalMinutes * 0.1667));
+    }
   }
 
   /**
@@ -110,10 +122,76 @@ export class MeetupService {
   }
 
   /**
+   * Retrieves workspace settings for a given team, falling back to defaults
+   * (reminder text enabled: true, reminder image enabled: false, flexibilityMode: "STANDARD").
+   */
+  static async getWorkspaceSettings(teamId = "default"): Promise<{
+    reminderTextEnabled: boolean;
+    reminderImageEnabled: boolean;
+    flexibilityMode: "STRICT" | "STANDARD" | "RELAXED";
+  }> {
+    try {
+      const settings = await prisma.workspaceSettings.findUnique({
+        where: { teamId },
+      });
+      if (settings) {
+        return {
+          reminderTextEnabled: settings.reminderTextEnabled,
+          reminderImageEnabled: settings.reminderImageEnabled,
+          flexibilityMode: (settings.flexibilityMode as any) || "STANDARD",
+        };
+      }
+    } catch (err) {
+      console.warn(`Failed to fetch workspace settings for team ${teamId}:`, err);
+    }
+    return {
+      reminderTextEnabled: true,
+      reminderImageEnabled: false,
+      flexibilityMode: "STANDARD",
+    };
+  }
+
+  /**
+   * Updates or creates workspace settings for a given team.
+   */
+  static async updateWorkspaceSettings(
+    teamId = "default",
+    settings: {
+      reminderTextEnabled?: boolean;
+      reminderImageEnabled?: boolean;
+      flexibilityMode?: "STRICT" | "STANDARD" | "RELAXED";
+    }
+  ) {
+    return await prisma.workspaceSettings.upsert({
+      where: { teamId },
+      update: {
+        ...(settings.reminderTextEnabled !== undefined ? { reminderTextEnabled: settings.reminderTextEnabled } : {}),
+        ...(settings.reminderImageEnabled !== undefined ? { reminderImageEnabled: settings.reminderImageEnabled } : {}),
+        ...(settings.flexibilityMode !== undefined ? { flexibilityMode: settings.flexibilityMode } : {}),
+      },
+      create: {
+        teamId,
+        reminderTextEnabled: settings.reminderTextEnabled ?? true,
+        reminderImageEnabled: settings.reminderImageEnabled ?? false,
+        flexibilityMode: settings.flexibilityMode || "STANDARD",
+      },
+    });
+  }
+
+  /**
    * Creates a new scheduled meetup with its modules.
    */
   static async createMeetup(data: CreateMeetupDTO) {
     const computedModules = this.calculateModuleAllocations(data.totalMinutes, data.modules);
+
+    let textEnabled = data.reminderTextEnabled;
+    let imageEnabled = data.reminderImageEnabled;
+
+    if (textEnabled === undefined || imageEnabled === undefined) {
+      const wsSettings = await this.getWorkspaceSettings(data.teamId || "default");
+      if (textEnabled === undefined) textEnabled = wsSettings.reminderTextEnabled;
+      if (imageEnabled === undefined) imageEnabled = wsSettings.reminderImageEnabled;
+    }
 
     return await prisma.meetup.create({
       data: {
@@ -125,6 +203,8 @@ export class MeetupService {
         speakerUserId: data.speakerUserId,
         scheduledFor: data.scheduledFor || new Date(),
         status: "SCHEDULED",
+        reminderTextEnabled: textEnabled,
+        reminderImageEnabled: imageEnabled,
         modules: {
           create: computedModules,
         },
@@ -476,6 +556,8 @@ export class MeetupService {
     let totalFormalMinutes = 0;
     let totalChattingMinutes = 0;
 
+    const wsSettings = await this.getWorkspaceSettings(teamId || "default");
+
     const recentSessions = completed.map((m) => {
       const started = m.startedAt ? new Date(m.startedAt).getTime() : new Date(m.createdAt).getTime();
       const formalEnded = m.formalEndsAt ? new Date(m.formalEndsAt).getTime() : (m.endsAt ? new Date(m.endsAt).getTime() : started);
@@ -483,9 +565,9 @@ export class MeetupService {
 
       const formalDurationMin = Math.max(1, Math.round((formalEnded - started) / (60 * 1000)));
       const chattingDurationMin = Math.max(0, Math.round((ended - formalEnded) / (60 * 1000)));
-      const graceMinutes = this.calculateGraceMinutes(m.totalMinutes);
+      const graceMinutes = this.calculateGraceMinutes(m.totalMinutes, wsSettings.flexibilityMode);
       const isStrictOnTime = formalDurationMin <= m.totalMinutes;
-      const isWithinGrace = !isStrictOnTime && formalDurationMin <= (m.totalMinutes + graceMinutes);
+      const isWithinGrace = graceMinutes > 0 && !isStrictOnTime && formalDurationMin <= (m.totalMinutes + graceMinutes);
       const isOnTime = isStrictOnTime || isWithinGrace;
 
       if (isOnTime) completedOnTime++;

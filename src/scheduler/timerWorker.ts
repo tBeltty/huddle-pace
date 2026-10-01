@@ -288,31 +288,41 @@ export class TimerWorker {
           !this.healthyRemindersSent.has(meetup.id)
         ) {
           this.healthyRemindersSent.add(meetup.id);
-          try {
-            await this.app.client.chat.postMessage({
-              token: botToken,
-              channel: meetup.channelId,
-              thread_ts: meetup.threadTs || meetup.trackerMessageTs,
-              text: `⏱️ *Healthy Reminder:* Approaching our scheduled finish line (~${reminderRemainingMin}m remaining).`,
-              blocks: [
-                {
-                  type: "image",
-                  image_url: "https://huddlepace.com/assets/reminder-healthy.jpg",
-                  alt_text: "Healthy reminder: Approaching our scheduled finish line",
-                },
-                {
-                  type: "context",
-                  elements: [
-                    {
-                      type: "mrkdwn",
-                      text: `⏱️ *Healthy Reminder:* Approaching our scheduled finish line (~${reminderRemainingMin}m remaining). A natural moment to lock in action items and wrap up.`,
-                    },
-                  ],
-                },
-              ],
-            });
-          } catch (err) {
-            console.warn(`Failed to send healthy reminder in thread for meetup ${meetup.id}:`, err);
+          const reminderTextEnabled = (meetup as any).reminderTextEnabled ?? true;
+          const reminderImageEnabled = (meetup as any).reminderImageEnabled ?? false;
+
+          if (reminderTextEnabled || reminderImageEnabled) {
+            const blocks: any[] = [];
+            if (reminderImageEnabled) {
+              blocks.push({
+                type: "image",
+                image_url: "https://huddlepace.com/assets/reminder-healthy.jpg",
+                alt_text: "Healthy reminder: Approaching our scheduled finish line",
+              });
+            }
+            if (reminderTextEnabled) {
+              blocks.push({
+                type: "context",
+                elements: [
+                  {
+                    type: "mrkdwn",
+                    text: `⏱️ *Healthy Reminder:* Approaching our scheduled finish line (~${reminderRemainingMin}m remaining). A natural moment to lock in action items and wrap up.`,
+                  },
+                ],
+              });
+            }
+
+            try {
+              await this.app.client.chat.postMessage({
+                token: botToken,
+                channel: meetup.channelId,
+                thread_ts: meetup.threadTs || meetup.trackerMessageTs,
+                text: `⏱️ *Healthy Reminder:* Approaching our scheduled finish line (~${reminderRemainingMin}m remaining).`,
+                blocks,
+              });
+            } catch (err) {
+              console.warn(`Failed to send healthy reminder in thread for meetup ${meetup.id}:`, err);
+            }
           }
         }
 

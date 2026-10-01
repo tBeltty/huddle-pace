@@ -27,6 +27,11 @@ export function registerModalHandlers(app: App) {
       const metadata = JSON.parse(b.view.private_metadata || "{}");
       const count = metadata.subtopicCount || 3;
 
+      const reminderSelected = values.reminder_options_block?.schedule_reminder_checkboxes?.selected_options || [];
+      const reminderValues = reminderSelected.map((o: any) => o.value);
+      const reminderTextEnabled = reminderValues.includes("reminder_text");
+      const reminderImageEnabled = reminderValues.includes("reminder_image");
+
       const customSubtopics: Array<{ title: string; pct: string }> = [];
       for (let i = 0; i < count; i++) {
         customSubtopics.push({
@@ -47,6 +52,8 @@ export function registerModalHandlers(app: App) {
           customThreadTs,
           availableHuddles: huddles,
           customSubtopics,
+          reminderTextEnabled,
+          reminderImageEnabled,
         }),
       });
     } catch (error) {
@@ -75,6 +82,11 @@ export function registerModalHandlers(app: App) {
       const selectedHuddleChoice = values.huddle_select_block?.huddle_select?.selected_option?.value;
       const customThreadTs = values.custom_thread_block?.custom_thread_input?.value || "";
 
+      const reminderSelected = values.reminder_options_block?.schedule_reminder_checkboxes?.selected_options || [];
+      const reminderValues = reminderSelected.map((o: any) => o.value);
+      const reminderTextEnabled = reminderValues.includes("reminder_text");
+      const reminderImageEnabled = reminderValues.includes("reminder_image");
+
       let huddles: DetectedHuddle[] = [];
       if (channelId) {
         huddles = await findChannelHuddles(client, channelId);
@@ -101,6 +113,8 @@ export function registerModalHandlers(app: App) {
           customThreadTs,
           availableHuddles: huddles,
           customSubtopics,
+          reminderTextEnabled,
+          reminderImageEnabled,
         }),
       });
     } catch (error) {
@@ -149,6 +163,11 @@ export function registerModalHandlers(app: App) {
       threadTs = "auto";
     }
 
+    const reminderSelected = values.reminder_options_block?.schedule_reminder_checkboxes?.selected_options || [];
+    const reminderValues = reminderSelected.map((o: any) => o.value);
+    const reminderTextEnabled = reminderValues.includes("reminder_text");
+    const reminderImageEnabled = reminderValues.includes("reminder_image");
+
     const rawModules = [];
     for (let i = 0; i < count; i++) {
       const subTitle = values[`subtopic_title_${i}`]?.[`subtopic_title_input_${i}`]?.value || "";
@@ -166,6 +185,8 @@ export function registerModalHandlers(app: App) {
       totalMinutes,
       speakerUserId,
       threadTs,
+      reminderTextEnabled,
+      reminderImageEnabled,
       modules: rawModules,
     });
 
@@ -215,6 +236,8 @@ export function registerModalHandlers(app: App) {
         speakerUserId: validatedData.speakerUserId,
         threadTs: validatedData.threadTs,
         teamId,
+        reminderTextEnabled: validatedData.reminderTextEnabled,
+        reminderImageEnabled: validatedData.reminderImageEnabled,
         modules: validatedData.modules,
       });
 
@@ -248,6 +271,39 @@ export function registerModalHandlers(app: App) {
       }
     } catch (error) {
       console.error("Error creating meetup from modal submission:", error);
+    }
+  });
+
+  // Submission: Handle workspace settings modal submission
+  app.view("submit_settings_modal", async ({ ack, view, body, client }) => {
+    await ack();
+    try {
+      const metadata = JSON.parse(view.private_metadata || "{}");
+      const teamId = metadata.teamId || body.team?.id || "default";
+
+      const values = view.state.values;
+      const reminderSelected = values.reminder_settings_block?.reminder_checkboxes?.selected_options || [];
+      const reminderValues = reminderSelected.map((o: any) => o.value);
+
+      const reminderTextEnabled = reminderValues.includes("reminder_text");
+      const reminderImageEnabled = reminderValues.includes("reminder_image");
+
+      const flexMode = values.flexibility_settings_block?.flexibility_mode_select?.selected_option?.value as any;
+      const flexibilityMode = flexMode === "STRICT" || flexMode === "RELAXED" ? flexMode : "STANDARD";
+
+      await MeetupService.updateWorkspaceSettings(teamId, {
+        reminderTextEnabled,
+        reminderImageEnabled,
+        flexibilityMode,
+      });
+
+      if (body.user?.id) {
+        publishHomeTab(client, body.user.id, teamId).catch((err) => {
+          console.warn(`Failed to auto-refresh App Home after settings update for user ${body.user?.id}:`, err);
+        });
+      }
+    } catch (error) {
+      console.error("Error saving workspace settings from modal:", error);
     }
   });
 
