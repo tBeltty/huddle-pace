@@ -38,6 +38,7 @@ model WorkspaceSettings {
   reminderTextEnabled  Boolean  @default(true)
   reminderImageEnabled Boolean  @default(false)
   flexibilityMode      String   @default("STANDARD") // STRICT, STANDARD, RELAXED
+  managerUserIds       String?  // Comma-separated Slack user IDs with delegated Bot Manager access
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 

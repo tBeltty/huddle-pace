@@ -30,7 +30,10 @@ export function registerCommandHandlers(app: App) {
 
       if (subCommand === "settings" || subCommand === "config") {
         const teamId = command.team_id || "default";
-        const settings = await MeetupService.getWorkspaceSettings(teamId);
+        const [settings, canEdit] = await Promise.all([
+          MeetupService.getWorkspaceSettings(teamId),
+          MeetupService.isUserWorkspaceManager(client, command.user_id, teamId),
+        ]);
         await client.views.open({
           trigger_id: command.trigger_id,
           view: buildSettingsModal({
@@ -38,6 +41,8 @@ export function registerCommandHandlers(app: App) {
             reminderTextEnabled: settings.reminderTextEnabled,
             reminderImageEnabled: settings.reminderImageEnabled,
             flexibilityMode: settings.flexibilityMode,
+            managerUserIds: settings.managerUserIds,
+            canEdit,
           }),
         });
         return;

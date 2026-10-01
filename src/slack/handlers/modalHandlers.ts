@@ -276,11 +276,25 @@ export function registerModalHandlers(app: App) {
 
   // Submission: Handle workspace settings modal submission
   app.view("submit_settings_modal", async ({ ack, view, body, client }) => {
-    await ack();
-    try {
-      const metadata = JSON.parse(view.private_metadata || "{}");
-      const teamId = metadata.teamId || body.team?.id || "default";
+    const metadata = JSON.parse(view.private_metadata || "{}");
+    const teamId = metadata.teamId || body.team?.id || "default";
+    const userId = body.user?.id;
 
+    // Security Gate: Ensure submitting user is authorized (Admin, Installer, or Bot Manager)
+    const canEdit = await MeetupService.isUserWorkspaceManager(client, userId, teamId);
+    if (!canEdit) {
+      await ack({
+        response_action: "errors",
+        errors: {
+          reminder_settings_block: "You do not have permission to modify workspace settings. Only Admins and designated Bot Managers can save changes.",
+        },
+      });
+      return;
+    }
+
+    await ack();
+
+    try {
       const values = view.state.values;
       const reminderSelected = values.reminder_settings_block?.reminder_checkboxes?.selected_options || [];
       const reminderValues = reminderSelected.map((o: any) => o.value);
@@ -291,10 +305,13 @@ export function registerModalHandlers(app: App) {
       const flexMode = values.flexibility_settings_block?.flexibility_mode_select?.selected_option?.value as any;
       const flexibilityMode = flexMode === "STRICT" || flexMode === "RELAXED" ? flexMode : "STANDARD";
 
+      const managerSelected = values.manager_settings_block?.manager_users_select?.selected_users || [];
+
       await MeetupService.updateWorkspaceSettings(teamId, {
         reminderTextEnabled,
         reminderImageEnabled,
         flexibilityMode,
+        managerUserIds: managerSelected,
       });
 
       if (body.user?.id) {

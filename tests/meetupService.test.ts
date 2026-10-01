@@ -209,7 +209,7 @@ describe("MeetupService calculations and parsing", () => {
       assert.strictEqual(MeetupService.calculateGraceMinutes(60, "RELAXED"), 15);
     });
 
-    test("manages workspace settings lifecycle (get and update)", async () => {
+    test("manages workspace settings lifecycle (get, update, and delegated managers)", async () => {
       const teamId = "T_SETTINGS_TEST_" + Date.now();
 
       // Default settings
@@ -217,18 +217,78 @@ describe("MeetupService calculations and parsing", () => {
       assert.strictEqual(defaultSettings.reminderTextEnabled, true);
       assert.strictEqual(defaultSettings.reminderImageEnabled, false);
       assert.strictEqual(defaultSettings.flexibilityMode, "STANDARD");
+      assert.deepStrictEqual(defaultSettings.managerUserIds, []);
 
-      // Update settings
+      // Update settings with delegated managers
       await MeetupService.updateWorkspaceSettings(teamId, {
         reminderTextEnabled: false,
         reminderImageEnabled: true,
         flexibilityMode: "STRICT",
+        managerUserIds: ["U_MGR1", "U_MGR2"],
       });
 
       const updatedSettings = await MeetupService.getWorkspaceSettings(teamId);
       assert.strictEqual(updatedSettings.reminderTextEnabled, false);
       assert.strictEqual(updatedSettings.reminderImageEnabled, true);
       assert.strictEqual(updatedSettings.flexibilityMode, "STRICT");
+      assert.deepStrictEqual(updatedSettings.managerUserIds, ["U_MGR1", "U_MGR2"]);
+    });
+
+    test("isUserWorkspaceManager correctly evaluates admin, installer, manager, and member roles", async () => {
+      const { prisma } = await import("../src/db/client.js");
+      const teamId = "T_ROLE_TEST_" + Date.now();
+
+      // Setup workspace settings with delegated manager
+      await MeetupService.updateWorkspaceSettings(teamId, {
+        managerUserIds: ["U_DELEGATED_MANAGER"],
+      });
+
+      // Setup installation with installer
+      await prisma.slackInstallation.create({
+        data: {
+          teamId,
+          installedByUserId: "U_INSTALLER",
+          installationData: JSON.stringify({ ok: true }),
+        },
+      });
+
+      const mockAdminClient = {
+        users: {
+          info: async ({ user }: { user: string }) => {
+            if (user === "U_SLACK_ADMIN") {
+              return { ok: true, user: { is_admin: true, is_owner: false } };
+            }
+            if (user === "U_SLACK_OWNER") {
+              return { ok: true, user: { is_admin: false, is_owner: true } };
+            }
+            return { ok: true, user: { is_admin: false, is_owner: false, is_primary_owner: false } };
+          },
+        },
+      };
+
+      // 1. Delegated Bot Manager
+      const isManager = await MeetupService.isUserWorkspaceManager(mockAdminClient, "U_DELEGATED_MANAGER", teamId);
+      assert.strictEqual(isManager, true, "Delegated manager should have access");
+
+      // 2. Installer
+      const isInstaller = await MeetupService.isUserWorkspaceManager(mockAdminClient, "U_INSTALLER", teamId);
+      assert.strictEqual(isInstaller, true, "App installer should have access");
+
+      // 3. Slack Workspace Admin
+      const isAdmin = await MeetupService.isUserWorkspaceManager(mockAdminClient, "U_SLACK_ADMIN", teamId);
+      assert.strictEqual(isAdmin, true, "Slack admin should have access");
+
+      // 4. Slack Workspace Owner
+      const isOwner = await MeetupService.isUserWorkspaceManager(mockAdminClient, "U_SLACK_OWNER", teamId);
+      assert.strictEqual(isOwner, true, "Slack owner should have access");
+
+      // 5. Negative Control: Regular workspace member without special roles
+      const isMember = await MeetupService.isUserWorkspaceManager(mockAdminClient, "U_REGULAR_MEMBER", teamId);
+      assert.strictEqual(isMember, false, "Regular member should NOT have manager access");
+
+      // Negative Control: Nonexistent or empty user ID
+      const isEmpty = await MeetupService.isUserWorkspaceManager(mockAdminClient, "", teamId);
+      assert.strictEqual(isEmpty, false, "Empty user ID should not have access");
     });
 
     test("counts sessions within grace buffer as compliant (flexible) without penalizing team", async () => {

@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.1.1] - 2026-09-30
+## [1.2.0] - 2026-09-30
+
+### Added
+- **Role-Based Settings Access Control**: Implemented multi-tier authorization hierarchy restricting workspace settings mutation to Slack Workspace Admins & Owners, the app installer, and delegated "Bot Managers".
+- **Delegated Bot Manager Role**: Added multi-user select block (`multi_users_select`) allowing authorized managers to delegate settings configuration to specific teammates without requiring Slack workspace admin privileges.
+- **Read-Only Settings Modal View**: Regular workspace members opening Settings see an informational read-only modal (`🔒 Read-Only View`) with active reminder preferences, grace margin buffer, and designated managers without a Save button.
+- **Backend Settings Security Interceptor**: Enforced server-side permission validation in `submit_settings_modal` to prevent unauthorized database updates.
+- **Database Schema Support**: Added `managerUserIds` column to `WorkspaceSettings` for storing comma-separated delegated manager IDs.
 
 ### Added
 - **Unified Workspace Settings Modal**: Added interactive Settings modal accessible via App Home and `/pace settings` allowing workspace-wide configuration of reminder formats and pacing flexibility.
@@ -56,7 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/tBeltty/huddle-pace/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/tBeltty/huddle-pace/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/tBeltty/huddle-pace/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/tBeltty/huddle-pace/compare/v1.0.0...v1.0.1
