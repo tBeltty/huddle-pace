@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Unified Workspace Settings Modal**: Added interactive Settings modal accessible via App Home and `/pace settings` allowing workspace-wide configuration of reminder formats and pacing flexibility.
-- **Independent Finish-Line Reminder Toggles**: Configurable thread checkpoints with separate toggles for text message (`reminderTextEnabled`, active by default) and visual Vector illustration banner (`reminderImageEnabled`, disabled by default), eliminating disruptive large images from active Huddle threads by default.
+- **Independent Finish-Line Reminder Toggles**: Configurable thread checkpoints with separate toggles for text message (`reminderTextEnabled`, active by default for subtle updates) and visual Vector illustration banner (`reminderImageEnabled`, optional for teams preferring a high-visibility, expressive visual prompt).
 - **Configurable Pacing Flexibility Modes**: Added workspace grace margin controls (`Standard` [15%], `Relaxed` [25%], `Strict` [0%]) directly integrated into the settings modal and compliance analytics.
 - **Per-Session Reminder Overrides**: Added finish-line reminder preference checkboxes to the agenda scheduler modal (`buildScheduleModal`) for granular meeting control.
 
