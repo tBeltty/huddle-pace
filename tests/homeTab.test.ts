@@ -346,8 +346,8 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
         (b: any) => b.type === "section" && b.text?.text?.includes("Thread Reminders")
       ) as any;
       assert.ok(reminderSection);
-      assert.match(reminderSection.text.text, /Finish-line text checkpoint:\* ✅ Active/);
-      assert.match(reminderSection.text.text, /Visual illustration banner:\* ❌ Disabled/);
+      assert.match(reminderSection.text.text, /Finish-line text checkpoint:\* \*Active\*/);
+      assert.match(reminderSection.text.text, /Visual illustration banner:\* \*Disabled\*/);
     });
   });
 });

@@ -69,9 +69,9 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
           text: {
             type: "mrkdwn",
             text: `*Thread Reminders (Approaching Finish Line)*\n• *Finish-line text checkpoint:* ${
-              options.reminderTextEnabled ? "✅ Active" : "❌ Disabled"
+              options.reminderTextEnabled ? "*Active*" : "*Disabled*"
             }\n• *Visual illustration banner:* ${
-              options.reminderImageEnabled ? "✅ Active" : "❌ Disabled"
+              options.reminderImageEnabled ? "*Active*" : "*Disabled*"
             }`,
           },
         },
