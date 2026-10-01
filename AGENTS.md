@@ -59,8 +59,19 @@ Any agent operating in this codebase must reference and respect the following co
 * Ensure all tests (access control, time allocation math, progress bar rendering, Zod schemas) pass with 0 failures.
 * Confirm that post-deploy smoke checks on production (`https://huddlepace.com/healthz`) return HTTP 200 OK.
 
-### 5. Versioning & GitHub Releases Protocol
-* **Strict SemVer & Keep a Changelog**: All releases adhere to SemVer (`package.json`) and `CHANGELOG.md` ([Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/)).
-* **Automated Tag Deployment**: Releases are published by pushing annotated tags (`git tag -a vX.Y.Z -m "Release vX.Y.Z"` followed by `git push origin vX.Y.Z`). The GitHub Actions workflow (`.github/workflows/release.yml`) automatically extracts changelog entries and creates/updates the official GitHub Release.
+### 5. Mandatory Proactive Versioning & GitHub Releases Protocol (Zero User Reminders)
+* **Automatic Execution Required**: The agent MUST NEVER complete any task involving functional code, bug fixes, schema changes, or UI updates without proactively executing the full release lifecycle. **Do NOT wait for the user to ask or remind you to update the changelog or cut a release.**
+* **Strict SemVer Determination**:
+  * **PATCH (`x.x.Y`)**: Backward-compatible bug fixes, refinements, UI adjustments, setting toggles, minor enhancements, or doc fixes. Use `pnpm version:patch`.
+  * **MINOR (`x.Y.0`)**: New major capabilities, interactive workflows, modal architectures, or new command subsystems. Use `pnpm version:minor`.
+* **Atomic Keep a Changelog Hygiene**:
+  * Concurrently with any code change, create or update the release block in `CHANGELOG.md` following [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/).
+  * Update footer comparison links (`[Unreleased]`, `[x.y.z]`) to maintain accurate GitHub diff links.
+* **Tag & Automated Release Deployment**:
+  * Immediately after the CI/CD deploy run passes green (`✓`) on `main` and production smoke checks pass (`/healthz` 200 OK):
+  * Create an annotated git tag matching the bumped SemVer: `git tag -a vX.Y.Z -m "Release vX.Y.Z"`
+  * Push the tag: `git push origin vX.Y.Z`
+  * Proactively monitor the triggered GitHub Actions release workflow (`gh run list --workflow=release.yml --limit 1` and `gh run watch`) until the official GitHub Release is verified published (`gh release view vX.Y.Z`).
+* **Non-Negotiable Definition of Done**: No coding task is considered "Done" until the version is bumped, the changelog is updated, the tag is pushed, and the GitHub release is live.
 * **Guideline Reference**: Follow [`docs/guidelines/RELEASE_PROCESS.md`](docs/guidelines/RELEASE_PROCESS.md) for step-by-step procedures.
 
