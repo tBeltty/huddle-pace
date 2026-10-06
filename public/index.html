@@ -6,9 +6,7 @@
   <title>HuddlePace | 15-Minute Huddles That Actually Take 15 Minutes</title>
   
   <!-- Primary Meta Tags -->
-  <meta name="title" content="HuddlePace | 15-Minute Huddles That Actually Take 15 Minutes">
-  <meta name="description" content="Vector keeps Slack Huddles inside their agreed timebox with thread progress bars and midpoint blocker alerts. 0% audio recorded.">
-  <meta name="keywords" content="Slack Bot, Meeting Pacer, Slack Huddle Timer, Agile Standup, Meeting Timekeeper, Scrum Productivity, HuddlePace">
+  <meta name="description" content="HuddlePace keeps Slack Huddles inside their agreed timebox with thread progress bars and midpoint blocker alerts. 0% audio recorded.">
   <meta name="robots" content="index, follow">
   <meta name="slack-app-id" content="A0C3AB76LE9">
   <link rel="canonical" href="https://huddlepace.com/">
@@ -19,14 +17,18 @@
   <meta property="og:title" content="HuddlePace | 15-Minute Huddles That Actually Take 15 Minutes">
   <meta property="og:description" content="Vector tracks your Slack Huddle pacing with real-time thread progress bars and clean wrap-up reminders. Built with zero audio recording.">
   <meta property="og:image" content="https://huddlepace.com/assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Vector, the HuddlePace falcon, next to a Slack Huddle progress bar">
   <meta property="og:site_name" content="HuddlePace">
 
   <!-- Twitter Card -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://huddlepace.com/">
-  <meta property="twitter:title" content="HuddlePace | 15-Minute Huddles That Actually Take 15 Minutes">
-  <meta property="twitter:description" content="Vector tracks your Slack Huddle pacing with real-time thread progress bars and clean wrap-up reminders. Built with zero audio recording.">
-  <meta property="twitter:image" content="https://huddlepace.com/assets/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://huddlepace.com/">
+  <meta name="twitter:title" content="HuddlePace | 15-Minute Huddles That Actually Take 15 Minutes">
+  <meta name="twitter:description" content="Vector tracks your Slack Huddle pacing with real-time thread progress bars and clean wrap-up reminders. Built with zero audio recording.">
+  <meta name="twitter:image" content="https://huddlepace.com/assets/og-image.jpg">
+  <meta name="twitter:image:alt" content="Vector, the HuddlePace falcon, next to a Slack Huddle progress bar">
 
   <!-- Favicon Suite -->
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
@@ -36,6 +38,7 @@
   <link rel="shortcut icon" href="/assets/favicon.ico">
 
   <!-- Google Fonts Preconnect -->
+  <link rel="dns-prefetch" href="//finances.tbelt.online">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -44,33 +47,57 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "HuddlePace",
-    "operatingSystem": "Slack",
-    "applicationCategory": "BusinessApplication",
-    "url": "https://huddlepace.com/",
-    "offers": {
-      "@type": "Offer",
-      "price": "0.00",
-      "priceCurrency": "USD"
-    },
-    "description": "Slack-native meeting timekeeper and cadence companion. Tracks modular agendas and huddle durations in real time without audio recording."
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://huddlepace.com/#organization",
+        "name": "HuddlePace",
+        "url": "https://huddlepace.com/",
+        "logo": { "@type": "ImageObject", "url": "https://huddlepace.com/assets/favicon.png", "width": 512, "height": 512 },
+        "sameAs": ["https://github.com/tBeltty/huddle-pace"]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://huddlepace.com/#website",
+        "url": "https://huddlepace.com/",
+        "name": "HuddlePace",
+        "inLanguage": ["en", "es"],
+        "publisher": { "@id": "https://huddlepace.com/#organization" }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://huddlepace.com/#app",
+        "name": "HuddlePace",
+        "alternateName": "Vector",
+        "operatingSystem": "Slack",
+        "applicationCategory": "BusinessApplication",
+        "url": "https://huddlepace.com/",
+        "inLanguage": "en",
+        "image": "https://huddlepace.com/assets/og-image.jpg",
+        "screenshot": "https://huddlepace.com/assets/reminder-healthy.jpg",
+        "featureList": ["Thread progress bars for Slack Huddles", "Midpoint blocker alerts", "Wrap-up reminders", "Modular agendas", "No audio recording"],
+        "publisher": { "@id": "https://huddlepace.com/#organization" },
+        "offers": { "@type": "Offer", "price": "0.00", "priceCurrency": "USD" },
+        "description": "Slack-native meeting timekeeper and cadence companion. Tracks modular agendas and huddle durations in real time without audio recording."
+      }
+    ]
   }
   </script>
 
   <link rel="stylesheet" href="/assets/site.css">
 </head>
 <body>
-  <div class="ambient-glow-1"></div>
-  <div class="ambient-glow-2"></div>
-  <div class="telemetry-grid"></div>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="ambient-glow-1" aria-hidden="true"></div>
+  <div class="ambient-glow-2" aria-hidden="true"></div>
+  <div class="telemetry-grid" aria-hidden="true"></div>
 
   <div class="container">
     <!-- Navbar -->
     <header>
       <nav class="navbar" aria-label="Main Navigation">
         <a href="/" class="brand">
-          <img src="/assets/avatar.png" alt="Vector" class="brand-avatar-img" width="34" height="34" decoding="async">
+          <img src="/assets/avatar-96.png" alt="HuddlePace" class="brand-avatar-img" width="34" height="34" decoding="async">
           <span>HuddlePace</span>
         </a>
         <div class="nav-actions">
@@ -84,11 +111,11 @@
           
           <!-- Language Toggle -->
           <div class="lang-switcher">
-            <button type="button" class="lang-btn active" id="btn-en" onclick="setLanguage('en')" aria-label="Switch language to English" aria-pressed="true">EN</button>
-            <button type="button" class="lang-btn" id="btn-es" onclick="setLanguage('es')" aria-label="Cambiar idioma a Español" aria-pressed="false">ES</button>
+            <a href="__ALT_EN__" class="lang-btn active" id="btn-en" hreflang="en" lang="en" aria-label="Switch language to English">EN</a>
+            <a href="__ALT_ES__" class="lang-btn" id="btn-es" hreflang="es" lang="es" aria-label="Cambiar idioma a Español">ES</a>
           </div>
 
-          <a href="https://huddlepace.com/slack/install" class="btn-nav-slack" aria-label="Add to Slack">
+          <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-nav-slack" aria-label="Add to Slack">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.528 2.528 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
             <span>Add to Slack</span>
           </a>
@@ -96,6 +123,7 @@
       </nav>
     </header>
 
+    <main id="main">
     <!-- Hero -->
     <section class="hero">
       <div class="hero-text">
@@ -110,7 +138,7 @@
         </p>
 
         <div class="hero-actions">
-          <a href="https://huddlepace.com/slack/install" class="btn-primary">
+          <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.528 2.528 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
             <span data-i18n="btnInstall">Install to Slack</span>
           </a>
@@ -141,7 +169,7 @@
             <img src="/assets/hero-vector.jpg" alt="Vector the Pacer Falcon" fetchpriority="high" width="800" height="800" decoding="async">
             <div class="vector-floating-tag">
               <div class="tag-identity">
-                <h4>Vector</h4>
+                <p class="tag-name">Vector</p>
                 <p>Flight Pacer · Vibecoder Crew</p>
               </div>
               <div class="tag-status">
@@ -169,14 +197,14 @@
         <!-- Live (in-progress) view -->
         <div class="slack-message" id="sim-live-view">
           <div class="bot-avatar">
-            <img src="/assets/avatar.png" alt="HuddlePace Bot Avatar" width="48" height="48" decoding="async">
+            <img src="/assets/avatar-96.png" alt="HuddlePace Bot Avatar" width="48" height="48" decoding="async">
           </div>
           <div class="message-content">
-            <h5>
+            <p class="message-author">
               <span>HuddlePace</span>
               <span class="bot-pill">APP</span>
               <span style="font-size:0.75rem; color:var(--text-muted); font-weight:400;" id="sim-clock">10:14 AM</span>
-            </h5>
+            </p>
             <div class="huddle-title" data-i18n="simTitle">Daily Sync: Sprint Planning & Blockers</div>
 
             <div class="progress-box">
@@ -217,14 +245,14 @@
         <!-- Concluded (wrap-up) view, shown after "Conclude Meetup" -->
         <div class="slack-message" id="sim-concluded-view" style="display:none;">
           <div class="bot-avatar">
-            <img src="/assets/avatar.png" alt="HuddlePace Bot Avatar" width="48" height="48" decoding="async">
+            <img src="/assets/avatar-96.png" alt="HuddlePace Bot Avatar" width="48" height="48" decoding="async">
           </div>
           <div class="message-content">
-            <h5>
+            <p class="message-author">
               <span>HuddlePace</span>
               <span class="bot-pill">APP</span>
               <span style="font-size:0.75rem; color:var(--text-muted); font-weight:400;" id="sim-concluded-clock">10:29 AM</span>
-            </h5>
+            </p>
             <div class="sim-concluded-badge">✅ <span data-i18n="simConcludedTitle">Session Concluded</span></div>
             <div class="huddle-title" data-i18n="simTitle">Daily Sync: Sprint Planning & Blockers</div>
 
@@ -313,6 +341,7 @@
         </div>
       </div>
     </section>
+    </main>
 
     <!-- Upgraded Multi-Column SaaS Footer -->
     <footer>
@@ -321,7 +350,7 @@
           <!-- Brand Column -->
           <div class="footer-brand">
             <a href="/" class="brand">
-              <img src="/assets/avatar.png" alt="Vector" class="brand-avatar-img" width="34" height="34" decoding="async">
+              <img src="/assets/avatar-96.png" alt="HuddlePace" class="brand-avatar-img" width="34" height="34" decoding="async">
               <span>HuddlePace</span>
             </a>
             <p class="footer-desc" data-i18n="footerDesc">
@@ -335,18 +364,18 @@
 
           <!-- Column 1: Product -->
           <div class="footer-col">
-            <h4 data-i18n="fCol1Title">Product</h4>
+            <p class="footer-heading" data-i18n="fCol1Title">Product</p>
             <ul>
               <li><a href="#demo" data-i18n="fCol1Demo">Live Simulation</a></li>
               <li><a href="#features" data-i18n="fCol1Pillars">Core Pillars</a></li>
               <li><a href="#vector" data-i18n="fCol1Vector">Meet Vector</a></li>
-              <li><a href="https://huddlepace.com/slack/install" data-i18n="fCol1Install">Add to Slack</a></li>
+              <li><a href="https://huddlepace.com/slack/install" rel="nofollow" data-i18n="fCol1Install">Add to Slack</a></li>
             </ul>
           </div>
 
           <!-- Column 2: Security & Trust -->
           <div class="footer-col">
-            <h4 data-i18n="fCol2Title">Security & Trust</h4>
+            <p class="footer-heading" data-i18n="fCol2Title">Security & Trust</p>
             <ul>
               <li><a href="#features" data-i18n="fCol2Zero">0% Audio Retention</a></li>
               <li><a href="#features" data-i18n="fCol2Tenant">Multi-Tenant Isolation</a></li>
@@ -358,7 +387,7 @@
 
           <!-- Column 3: Legal & Support -->
           <div class="footer-col">
-            <h4 data-i18n="fCol3Title">Legal & Support</h4>
+            <p class="footer-heading" data-i18n="fCol3Title">Legal & Support</p>
             <ul>
               <li><a href="/privacy" data-i18n="fCol3Privacy">Privacy Policy</a></li>
               <li><a href="/terms" data-i18n="fCol3Terms">Terms of Service</a></li>
@@ -555,11 +584,9 @@
       const btnEs = document.getElementById('btn-es');
       if (btnEn) {
         btnEn.classList.toggle('active', lang === 'en');
-        btnEn.setAttribute('aria-pressed', lang === 'en' ? 'true' : 'false');
       }
       if (btnEs) {
         btnEs.classList.toggle('active', lang === 'es');
-        btnEs.setAttribute('aria-pressed', lang === 'es' ? 'true' : 'false');
       }
 
       const dict = translations[lang];
@@ -569,11 +596,6 @@
           el.innerHTML = dict[key];
         }
       });
-      try {
-        localStorage.setItem('huddlepace_lang', lang);
-        document.cookie = `huddlepace_lang=${lang};path=/;max-age=31536000;SameSite=Lax`;
-      } catch (e) {}
-
       // The Beacon SDK only localizes its UI at mount time; it has no public
       // live locale-switch API. Update the locale and re-render the launcher
       // label and panel body directly so the widget doesn't stay stuck in
@@ -594,17 +616,9 @@
       }
     }
 
-    // Auto-detect language
-    const urlParams = new URLSearchParams(window.location.search);
-    const queryLang = urlParams.get('lang');
-    const cookieLang = document.cookie.split('; ').find(row => row.startsWith('huddlepace_lang='))?.split('=')[1];
-    const savedLang = queryLang || cookieLang || localStorage.getItem('huddlepace_lang');
-
-    if (savedLang && (savedLang === 'es' || savedLang === 'en')) {
-      setLanguage(savedLang);
-    } else if (navigator.language && navigator.language.startsWith('es')) {
-      setLanguage('es');
-    }
+    // Language is fixed by the URL (/ is English, /es/ is Spanish). Re-apply the
+    // matching dictionary so the simulation strings stay in sync with the page.
+    setLanguage(document.documentElement.lang === 'es' ? 'es' : 'en');
 
     // Interactive Live Simulation: auto-ticking clock + manual phase
     // advance/conclude/restart controls. Module boundaries are cumulative
@@ -862,7 +876,7 @@
     <div class="contact-modal" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
       <button type="button" class="contact-modal-close" id="contact-modal-close" aria-label="Close">&times;</button>
       <div class="contact-modal-header">
-        <img src="/assets/avatar.png" alt="" class="contact-modal-avatar" />
+        <img src="/assets/avatar-96.png" alt="" class="contact-modal-avatar" />
         <div>
           <h3 id="contact-modal-title" data-i18n="contactModalTitle">Contact Support</h3>
           <p data-i18n="contactModalSubtitle">Tell us what's going on, Vector will route it to the team.</p>
@@ -894,20 +908,32 @@
   <!-- tBelt Support Widget SDK. Served as support-widget.js, not beacon.js:
        that filename is on default ad-blocker filter lists (EasyList et al.)
        as a known tracking-script pattern and gets silently dropped. -->
-  <script src="https://finances.tbelt.online/support-widget.js"></script>
   <script>
-    // Still guard the call: some blockers target broader patterns (e.g. any
-    // script from a "finances"/CRM-looking subdomain), so window.Beacon can
-    // still end up undefined even with the renamed file.
-    if (window.Beacon && typeof window.Beacon.init === 'function') {
-      window.Beacon.init({
-        key: '__BEACON_WIDGET_KEY__',
-        locale: document.documentElement.lang === 'es' ? 'es' : 'en',
-        color: '#06b6d4',
-        position: 'right',
-        theme: 'dark'
+    // Loaded once the page is idle so the third-party widget never competes
+    // with LCP/INP. window.Beacon can still be undefined (ad blockers), so guard.
+    (function () {
+      function loadWidget() {
+        var el = document.createElement('script');
+        el.src = 'https://finances.tbelt.online/support-widget.js';
+        el.async = true;
+        el.onload = function () {
+          if (window.Beacon && typeof window.Beacon.init === 'function') {
+            window.Beacon.init({
+              key: '__BEACON_WIDGET_KEY__',
+              locale: document.documentElement.lang === 'es' ? 'es' : 'en',
+              color: '#06b6d4',
+              position: 'right',
+              theme: 'dark'
+            });
+          }
+        };
+        document.body.appendChild(el);
+      }
+      addEventListener('load', function () {
+        if ('requestIdleCallback' in window) requestIdleCallback(loadWidget, { timeout: 4000 });
+        else setTimeout(loadWidget, 2500);
       });
-    }
+    })();
   </script>
 </body>
 </html>

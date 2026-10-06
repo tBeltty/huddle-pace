@@ -4,7 +4,8 @@ import {
   handleLandingPage,
   handleStaticAsset,
   getWebCustomRoutes,
-  detectLanguage,
+  buildSitemapXml,
+  buildRobotsTxt,
   renderLocalizedHtml,
   clearLandingCache,
   getAppVersion,
@@ -33,45 +34,8 @@ describe("Web Landing Page & Asset Delivery", () => {
     clearLandingCache();
   });
 
-  describe("detectLanguage negotiation protocol", () => {
-    test("detects explicit ?lang=es query param", () => {
-      const req: any = { url: "/?lang=es" };
-      const { lang, explicitQuery } = detectLanguage(req);
-      assert.strictEqual(lang, "es");
-      assert.strictEqual(explicitQuery, true);
-    });
-
-    test("detects explicit ?lang=en query param", () => {
-      const req: any = { url: "/?lang=en" };
-      const { lang, explicitQuery } = detectLanguage(req);
-      assert.strictEqual(lang, "en");
-      assert.strictEqual(explicitQuery, true);
-    });
-
-    test("falls back safely to cookie when query is missing", () => {
-      const req: any = { url: "/", headers: { cookie: "huddlepace_lang=es" } };
-      const { lang, explicitQuery } = detectLanguage(req);
-      assert.strictEqual(lang, "es");
-      assert.strictEqual(explicitQuery, false);
-    });
-
-    test("falls back safely to RFC 9110 Accept-Language header", () => {
-      const req: any = { url: "/", headers: { "accept-language": "es-ES,es;q=0.9,en;q=0.8" } };
-      const { lang, explicitQuery } = detectLanguage(req);
-      assert.strictEqual(lang, "es");
-      assert.strictEqual(explicitQuery, false);
-    });
-
-    test("defaults to 'en' when unsupported language or no header provided (negative control)", () => {
-      const req: any = { url: "/", headers: { "accept-language": "fr-FR,fr;q=0.9" } };
-      const { lang, explicitQuery } = detectLanguage(req);
-      assert.strictEqual(lang, "en");
-      assert.strictEqual(explicitQuery, false);
-    });
-  });
-
   describe("handleLandingPage", () => {
-    test("serves default English page with protocol headers, Vector avatar, and Meet Vector section", () => {
+    test("serves English page at / with canonical, hreflang pairs and locale tags", () => {
       const req: any = { url: "/" };
       const res = new MockResponse();
 
@@ -80,45 +44,72 @@ describe("Web Landing Page & Asset Delivery", () => {
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(res.headers["Content-Type"], "text/html; charset=utf-8");
       assert.strictEqual(res.headers["Content-Language"], "en");
-      assert.strictEqual(res.headers["Vary"], "Accept-Language, Cookie");
-      assert.strictEqual(
-        res.headers["Cache-Control"],
-        "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600"
-      );
+      assert.strictEqual(res.headers["Vary"], undefined);
+      assert.strictEqual(res.headers["Set-Cookie"], undefined);
       assert.match(res.body, /<html lang="en">/);
-      assert.match(res.body, /HuddlePace/);
       assert.match(res.body, /Meet Vector/);
-      assert.match(res.body, /The timekeeper for your Slack workspace/);
-      assert.match(res.body, /src="\/assets\/avatar\.png"/);
+      assert.match(res.body, /src="\/assets\/avatar-96\.png"/);
       assert.match(res.body, /src="\/assets\/vectorfull\.png"/);
+      assert.match(res.body, /<link rel="canonical" href="https:\/\/huddlepace\.com\/">/);
+      assert.match(res.body, /hreflang="es" href="https:\/\/huddlepace\.com\/es\/"/);
+      assert.match(res.body, /hreflang="x-default" href="https:\/\/huddlepace\.com\/"/);
+      assert.match(res.body, /og:locale" content="en_US"/);
+      assert.match(res.body, /<main id="main">/);
     });
 
-    test("serves pre-rendered Spanish page when ?lang=es is requested", () => {
-      const req: any = { url: "/?lang=es" };
+    test("ignores Accept-Language and cookie: content depends only on the URL", () => {
+      const req: any = { url: "/", headers: { "accept-language": "es-CO,es;q=0.9", cookie: "huddlepace_lang=es" } };
       const res = new MockResponse();
 
       handleLandingPage(req, res as any);
 
-      assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(res.headers["Content-Language"], "es");
-      assert.match(String(res.headers["Set-Cookie"]), /huddlepace_lang=es/);
-      assert.match(res.body, /<html lang="es">/);
-      assert.match(res.body, /Reuniones de 15 minutos que/);
-      assert.match(res.body, /Conoce a Vector/);
-      assert.match(res.body, /El copiloto de tiempo en tu workspace/);
+      assert.strictEqual(res.headers["Content-Language"], "en");
+      assert.match(res.body, /<html lang="en">/);
     });
 
-    test("serves pre-rendered Spanish page when Accept-Language: es is sent", () => {
-      const req: any = { url: "/", headers: { "accept-language": "es-CO,es;q=0.9" } };
+    test("serves Spanish page at /es/ with its own canonical and localized links", () => {
+      const route = getWebCustomRoutes().find((r) => r.path === "/es/")!;
+      const req: any = { url: "/es/" };
       const res = new MockResponse();
 
-      handleLandingPage(req, res as any);
+      route.handler(req, res as any);
 
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(res.headers["Content-Language"], "es");
       assert.match(res.body, /<html lang="es">/);
       assert.match(res.body, /Reuniones de 15 minutos que/);
       assert.match(res.body, /Conoce a Vector/);
+      assert.match(res.body, /<link rel="canonical" href="https:\/\/huddlepace\.com\/es\/">/);
+      assert.match(res.body, /og:locale" content="es_ES"/);
+      assert.match(res.body, /href="\/es\/privacy"/);
+      assert.doesNotMatch(res.body, /href="\/privacy"/);
+    });
+
+    test("301s legacy ?lang= and non-canonical paths to the canonical URL", () => {
+      const routes = getWebCustomRoutes();
+      const cases: Array<[string, string, string]> = [
+        ["/", "/?lang=es", "/es/"],
+        ["/", "/?lang=en", "/"],
+        ["/privacy", "/privacy?lang=es", "/es/privacy"],
+        ["/es", "/es", "/es/"],
+        ["/privacy/", "/privacy/", "/privacy"],
+      ];
+      for (const [routePath, url, location] of cases) {
+        const route = routes.find((r) => r.path === routePath)!;
+        const res = new MockResponse();
+        route.handler({ url } as any, res as any);
+        assert.strictEqual(res.statusCode, 301, url);
+        assert.strictEqual(res.headers["Location"], location, url);
+      }
+    });
+
+    test("serves legal pages in both languages", () => {
+      const routes = getWebCustomRoutes();
+      const es = new MockResponse();
+      routes.find((r) => r.path === "/es/terms")!.handler({ url: "/es/terms" } as any, es as any);
+      assert.strictEqual(es.statusCode, 200);
+      assert.match(es.body, /<html lang="es">/);
+      assert.match(es.body, /canonical" href="https:\/\/huddlepace\.com\/es\/terms"/);
     });
 
     test("handles HEAD request cleanly without body", () => {
@@ -140,7 +131,7 @@ describe("Web Landing Page & Asset Delivery", () => {
       res.on("finish", () => {
         assert.strictEqual(res.statusCode, 200);
         assert.strictEqual(res.headers["Content-Type"], "image/x-icon");
-        assert.strictEqual(res.headers["Cache-Control"], "public, max-age=86400, immutable");
+        assert.strictEqual(res.headers["Cache-Control"], "public, max-age=3600, stale-while-revalidate=86400");
         done();
       });
 
@@ -180,7 +171,7 @@ describe("Web Landing Page & Asset Delivery", () => {
       res.on("finish", () => {
         assert.strictEqual(res.statusCode, 200);
         assert.strictEqual(res.headers["Content-Type"], "image/jpeg");
-        assert.strictEqual(res.headers["Cache-Control"], "public, max-age=86400, immutable");
+        assert.strictEqual(res.headers["Cache-Control"], "public, max-age=3600, stale-while-revalidate=86400");
         done();
       });
 
@@ -224,6 +215,22 @@ describe("Web Landing Page & Asset Delivery", () => {
       await handleLandingPage(req, res as any);
       assert.ok(res.body.includes(`v${version}`));
       assert.ok(!res.body.includes("__APP_VERSION__"));
+    });
+  });
+
+  describe("sitemap.xml and robots.txt", () => {
+    test("sitemap lists every page in both languages with hreflang alternates", () => {
+      const xml = buildSitemapXml();
+      for (const loc of ["/", "/es/", "/privacy", "/es/privacy", "/terms", "/es/terms"]) {
+        assert.match(xml, new RegExp(`<loc>https://huddlepace\\.com${loc}</loc>`));
+      }
+      assert.match(xml, /hreflang="x-default"/);
+    });
+
+    test("robots.txt declares the sitemap and blocks Slack endpoints", () => {
+      const txt = buildRobotsTxt();
+      assert.match(txt, /Sitemap: https:\/\/huddlepace\.com\/sitemap\.xml/);
+      assert.match(txt, /Disallow: \/slack\//);
     });
   });
 });

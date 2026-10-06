@@ -3,7 +3,8 @@
     "title": "HuddlePace | Reuniones de 15 Minutos que Duran 15 Minutos",
     "description": "Vector mantiene tus Slack Huddles dentro del tiempo acordado con barras de progreso en el hilo y alertas de bloqueos. Sin grabar audio.",
     "ogTitle": "HuddlePace | Reuniones de 15 Minutos que Duran 15 Minutos",
-    "ogDescription": "Vector acompaña tus Slack Huddles con barras de avance en tiempo real y alertas de cierre en el hilo. Cero grabación de audio."
+    "ogDescription": "Vector acompaña tus Slack Huddles con barras de avance en tiempo real y alertas de cierre en el hilo. Cero grabación de audio.",
+    "schemaDescription": "Cronometrador de reuniones nativo de Slack. Sigue agendas modulares y la duración de los huddles en tiempo real, sin grabar audio."
   },
   "navVector": "Conoce a Vector",
   "navDemo": "Simulación",
@@ -71,7 +72,6 @@
   "fCol3Changelog": "Notas de Versión",
   "footerPill": "🛡️ OAuth verificado por Slack · ⚡ Avance de cadencia en vivo · 🦅 Vector v__APP_VERSION__",
   "footerCopy": "© 2026 HuddlePace. Diseñado para equipos que cuidan su tiempo.",
-
   "privacyMeta": {
     "title": "Política de Privacidad | HuddlePace",
     "description": "Cómo HuddlePace recopila, usa y protege los datos al instalar la app de Slack. Cero grabación de audio, cero transcripciones, prácticas de datos en lenguaje claro.",
@@ -116,7 +116,6 @@
   "privacyS10Body": "Podemos actualizar esta política a medida que HuddlePace evoluciona. Los cambios importantes se reflejarán actualizando la fecha de \"Última actualización\" arriba. El uso continuado de HuddlePace después de un cambio constituye la aceptación de la política revisada.",
   "privacyS11Title": "11. Contáctanos",
   "privacyS11Body": "¿Preguntas sobre esta política o tus datos? Escríbenos a <a href=\"mailto:support@huddlepace.com\">support@huddlepace.com</a> o usa el widget de Ayuda en la esquina de esta página.",
-
   "termsMeta": {
     "title": "Términos del Servicio | HuddlePace",
     "description": "Los términos que rigen el uso de la app de Slack HuddlePace: licencia, uso aceptable, disponibilidad, responsabilidad y terminación.",

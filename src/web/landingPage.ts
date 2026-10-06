@@ -22,16 +22,25 @@ const MIME_TYPES: Record<string, string> = {
 const PUBLIC_DIR = path.resolve(process.cwd(), "public");
 const LOCALES_DIR = path.resolve(process.cwd(), "src", "locales");
 
-// Static pages served by the site, keyed by the URL path that serves them.
+const SITE_ORIGIN = "https://huddlepace.com";
+
+type Lang = "en" | "es";
+
+// Static pages served by the site, keyed by the canonical URL path that serves them.
 // `metaKey` is the top-level key in the locale JSON holding that page's SEO meta block.
-const PAGES: Record<string, { file: string; metaKey: string }> = {
-  "/": { file: "index.html", metaKey: "meta" },
-  "/privacy": { file: "privacy.html", metaKey: "privacyMeta" },
-  "/terms": { file: "terms.html", metaKey: "termsMeta" },
+// Language is decided by the URL alone (`/es/...` is Spanish) so every language
+// version is a distinct, crawlable, cacheable URL.
+const PAGES: Record<string, { file: string; metaKey: string; lang: Lang; enPath: string; esPath: string }> = {
+  "/": { file: "index.html", metaKey: "meta", lang: "en", enPath: "/", esPath: "/es/" },
+  "/privacy": { file: "privacy.html", metaKey: "privacyMeta", lang: "en", enPath: "/privacy", esPath: "/es/privacy" },
+  "/terms": { file: "terms.html", metaKey: "termsMeta", lang: "en", enPath: "/terms", esPath: "/es/terms" },
+  "/es/": { file: "index.html", metaKey: "meta", lang: "es", enPath: "/", esPath: "/es/" },
+  "/es/privacy": { file: "privacy.html", metaKey: "privacyMeta", lang: "es", enPath: "/privacy", esPath: "/es/privacy" },
+  "/es/terms": { file: "terms.html", metaKey: "termsMeta", lang: "es", enPath: "/terms", esPath: "/es/terms" },
 };
 
 const cachedHtml: Record<string, string> = {};
-const cachedRendered: Record<string, Record<string, string>> = {};
+const cachedRendered: Record<string, { html: string }> = {};
 const cachedLocales: Record<string, any> = {};
 
 export function clearLandingCache(): void {
@@ -51,15 +60,12 @@ export function getAppVersion(): string {
   return "1.1.0";
 }
 
-function getPageHtml(pagePath: string): string {
-  const page = PAGES[pagePath];
-  if (!page) return "<h1>Not Found</h1>";
-
-  if (process.env.NODE_ENV === "production" && cachedHtml[pagePath]) {
-    return cachedHtml[pagePath];
+function getPageHtml(file: string): string {
+  if (process.env.NODE_ENV === "production" && cachedHtml[file]) {
+    return cachedHtml[file];
   }
 
-  const filePath = path.join(PUBLIC_DIR, page.file);
+  const filePath = path.join(PUBLIC_DIR, file);
   if (!fs.existsSync(filePath)) {
     return "<h1>HuddlePace — 15-minute huddles that actually take 15 minutes</h1>";
   }
@@ -72,7 +78,7 @@ function getPageHtml(pagePath: string): string {
   html = html.replaceAll("__APP_VERSION__", getAppVersion());
 
   if (process.env.NODE_ENV === "production") {
-    cachedHtml[pagePath] = html;
+    cachedHtml[file] = html;
   }
   return html;
 }
@@ -90,48 +96,42 @@ export function getLocaleDictionary(lang: string): any {
   return null;
 }
 
-export function detectLanguage(req: IncomingMessage): { lang: "en" | "es"; explicitQuery: boolean } {
-  // 1. Explicit query parameter ?lang=es or ?lang=en
-  if (req.url) {
-    try {
-      const urlObj = new URL(req.url, "http://localhost");
-      const qLang = urlObj.searchParams.get("lang");
-      if (qLang === "es" || qLang === "en") {
-        return { lang: qLang, explicitQuery: true };
-      }
-    } catch {}
-  }
+export function renderLocalizedHtml(
+  baseHtml: string,
+  lang: Lang,
+  metaKey: string = "meta",
+  paths: { enPath: string; esPath: string } = { enPath: "/", esPath: "/es/" }
+): string {
+  const selfPath = lang === "es" ? paths.esPath : paths.enPath;
+  const selfUrl = `${SITE_ORIGIN}${selfPath}`;
+  let html = baseHtml;
 
-  // 2. Cookie huddlepace_lang=es or en
-  const cookieHeader = req.headers?.cookie;
-  if (cookieHeader) {
-    const match = cookieHeader.match(/(?:^|;\s*)huddlepace_lang=(es|en)(?:;|$)/);
-    if (match && (match[1] === "es" || match[1] === "en")) {
-      return { lang: match[1] as "es" | "en", explicitQuery: false };
-    }
-  }
+  // Language switcher targets: plain crawlable links, one per language version.
+  html = html.replaceAll("__ALT_EN__", paths.enPath).replaceAll("__ALT_ES__", paths.esPath);
 
-  // 3. RFC 9110 Accept-Language header
-  const acceptLang = req.headers?.["accept-language"];
-  if (acceptLang) {
-    const primary = acceptLang.split(",")[0].trim().toLowerCase();
-    if (primary.startsWith("es")) {
-      return { lang: "es", explicitQuery: false };
-    }
-  }
+  // Canonical + social URLs point at this language's own URL, never at the other one.
+  html = html.replace(/<link rel="canonical" href=".*?">/, () => {
+    const alt = (hl: string, p: string) => `<link rel="alternate" hreflang="${hl}" href="${SITE_ORIGIN}${p}">`;
+    return [
+      `<link rel="canonical" href="${selfUrl}">`,
+      alt("en", paths.enPath),
+      alt("es", paths.esPath),
+      alt("x-default", paths.enPath),
+    ].join("\n  ");
+  });
+  html = html.replace(/(<meta property="og:url" content=")[^"]*(">)/, `$1${selfUrl}$2`);
+  html = html.replace(/(<meta name="twitter:url" content=")[^"]*(">)/, `$1${selfUrl}$2`);
+  html = html.replace(
+    /<meta property="og:site_name" content="HuddlePace">/,
+    `<meta property="og:site_name" content="HuddlePace">\n  <meta property="og:locale" content="${lang === "es" ? "es_ES" : "en_US"}">\n  <meta property="og:locale:alternate" content="${lang === "es" ? "en_US" : "es_ES"}">`
+  );
 
-  return { lang: "en", explicitQuery: false };
-}
-
-export function renderLocalizedHtml(baseHtml: string, lang: "en" | "es", metaKey: string = "meta"): string {
   if (lang === "en") {
-    return baseHtml;
+    return html;
   }
 
   const locale = getLocaleDictionary("es");
-  if (!locale) return baseHtml;
-
-  let html = baseHtml;
+  if (!locale) return html;
 
   // 1. Document Lang Attribute
   html = html.replace('<html lang="en">', '<html lang="es">');
@@ -141,22 +141,25 @@ export function renderLocalizedHtml(baseHtml: string, lang: "en" | "es", metaKey
   if (meta) {
     if (meta.title) {
       html = html.replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`);
-      html = html.replace(/<meta name="title" content=".*?">/, `<meta name="title" content="${meta.title}">`);
     }
     if (meta.description) {
       html = html.replace(/<meta name="description" content=".*?">/, `<meta name="description" content="${meta.description}">`);
     }
     if (meta.ogTitle) {
       html = html.replace(/<meta property="og:title" content=".*?">/, `<meta property="og:title" content="${meta.ogTitle}">`);
-      html = html.replace(/<meta property="twitter:title" content=".*?">/, `<meta property="twitter:title" content="${meta.ogTitle}">`);
+      html = html.replace(/<meta name="twitter:title" content=".*?">/, `<meta name="twitter:title" content="${meta.ogTitle}">`);
     }
     if (meta.ogDescription) {
       html = html.replace(/<meta property="og:description" content=".*?">/, `<meta property="og:description" content="${meta.ogDescription}">`);
-      html = html.replace(/<meta property="twitter:description" content=".*?">/, `<meta property="twitter:description" content="${meta.ogDescription}">`);
+      html = html.replace(/<meta name="twitter:description" content=".*?">/, `<meta name="twitter:description" content="${meta.ogDescription}">`);
+    }
+    if (meta.schemaDescription) {
+      html = html.replace(/("description": ")[^"]*(")/, `$1${meta.schemaDescription}$2`);
+      html = html.replace('"inLanguage": "en"', '"inLanguage": "es"');
     }
   }
 
-  // 3. Language button active class toggle (home page's client-side EN/ES toggle)
+  // 3. Language switcher active state
   html = html.replace('id="btn-en" class="lang-btn active"', 'id="btn-en" class="lang-btn"');
   html = html.replace('class="lang-btn active" id="btn-en"', 'class="lang-btn" id="btn-en"');
   html = html.replace('id="btn-es" class="lang-btn"', 'id="btn-es" class="lang-btn active"');
@@ -171,48 +174,71 @@ export function renderLocalizedHtml(baseHtml: string, lang: "en" | "es", metaKey
     return match;
   });
 
+  // 5. Internal links stay inside the Spanish version of the site.
+  html = html
+    .replace(/href="\/(#[^"]*)?"/g, (_m, hash) => `href="/es/${hash ?? ""}"`)
+    .replace(/href="\/(privacy|terms)(#[^"]*)?"/g, (_m, page, hash) => `href="/es/${page}${hash ?? ""}"`);
+
   return html;
 }
 
-function renderPage(pagePath: string, req: IncomingMessage): { html: string; lang: "en" | "es"; explicitQuery: boolean } {
+function renderPage(pagePath: string): { html: string; lang: Lang } {
   const page = PAGES[pagePath];
-  const { lang, explicitQuery } = detectLanguage(req);
+  const cacheKey = pagePath;
+
+  if (process.env.NODE_ENV === "production" && cachedRendered[cacheKey]) {
+    return { html: cachedRendered[cacheKey].html, lang: page.lang };
+  }
+
+  const html = renderLocalizedHtml(getPageHtml(page.file), page.lang, page.metaKey, page);
 
   if (process.env.NODE_ENV === "production") {
-    cachedRendered[pagePath] = cachedRendered[pagePath] || {};
-    if (cachedRendered[pagePath][lang]) {
-      return { html: cachedRendered[pagePath][lang], lang, explicitQuery };
+    cachedRendered[cacheKey] = { html };
+  }
+
+  return { html, lang: page.lang };
+}
+
+// Static pages answer only on their exact canonical path. Trailing-slash variants,
+// `/es` and the legacy `?lang=` switch 301 to the canonical URL, so each page has a
+// single indexable address per language.
+function canonicalRedirect(req: IncomingMessage, pagePath: string): string | null {
+  let pathname = pagePath;
+  let search = "";
+  try {
+    const u = new URL(req.url ?? pagePath, "http://localhost");
+    pathname = u.pathname;
+    const qLang = u.searchParams.get("lang");
+    if (qLang === "es" || qLang === "en") {
+      const page = PAGES[pagePath];
+      return qLang === "es" ? page.esPath : page.enPath;
     }
-  }
-
-  const baseHtml = getPageHtml(pagePath);
-  const html = renderLocalizedHtml(baseHtml, lang, page?.metaKey ?? "meta");
-
-  if (process.env.NODE_ENV === "production") {
-    cachedRendered[pagePath] = cachedRendered[pagePath] || {};
-    cachedRendered[pagePath][lang] = html;
-  }
-
-  return { html, lang, explicitQuery };
+    search = u.search;
+  } catch {}
+  if (pathname !== pagePath) return pagePath + search;
+  return null;
 }
 
 function handleStaticPage(pagePath: string) {
   return (req: IncomingMessage, res: ServerResponse): void => {
-    const { html, lang, explicitQuery } = renderPage(pagePath, req);
+    const redirectTo = canonicalRedirect(req, pagePath);
+    if (redirectTo) {
+      res.writeHead(301, { Location: redirectTo, "Cache-Control": "public, max-age=3600" });
+      res.end();
+      return;
+    }
+
+    const { html, lang } = renderPage(pagePath);
 
     const headers: Record<string, string | number> = {
       "Content-Type": "text/html; charset=utf-8",
       "Content-Length": Buffer.byteLength(html),
       "Content-Language": lang,
-      "Vary": "Accept-Language, Cookie",
       "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600",
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
     };
-
-    if (explicitQuery) {
-      headers["Set-Cookie"] = `huddlepace_lang=${lang}; Path=/; Max-Age=31536000; SameSite=Lax`;
-    }
 
     res.writeHead(200, headers);
     if (req.method === "HEAD") {
@@ -220,6 +246,42 @@ function handleStaticPage(pagePath: string) {
       return;
     }
     res.end(html);
+  };
+}
+
+export function buildSitemapXml(): string {
+  const alt = (hl: string, p: string) =>
+    `    <xhtml:link rel="alternate" hreflang="${hl}" href="${SITE_ORIGIN}${p}"/>`;
+  const urls = Object.values(PAGES)
+    .map((page) => {
+      const loc = page.lang === "es" ? page.esPath : page.enPath;
+      return [
+        "  <url>",
+        `    <loc>${SITE_ORIGIN}${loc}</loc>`,
+        alt("en", page.enPath),
+        alt("es", page.esPath),
+        alt("x-default", page.enPath),
+        "  </url>",
+      ].join("\n");
+    })
+    .join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls}\n</urlset>\n`;
+}
+
+export function buildRobotsTxt(): string {
+  return ["User-agent: *", "Allow: /", "Disallow: /slack/", "", `Sitemap: ${SITE_ORIGIN}/sitemap.xml`, ""].join("\n");
+}
+
+function handleTextFile(contentType: string, build: () => string) {
+  return (req: IncomingMessage, res: ServerResponse): void => {
+    const body = build();
+    res.writeHead(200, {
+      "Content-Type": contentType,
+      "Content-Length": Buffer.byteLength(body),
+      "Cache-Control": "public, max-age=3600, s-maxage=3600",
+      "X-Content-Type-Options": "nosniff",
+    });
+    res.end(req.method === "HEAD" ? undefined : body);
   };
 }
 
@@ -254,7 +316,7 @@ export function handleStaticAsset(
   res.writeHead(200, {
     "Content-Type": contentType,
     "Content-Length": stat.size,
-    "Cache-Control": "public, max-age=86400, immutable",
+    "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
     "X-Content-Type-Options": "nosniff",
   });
 
@@ -268,21 +330,22 @@ export function handleStaticAsset(
 }
 
 export function getWebCustomRoutes() {
+  const pageRoutes = [...Object.keys(PAGES), "/es", "/privacy/", "/terms/", "/es/privacy/", "/es/terms/"].map((routePath) => {
+    // Non-canonical variants map to their canonical page and 301 there.
+    const pagePath = routePath === "/es" ? "/es/" : routePath.length > 1 && routePath.endsWith("/") && !(routePath in PAGES) ? routePath.slice(0, -1) : routePath;
+    return { path: routePath, method: ["GET", "HEAD"], handler: handleStaticPage(pagePath) };
+  });
   return [
+    ...pageRoutes,
     {
-      path: "/",
+      path: "/sitemap.xml",
       method: ["GET", "HEAD"],
-      handler: handleLandingPage,
+      handler: handleTextFile("application/xml; charset=utf-8", buildSitemapXml),
     },
     {
-      path: "/privacy",
+      path: "/robots.txt",
       method: ["GET", "HEAD"],
-      handler: handleStaticPage("/privacy"),
-    },
-    {
-      path: "/terms",
-      method: ["GET", "HEAD"],
-      handler: handleStaticPage("/terms"),
+      handler: handleTextFile("text/plain; charset=utf-8", buildRobotsTxt),
     },
     {
       path: "/assets/:file",
