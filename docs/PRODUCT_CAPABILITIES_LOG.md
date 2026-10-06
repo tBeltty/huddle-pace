@@ -4,6 +4,11 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Región Main en las Páginas Legales y Hipótesis Descartada de la Home
+* **`privacy.html`, `terms.html`**: contenido envuelto en `<main id="main">` y enlace de salto, que Lighthouse marcaba como `landmark-one-main` (accesibilidad 98). Un test comprueba que ocho páginas representativas tengan exactamente un `<main>` y el enlace de salto.
+* **Medido y descartado**: mover el script en línea de 23 KB de la home a un archivo externo con `defer` no cambia nada en un A/B local (98 de rendimiento y LCP de 2,3 a 2,5 s en las dos variantes, cuatro ejecuciones cada una), así que no se aplicó. La irregularidad de la home en producción (LCP de 2,2 a 3,3 s) viene de la variación de red y de terceros, no de su script.
+* **Medición posterior a las fuentes propias** (10 ejecuciones de Lighthouse móvil): FCP de 1,6 a 2,1 s, rendimiento de 88 a 98, SEO 100 y buenas prácticas 100 en todas, cero peticiones a Google Fonts.
+
 ## [2026-10-06] Fuentes Autoalojadas y Menú Móvil de la Home
 * **Fuentes (`public/assets/*.woff2`, `site.css`, todas las páginas)**: Plus Jakarta Sans y JetBrains Mono (subconjunto latino, variables, SIL OFL) se sirven desde el propio dominio con `@font-face`, `font-display: swap` y `preload`; se eliminan las peticiones a Google Fonts. En las mediciones de Lighthouse el FCP y el LCP de móvil seguían exactamente la hora de llegada de las fuentes de Google (3,2 a 3,6 s con fuentes a 1,7 s; 1,7 a 2,1 s con fuentes a 0,7 s).
 * **Caché**: los `.woff2` llevan `Cache-Control: public, max-age=31536000, immutable`; el nombre incluye la versión de origen.
