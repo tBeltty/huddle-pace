@@ -4,6 +4,18 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Edición de Meetups Programados que Aún No Han Iniciado
+* **Botón "✏️ Edit" en App Home (`homeTab.ts`, `modalHandlers.ts`)**:
+  * **Dónde aparece:** Debajo de cada meetup en *My Scheduled Meetups*, junto a `🚀 Start in Huddle`. Los meetups del resto del workspace no muestran el botón.
+  * **Mismo modal, precargado:** `edit_scheduled_meetup_action` abre el modal de agenda con título, canal, speakers, duración, destino, recordatorios y módulos del meetup. El título pasa a `Edit Meetup` y el envío a `Save Changes`. El selector de templates se oculta en este modo.
+  * **Duraciones atípicas:** Si el meetup tiene una duración fuera de las opciones del selector (por ejemplo 25 min creada con `/pace`), se agrega como opción para que editar no la cambie en silencio.
+* **Reglas y seguridad en el servidor (`meetupService.ts`)**:
+  * **Solo speakers:** Quien guarda debe ser speaker del meetup y pertenecer al mismo workspace; se revalida al abrir y al guardar.
+  * **Solo `SCHEDULED`:** `updateScheduledMeetup` actualiza dentro de una transacción con la condición `status = SCHEDULED`. Si la sesión arrancó mientras editabas, el modal muestra el error "already started" o, si ocurre justo al guardar, no se aplica ningún cambio y recibes un aviso por DM.
+  * **Módulos reemplazados de forma atómica:** Se borran y recrean con las duraciones recalculadas. Si los porcentajes no suman 100, el meetup queda intacto.
+  * **Se conserva el horario:** `scheduledFor` no cambia. App Home se refresca para quien edita y para los speakers anteriores y nuevos.
+* **Cobertura (`tests/meetupTemplates.test.ts`, `tests/homeTab.test.ts`)**: Reemplazo de campos y módulos, rechazo tras iniciar, rollback por porcentajes inválidos, modal en modo edición y visibilidad del botón por rol.
+
 ## [2026-10-06] Reparto Automático del Presupuesto de Tiempo (%) en el Modal de Agenda
 * **Valores reales en lugar de placeholders (`scheduleModal.ts`)**:
   * **Reparto inicial listo para agendar:** Los tres módulos arrancan con 15 / 60 / 25, que ya suman 100. Si no necesitas cambios, agendas directo.

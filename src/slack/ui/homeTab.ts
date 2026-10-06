@@ -204,6 +204,18 @@ export function buildHomeTabView(
                   action_id: "start_scheduled_meetup_action",
                 },
               },
+              {
+                type: "actions",
+                block_id: `edit_meetup_${meetup.id}`,
+                elements: [
+                  {
+                    type: "button",
+                    text: { type: "plain_text", text: "✏️ Edit", emoji: true },
+                    value: meetup.id,
+                    action_id: "edit_scheduled_meetup_action",
+                  },
+                ],
+              },
               { type: "divider" }
             );
           }

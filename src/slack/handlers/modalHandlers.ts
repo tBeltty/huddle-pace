@@ -48,6 +48,7 @@ function readScheduleModalState(values: Record<string, any>, metadata: any): Par
     saveAsTemplate: (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0,
     selectedTemplateId: getModalAction(values, "template_select")?.selected_option?.value,
     rev: metadata.rev,
+    editMeetupId: metadata.meetupId,
   };
 }
 
@@ -172,6 +173,39 @@ export function registerModalHandlers(app: App) {
       });
     } catch (error) {
       console.error("Error rebalancing time budget percentages:", error);
+    }
+  });
+
+  // Action: Open the schedule modal prefilled with a meetup that has not started yet
+  app.action("edit_scheduled_meetup_action", async ({ ack, body, client }) => {
+    await ack();
+    try {
+      const b = body as any;
+      const userId = b.user?.id;
+      const teamId = b.team?.id || b.user?.team_id || "default";
+      const meetup = await MeetupService.getMeetupById(b.actions[0]?.value);
+      if (!meetup || meetup.teamId !== teamId || meetup.status !== "SCHEDULED") return;
+      if (!MeetupService.parseSpeakerIds(meetup.speakerUserId).includes(userId)) return;
+
+      const hasSpecificThread = !!meetup.threadTs && meetup.threadTs !== "auto" && meetup.threadTs !== "main";
+      await client.views.open({
+        trigger_id: b.trigger_id,
+        view: buildScheduleModal({
+          editMeetupId: meetup.id,
+          title: meetup.title,
+          channelId: meetup.channelId,
+          speakerUserIds: MeetupService.parseSpeakerIds(meetup.speakerUserId),
+          duration: meetup.totalMinutes,
+          selectedHuddleChoice: meetup.threadTs === "main" ? "main" : "auto",
+          customThreadTs: hasSpecificThread ? meetup.threadTs! : undefined,
+          subtopicCount: Math.min(MAX_SUBTOPICS, Math.max(1, meetup.modules.length)),
+          customSubtopics: meetup.modules.map((m) => ({ title: m.title, pct: String(m.percentage) })),
+          reminderTextEnabled: meetup.reminderTextEnabled,
+          reminderImageEnabled: meetup.reminderImageEnabled,
+        }),
+      });
+    } catch (error) {
+      console.error("Error opening edit modal for scheduled meetup:", error);
     }
   });
 
@@ -338,16 +372,73 @@ export function registerModalHandlers(app: App) {
       return;
     }
 
+    const editMeetupId: string | undefined = metadata.meetupId;
+    const teamId = body.team?.id || body.user?.team_id || "default";
+    const validatedData = validationResult.data;
+
+    if (editMeetupId) {
+      const existing = await MeetupService.getMeetupById(editMeetupId);
+      const titleBlock = findModalBlockId(values, "title_input") ?? "title_block";
+      if (!existing || existing.teamId !== teamId) {
+        await ack({ response_action: "errors", errors: { [titleBlock]: "This meetup no longer exists." } });
+        return;
+      }
+      if (!MeetupService.parseSpeakerIds(existing.speakerUserId).includes(body.user.id)) {
+        await ack({ response_action: "errors", errors: { [titleBlock]: "Only the designated speaker(s) can edit this meetup." } });
+        return;
+      }
+      if (existing.status !== "SCHEDULED") {
+        await ack({ response_action: "errors", errors: { [titleBlock]: "This meetup already started and can no longer be edited." } });
+        return;
+      }
+
+      await ack();
+      await ensureBotInChannel(client, validatedData.channelId, body.user.id);
+
+      try {
+        const updated = await MeetupService.updateScheduledMeetup(editMeetupId, {
+          title: validatedData.title,
+          totalMinutes: validatedData.totalMinutes,
+          channelId: validatedData.channelId,
+          speakerUserId: validatedData.speakerUserId,
+          threadTs: validatedData.threadTs,
+          reminderTextEnabled: validatedData.reminderTextEnabled,
+          reminderImageEnabled: validatedData.reminderImageEnabled,
+          modules: validatedData.modules,
+        });
+
+        const usersToRefresh = Array.from(
+          new Set([
+            body.user.id,
+            ...MeetupService.parseSpeakerIds(existing.speakerUserId),
+            ...MeetupService.parseSpeakerIds(validatedData.speakerUserId),
+          ])
+        );
+        for (const uid of usersToRefresh) {
+          publishHomeTab(client, uid, teamId).catch((err) => {
+            console.warn(`Failed to auto-refresh App Home for user ${uid}:`, err);
+          });
+        }
+
+        await client.chat.postMessage({
+          channel: body.user.id,
+          text: updated
+            ? `*Updated:* '${validatedData.title}' (${validatedData.totalMinutes}m) in <#${validatedData.channelId}>.`
+            : `⚠️ '${validatedData.title}' started before your changes were saved, so they were not applied.`,
+        });
+      } catch (error) {
+        console.error("Error updating meetup from modal submission:", error);
+      }
+      return;
+    }
+
     // Acknowledge submission cleanly
     await ack();
-
-    const validatedData = validationResult.data;
 
     // Seamlessly ensure bot is present in target channel (auto-joins public channels)
     await ensureBotInChannel(client, validatedData.channelId, body.user.id);
 
     try {
-      const teamId = body.team?.id || body.user?.team_id || "default";
       await MeetupService.createMeetup({
         title: validatedData.title,
         totalMinutes: validatedData.totalMinutes,
