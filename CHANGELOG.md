@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-10-06
+
+### Changed
+- **Privacy Policy Cookie Statement**: Removed the mention of the `huddlepace_lang` cookie, which the site no longer sets, and updated the "Last updated" date. The language is now defined by the page address.
+
 ## [1.6.1] - 2026-10-06
 
 ### Fixed
@@ -124,7 +129,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.6.2...HEAD
+[1.6.2]: https://github.com/tBeltty/huddle-pace/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/tBeltty/huddle-pace/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/tBeltty/huddle-pace/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/tBeltty/huddle-pace/compare/v1.4.0...v1.5.0

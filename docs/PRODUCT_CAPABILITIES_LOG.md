@@ -4,6 +4,9 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Política de Privacidad Alineada con el Sitio Sin Cookie de Idioma
+* **`privacy.html` y `src/locales/*.json`**: se elimina la mención de la cookie `huddlepace_lang`, que el sitio dejó de escribir al pasar a URLs por idioma, y se actualiza la fecha de última modificación al 6 de octubre de 2026.
+
 ## [2026-10-06] CSS Versionado por Release para Evitar Caché Obsoleta en Cloudflare
 * **Problema:** Cloudflare conservó el `site.css` anterior con la cabecera `immutable` que ya no enviamos, y las páginas nuevas quedaron sin estilos de skip link y FAQ.
 * **Solución:** todas las páginas enlazan `/assets/site.css?v=__APP_VERSION__`; el servidor sustituye el marcador por la versión de `package.json`, de modo que cada release usa una URL nueva.
