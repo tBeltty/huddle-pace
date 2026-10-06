@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-10-06
+
+### Fixed
+- **Retrospective Page Layout on Desktop**: The Huddle thread mock sat on the left with half the row empty. It now shares a two-column row with three short notes (live progress, private nudges, time that moves). The row stacks on narrow screens.
+
 ## [1.8.0] - 2026-10-06
 
 ### Changed
@@ -152,7 +157,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.8.1...HEAD
+[1.8.1]: https://github.com/tBeltty/huddle-pace/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/tBeltty/huddle-pace/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/tBeltty/huddle-pace/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/tBeltty/huddle-pace/compare/v1.6.2...v1.7.0
