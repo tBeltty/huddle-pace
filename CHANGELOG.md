@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-06
+
+### Added
+- **Spanish Site on Its Own URLs**: `/es/`, `/es/privacy` and `/es/terms` serve the Spanish pages. Each page declares a self-referencing canonical, `hreflang` pairs (`en`, `es`, `x-default`) and `og:locale` tags, so Google can index both languages.
+- **`/sitemap.xml` and `/robots.txt`**: The sitemap lists all six pages with `hreflang` alternates. `robots.txt` declares the sitemap and blocks `/slack/` endpoints.
+- **Structured Data**: The home page JSON-LD is now an `Organization` + `WebSite` + `SoftwareApplication` graph (Spanish pages switch description and `inLanguage`).
+- **Accessibility and Semantics**: `<main>` landmark, skip link, visible `:focus-visible` outline.
+
+### Changed
+- **Language Is Decided by the URL**: `Accept-Language`, the `huddlepace_lang` cookie and browser-language auto-switching no longer change page content. The EN/ES switcher is a pair of crawlable links. Cached HTML no longer varies on `Cookie` and no longer sets one.
+- **Legacy URLs Redirect**: `/?lang=es` and `/?lang=en` 301 to `/es/` and `/`. `/es` and trailing-slash variants 301 to the canonical path.
+- **Meta Tags**: Removed ignored `title`/`keywords` meta tags, switched Twitter tags to `name=`, added `og:image` size and alt text.
+- **Performance**: Header and in-page avatars use a 96 px copy (17 KB instead of 619 KB). The support widget loads after the page is idle. Static assets use `max-age=3600, stale-while-revalidate=86400` instead of `immutable`, since file names carry no hash.
+- **Headings and Contrast**: Decorative `h4`/`h5` elements became paragraphs to keep a clean outline. `--text-muted` was lightened to pass WCAG AA contrast.
+
 ## [1.4.0] - 2026-10-06
 
 ### Added
@@ -92,7 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/tBeltty/huddle-pace/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/tBeltty/huddle-pace/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/tBeltty/huddle-pace/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/tBeltty/huddle-pace/compare/v1.2.0...v1.3.0

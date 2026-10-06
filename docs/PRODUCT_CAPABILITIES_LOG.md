@@ -4,6 +4,17 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] SEO Técnico: Sitio en Español con URL Propia, Sitemap y Datos Estructurados
+* **Idioma por URL (`landingPage.ts`)**:
+  * **Rutas:** `/`, `/privacy` y `/terms` sirven inglés. `/es/`, `/es/privacy` y `/es/terms` sirven español. `Accept-Language`, la cookie `huddlepace_lang` y el cambio automático por idioma del navegador ya no alteran el contenido, así que Google puede indexar las dos versiones.
+  * **Señales por página:** canonical propio, `hreflang` en/es/x-default, `og:locale` y `og:locale:alternate`. Los enlaces internos de `/es/*` se mantienen dentro de `/es/`.
+  * **Redirecciones 301:** `/?lang=es` va a `/es/`, `/?lang=en` va a `/`, y `/es` o las variantes con barra final van a su ruta canónica.
+  * **Caché:** el HTML ya no envía `Vary: Cookie` ni `Set-Cookie`, de modo que Cloudflare no puede servir el idioma equivocado.
+* **`/sitemap.xml` y `/robots.txt`**: seis URLs con alternates `hreflang`; `robots.txt` declara el sitemap y bloquea `/slack/`. Cloudflare antepone su bloque de content-signals.
+* **Datos estructurados**: grafo `Organization` + `WebSite` + `SoftwareApplication`, con descripción e `inLanguage` en español para `/es/`.
+* **Performance y accesibilidad**: avatar de 96 px (17 KB en vez de 619 KB), widget de soporte cargado en idle, `Cache-Control` sin `immutable`, `<main>`, skip link, `:focus-visible`, contraste de `--text-muted` y encabezados decorativos convertidos en párrafos.
+* **Pendiente**: páginas de contenido por nicho y FAQ (según el mapa de keywords), y revisar el texto legal de privacidad que menciona la cookie de idioma, que el sitio ya no escribe.
+
 ## [2026-10-06] Edición de Meetups Programados que Aún No Han Iniciado
 * **Botón "✏️ Edit" en App Home (`homeTab.ts`, `modalHandlers.ts`)**:
   * **Dónde aparece:** Debajo de cada meetup en *My Scheduled Meetups*, junto a `🚀 Start in Huddle`. Los meetups del resto del workspace no muestran el botón.
