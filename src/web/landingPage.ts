@@ -17,6 +17,7 @@ const MIME_TYPES: Record<string, string> = {
   ".ico": "image/x-icon",
   ".svg": "image/svg+xml",
   ".webp": "image/webp",
+  ".woff2": "font/woff2",
 };
 
 const PUBLIC_DIR = path.resolve(process.cwd(), "public");
@@ -367,9 +368,10 @@ export function handleStaticAsset(
   const stat = fs.statSync(filePath);
 
   // `?v=<release>` URLs change on every release, so they can be cached for a year.
-  let versioned = false;
+  // Font file names carry the upstream version, so they never change in place.
+  let versioned = ext === ".woff2";
   try {
-    versioned = new URL(req.url ?? "", "http://localhost").searchParams.has("v");
+    versioned = versioned || new URL(req.url ?? "", "http://localhost").searchParams.has("v");
   } catch {}
 
   res.writeHead(200, {

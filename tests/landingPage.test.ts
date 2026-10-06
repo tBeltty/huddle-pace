@@ -231,6 +231,31 @@ describe("Web Landing Page & Asset Delivery", () => {
       handleStaticAsset(req, res as any);
     });
 
+    test("serves the self-hosted fonts as woff2 with a one-year immutable cache", (t, done) => {
+      const req: any = { params: { file: "plus-jakarta-sans-v12-latin.woff2" } };
+      const res = new MockResponse();
+
+      res.on("finish", () => {
+        assert.strictEqual(res.statusCode, 200);
+        assert.strictEqual(res.headers["Content-Type"], "font/woff2");
+        assert.strictEqual(res.headers["Cache-Control"], "public, max-age=31536000, immutable");
+        done();
+      });
+
+      handleStaticAsset(req, res as any);
+    });
+
+    test("pages preload the self-hosted fonts and no longer call Google Fonts", () => {
+      const routes = getWebCustomRoutes();
+      for (const route of ["/", "/es/", "/privacy", "/sprint-retrospective-agenda", "/es/temporizador-huddle-slack"]) {
+        const res = new MockResponse();
+        routes.find((r) => r.path === route)!.handler({ url: route } as any, res as any);
+        assert.match(res.body, /rel="preload" as="font" type="font\/woff2" href="\/assets\/plus-jakarta-sans-v12-latin\.woff2" crossorigin/, route);
+        assert.match(res.body, /rel="preload" as="font" type="font\/woff2" href="\/assets\/jetbrains-mono-v24-latin\.woff2" crossorigin/, route);
+        assert.doesNotMatch(res.body, /fonts\.googleapis\.com|fonts\.gstatic\.com/, route);
+      }
+    });
+
     test("serves avatar.png with 200 OK and image/png", (t, done) => {
       const req: any = { params: { file: "avatar.png" } };
       const res = new MockResponse();

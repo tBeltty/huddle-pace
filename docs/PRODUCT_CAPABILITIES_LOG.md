@@ -4,6 +4,12 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Fuentes Autoalojadas y Menú Móvil de la Home
+* **Fuentes (`public/assets/*.woff2`, `site.css`, todas las páginas)**: Plus Jakarta Sans y JetBrains Mono (subconjunto latino, variables, SIL OFL) se sirven desde el propio dominio con `@font-face`, `font-display: swap` y `preload`; se eliminan las peticiones a Google Fonts. En las mediciones de Lighthouse el FCP y el LCP de móvil seguían exactamente la hora de llegada de las fuentes de Google (3,2 a 3,6 s con fuentes a 1,7 s; 1,7 a 2,1 s con fuentes a 0,7 s).
+* **Caché**: los `.woff2` llevan `Cache-Control: public, max-age=31536000, immutable`; el nombre incluye la versión de origen.
+* **Menú de la home (`site.css`)**: a 480 px o menos la barra desbordaba 17 px y cortaba el botón de Slack; se oculta la palabra "GitHub" (el icono y su `aria-label` permanecen).
+* **Cobertura**: tests de MIME y caché de la fuente y de que ninguna página llame a Google Fonts.
+
 ## [2026-10-06] Etiqueta del Hero: "Efficiency Crew"
 * **`public/index.html`**: la etiqueta flotante bajo el halcón pasa de "Flight Pacer · Vibecoder Crew" a "Flight Pacer · Efficiency Crew". `docs/BRAND.md` aclara que "Vibecoder Crew" queda solo como lore interno.
 

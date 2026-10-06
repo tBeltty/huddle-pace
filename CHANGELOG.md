@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.4] - 2026-10-06
+
+### Changed
+- **Self-Hosted Fonts**: Plus Jakarta Sans (variable, 27 KB) and JetBrains Mono (variable, 31 KB), latin subset, are served from `/assets/` with `@font-face`, `font-display: swap` and `rel="preload"`. Pages no longer call `fonts.googleapis.com` or `fonts.gstatic.com`. Lighthouse runs showed mobile FCP and LCP tracking the arrival time of the Google font files exactly: 3.2 to 3.6 s when they arrived after about 1.7 s, 1.7 to 2.1 s when they arrived after about 0.7 s. Both fonts are under the SIL Open Font License.
+- **Font Caching**: `.woff2` files are served as `font/woff2` with `max-age=31536000, immutable`; their names carry the upstream version.
+
+### Fixed
+- **Home Navigation on Narrow Phones**: At 480 px and below the nav overflowed by 17 px, clipping the Slack button and touching the logo. The word "GitHub" is hidden there (the icon and its `aria-label` stay) so everything fits.
+
 ## [1.9.3] - 2026-10-06
 
 ### Changed
@@ -198,7 +207,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.3...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.4...HEAD
+[1.9.4]: https://github.com/tBeltty/huddle-pace/compare/v1.9.3...v1.9.4
 [1.9.3]: https://github.com/tBeltty/huddle-pace/compare/v1.9.2...v1.9.3
 [1.9.2]: https://github.com/tBeltty/huddle-pace/compare/v1.9.1...v1.9.2
 [1.9.1]: https://github.com/tBeltty/huddle-pace/compare/v1.9.0...v1.9.1
