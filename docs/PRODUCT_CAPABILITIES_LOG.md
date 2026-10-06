@@ -4,6 +4,17 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Reparto Automático del Presupuesto de Tiempo (%) en el Modal de Agenda
+* **Valores reales en lugar de placeholders (`scheduleModal.ts`)**:
+  * **Reparto inicial listo para agendar:** Los tres módulos arrancan con 15 / 60 / 25, que ya suman 100. Si no necesitas cambios, agendas directo.
+  * **Enter para rebalancear:** Slack no avisa al salir de un campo, solo al pulsar Enter o por cada tecla (lo que haría inestable el modal mientras escribes). Los campos de % usan `dispatch_action_config` con `on_enter_pressed`.
+* **Reglas de reparto (`src/utils/percentages.ts`, `modalHandlers.ts`)**:
+  * **Edición:** Al confirmar un % con Enter, el resto se reparte en partes iguales entre los demás módulos. Con 30 / 40 / 30, cambiar el primero a 40 deja 40 / 30 / 30. Si el resto no divide exacto, las unidades sobrantes van a los primeros módulos.
+  * **Límites:** El valor editado se acota para que cada otro módulo conserve al menos 1%. Un valor que no sea entero mayor o igual a 1 no modifica el formulario.
+  * **Agregar módulo:** El módulo nuevo toma una parte equitativa (100 / n) y los existentes se reducen en proporción, así el total sigue en 100.
+  * **Validación intacta:** El envío sigue exigiendo 100% como respaldo si alguien escribe un valor sin pulsar Enter.
+* **Cobertura (`tests/percentages.test.ts`)**: Reparto parejo, límites, módulo único, total siempre en 100 de 1 a 10 módulos y valores iniciales del modal.
+
 ## [2026-10-06] Templates de Sesión: Guarda una vez, agenda en un clic
 * **Guardar como Template desde el modal de agenda (`scheduleModal.ts`, `modalHandlers.ts`, `meetupService.ts`)**:
   * **Checkbox "Save as template":** Al final del modal `Schedule Meetup` puedes marcar la opción antes de agendar. El template toma el título de la sesión como nombre; si guardas otro con el mismo título, lo actualiza en lugar de duplicarlo.

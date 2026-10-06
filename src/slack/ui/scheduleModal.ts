@@ -363,7 +363,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "*📌 Agenda Modules & Time Budget (%) Allocation*\nAllocate percentage for each module. *Total must equal 100%*.",
+        text: "*📌 Agenda Modules & Time Budget (%) Allocation*\nAllocate percentage for each module. *Total must equal 100%*. Edit a % and press Enter to split the rest evenly across the other modules.",
       },
     }
   );
@@ -395,9 +395,12 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         type: "plain_text",
         text: pctPlaceholder,
       },
+      dispatch_action_config: { trigger_actions_on: ["on_enter_pressed"] },
     };
-    if (custom?.pct) {
-      pctElement.initial_value = custom.pct;
+    // The 3-row default split is real content (sums to 100), so it can be submitted as-is.
+    const pctValue = custom?.pct || (count === 3 ? defaultSuggestion.pct : "");
+    if (pctValue) {
+      pctElement.initial_value = pctValue;
     }
 
     blocks.push(
@@ -413,6 +416,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       {
         type: "input",
         block_id: bid(`subtopic_pct_${i}`),
+        dispatch_action: true,
         element: pctElement,
         label: {
           type: "plain_text",

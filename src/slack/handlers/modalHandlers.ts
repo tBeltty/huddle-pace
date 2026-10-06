@@ -10,6 +10,7 @@ import {
   ModalTemplateOption,
 } from "../ui/scheduleModal.js";
 import { findChannelHuddles, DetectedHuddle } from "../utils/huddleDiscovery.js";
+import { rebalanceAfterEdit, addRowKeepingTotal } from "../../utils/percentages.js";
 import { launchMeetupInThread } from "./actionHandlers.js";
 import { scheduleModalInputSchema } from "../schemas/scheduleSchema.js";
 import { ensureBotInChannel } from "../utils/channelUtils.js";
@@ -108,10 +109,23 @@ export function registerModalHandlers(app: App) {
       }
       const templates = await loadTemplateOptions(b.team?.id || b.user?.team_id, b.user?.id);
 
+      // Keep the total at 100 when a row is added, but only if every current value is usable.
+      let customSubtopics = state.customSubtopics;
+      const current = (state.customSubtopics || []).map((m) => Number(m.pct));
+      if (current.length > 0 && current.every((v) => Number.isInteger(v) && v >= 1)) {
+        const rebalanced = addRowKeepingTotal(current);
+        customSubtopics = [
+          ...(state.customSubtopics || []).map((m, i) => ({ ...m, pct: String(rebalanced[i]) })),
+          { title: "", pct: String(rebalanced[rebalanced.length - 1]) },
+        ];
+      }
+
       await client.views.update({
         view_id: b.view.id,
         view: buildScheduleModal({
           ...state,
+          customSubtopics,
+          rev: customSubtopics !== state.customSubtopics ? Date.now().toString(36) : state.rev,
           subtopicCount: Math.min(MAX_SUBTOPICS, currentCount + 1),
           availableHuddles: huddles,
           templates,
@@ -119,6 +133,45 @@ export function registerModalHandlers(app: App) {
       });
     } catch (error) {
       console.error("Error dynamically appending subtopic row:", error);
+    }
+  });
+
+  // Action: Editing a Time Budget % (Enter) splits the remainder evenly across the other modules
+  app.action(/^subtopic_pct_input_\d+$/, async ({ ack, body, client }) => {
+    await ack();
+    try {
+      const b = body as any;
+      const action = b.actions[0];
+      const editedIndex = Number(String(action.action_id).replace("subtopic_pct_input_", ""));
+      const metadata = JSON.parse(b.view.private_metadata || "{}");
+      const state = readScheduleModalState(b.view.state.values, metadata);
+      const subtopics = state.customSubtopics || [];
+
+      const rebalanced = rebalanceAfterEdit(
+        subtopics.map((m) => Number(m.pct) || 0),
+        editedIndex,
+        Number(action.value)
+      );
+      if (!rebalanced) return; // Not a usable whole number: leave the form as the user typed it.
+
+      let huddles: DetectedHuddle[] = [];
+      if (state.channelId) {
+        huddles = await findChannelHuddles(client, state.channelId);
+      }
+      const templates = await loadTemplateOptions(b.team?.id || b.user?.team_id, b.user?.id);
+
+      await client.views.update({
+        view_id: b.view.id,
+        view: buildScheduleModal({
+          ...state,
+          customSubtopics: subtopics.map((m, i) => ({ ...m, pct: String(rebalanced[i]) })),
+          availableHuddles: huddles,
+          templates,
+          rev: Date.now().toString(36),
+        }),
+      });
+    } catch (error) {
+      console.error("Error rebalancing time budget percentages:", error);
     }
   });
 
