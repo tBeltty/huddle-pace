@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Standup Timer for Slack | HuddlePace</title>
+
+  <!-- Primary Meta Tags -->
+  <meta name="description" content="Keep your daily standup at 15 minutes. Split the time by topic, nudge each speaker privately at midpoint and track the pace in the Huddle thread.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://huddlepace.com/daily-standup-timer-slack">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://huddlepace.com/daily-standup-timer-slack">
+  <meta property="og:title" content="Daily Standup Timer for Slack | HuddlePace">
+  <meta property="og:description" content="A 15-minute standup split into timed modules, with a progress bar in the Huddle thread and private alerts for the speaker.">
+  <meta property="og:image" content="https://huddlepace.com/assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Vector, the HuddlePace falcon, next to a Slack Huddle progress bar">
+  <meta property="og:site_name" content="HuddlePace">
+
+  <!-- Favicon Suite -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/assets/favicon.ico">
+
+  <!-- Google Fonts Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Daily Standup Timer for Slack | HuddlePace">
+  <meta name="twitter:description" content="A 15-minute standup split into timed modules, with a progress bar in the Huddle thread and private alerts for the speaker.">
+  <meta name="twitter:image" content="https://huddlepace.com/assets/og-image.jpg">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://huddlepace.com/daily-standup-timer-slack#page",
+        "url": "https://huddlepace.com/daily-standup-timer-slack",
+        "name": "Daily Standup Timer for Slack",
+        "inLanguage": "en",
+        "isPartOf": { "@id": "https://huddlepace.com/#website" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://huddlepace.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Daily Standup Timer for Slack", "item": "https://huddlepace.com/daily-standup-timer-slack" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="ambient-glow-1" aria-hidden="true"></div>
+  <div class="ambient-glow-2" aria-hidden="true"></div>
+  <div class="telemetry-grid" aria-hidden="true"></div>
+
+  <div class="container">
+    <header>
+      <nav class="navbar" aria-label="Main Navigation">
+        <a href="/" class="brand">
+          <img src="/assets/avatar-96.png" alt="HuddlePace" class="brand-avatar-img" width="34" height="34" decoding="async">
+          <span>HuddlePace</span>
+        </a>
+        <div class="nav-actions">
+          <a href="/#vector" class="nav-link" data-i18n="navVector">Meet Vector</a>
+          <a href="/#demo" class="nav-link" data-i18n="navDemo">Live Demo</a>
+          <a href="/#features" class="nav-link" data-i18n="navFeatures">Pillars</a>
+
+          <div class="legal-lang-links" style="margin:0;">
+            <a href="__ALT_EN__" class="lang-link" hreflang="en" lang="en" data-lang="en">EN</a>
+            <a href="__ALT_ES__" class="lang-link" hreflang="es" lang="es" data-lang="es">ES</a>
+          </div>
+
+          <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-nav-slack" aria-label="Add to Slack">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.528 2.528 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
+            <span data-i18n="btnInstall">Install to Slack</span>
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <section class="legal-hero">
+      <div class="badge-pilot">
+        <span data-i18n="spBadge">🧭 Daily Standups</span>
+      </div>
+      <h1 data-i18n="spTitle">Daily standup timer <span>for Slack</span></h1>
+      <p data-i18n="spLead">Keep a 15-minute standup at 15 minutes. HuddlePace gives the team one visible clock in the Huddle thread, so the facilitator no longer has to be the one who interrupts.</p>
+      <div class="hero-actions" style="margin-top:28px;">
+        <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+      </div>
+    </section>
+
+    <main id="main">
+    <section class="legal-content">
+      <section>
+        <h2 data-i18n="spS1Title">Why standups run long</h2>
+        <p data-i18n="spS1P1">A standup planned for 15 minutes stretches when one topic grows and nobody owns the clock. A shared progress bar makes the remaining time visible to everyone at once.</p>
+      </section>
+      <section>
+        <h2 data-i18n="spS2Title">Set up a 15-minute standup</h2>
+        <p data-i18n="spS2P1">Run <code>/pace</code>, set 15 minutes and split the time into modules. A common split:</p>
+        <ul>
+          <li data-i18n="spS2P2I1">Context, 15% (2 min 15 s)</li>
+          <li data-i18n="spS2P2I2">Updates, 60% (9 min)</li>
+          <li data-i18n="spS2P2I3">Blockers, 25% (3 min 45 s)</li>
+        </ul>
+        <p data-i18n="spS2P3">Tick <strong>Save as template</strong> and the next standup starts from the same channel, speakers, duration and modules in one click.</p>
+      </section>
+      <section>
+        <h2 data-i18n="spS3Title">Nudges that stay private</h2>
+        <p data-i18n="spS3P1">The active speaker gets a Slack DM at the midpoint and with one minute left, so nobody is called out in front of the team. Whoever finishes early taps <strong>Next Module</strong> to hand the spare time forward.</p>
+      </section>
+      <section>
+        <h2 data-i18n="spS4Title">Check how the team is doing</h2>
+        <p data-i18n="spS4P1"><code>/pace report 30</code> shows timebox adherence and session logs for the last 30 days, which is useful evidence for a retro.</p>
+      </section>
+      <section>
+        <h2 data-i18n="spS5Title">Pricing</h2>
+        <p data-i18n="spS5P1">HuddlePace is in early access and free today. Pricing will be per workspace, never per user, and the features available today stay free. See the <a href="/slack-huddle-timer">Slack Huddle timer</a> page for everything it does.</p>
+      </section>
+    </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <a href="/" class="brand">
+              <img src="/assets/avatar-96.png" alt="HuddlePace" class="brand-avatar-img" width="34" height="34" decoding="async">
+              <span>HuddlePace</span>
+            </a>
+            <p class="footer-desc" data-i18n="footerDesc">
+              Slack-native meeting cadence and speaker companion. Engineered for deep-work engineering teams who respect meeting timeboxes.
+            </p>
+            <div class="status-badge" aria-label="System status">
+              <div class="status-dot"></div>
+              <span data-i18n="footerStatus">All Systems Operational</span>
+            </div>
+          </div>
+
+          <div class="footer-col">
+            <p class="footer-heading" data-i18n="fCol1Title">Product</p>
+            <ul>
+              <li><a href="/#demo" data-i18n="fCol1Demo">Live Simulation</a></li>
+              <li><a href="/#features" data-i18n="fCol1Pillars">Core Pillars</a></li>
+              <li><a href="/#vector" data-i18n="fCol1Vector">Meet Vector</a></li>
+              <li><a href="/slack-huddle-timer" data-i18n="fColHuddleTimer">Slack Huddle Timer</a></li>
+              <li><a href="/daily-standup-timer-slack" data-i18n="fColStandupTimer">Daily Standup Timer</a></li>
+              <li><a href="https://huddlepace.com/slack/install" rel="nofollow" data-i18n="fCol1Install">Add to Slack</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <p class="footer-heading" data-i18n="fCol2Title">Security &amp; Trust</p>
+            <ul>
+              <li><a href="/#features" data-i18n="fCol2Zero">0% Audio Retention</a></li>
+              <li><a href="/#features" data-i18n="fCol2Tenant">Multi-Tenant Isolation</a></li>
+              <li><a href="/#features" data-i18n="fCol2Hmac">HMAC-SHA256 Signatures</a></li>
+              <li><a href="/#features" data-i18n="fCol2Scopes">Verified Slack Scopes</a></li>
+              <li><a href="https://github.com/tBeltty/huddle-pace" target="_blank" rel="noopener noreferrer" data-i18n="fCol2Github">Auditable Source Code (GitHub)</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <p class="footer-heading" data-i18n="fCol3Title">Legal &amp; Support</p>
+            <ul>
+              <li><a href="/privacy" data-i18n="fCol3Privacy">Privacy Policy</a></li>
+              <li><a href="/terms" data-i18n="fCol3Terms">Terms of Service</a></li>
+              <li><a href="mailto:support@huddlepace.com" data-i18n="fCol3Support">Contact Support</a></li>
+              <li><a href="https://github.com/tBeltty/huddle-pace/releases" target="_blank" rel="noopener noreferrer"><span data-i18n="fCol3Changelog">Release Notes</span> <span class="version-tag">v__APP_VERSION__</span></a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <div data-i18n="footerCopy">
+            © 2026 HuddlePace. Engineered for teams that value focus.
+          </div>
+          <div class="footer-meta-pill">
+            <span data-i18n="footerPill">🛡️ Multi-Tenant OAuth · ⚡ 100% Cadence Control · 🦅 Vector Pacer v__APP_VERSION__</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      var current = document.documentElement.lang === 'es' ? 'es' : 'en';
+      document.querySelectorAll('.lang-link').forEach(function (a) {
+        if (a.getAttribute('data-lang') === current) a.classList.add('active');
+      });
+    })();
+  </script>
+
+  <!-- tBelt Support Widget SDK -->
+  <script src="https://finances.tbelt.online/support-widget.js"></script>
+  <script>
+    if (window.Beacon && typeof window.Beacon.init === 'function') {
+      window.Beacon.init({
+        key: '__BEACON_WIDGET_KEY__',
+        locale: document.documentElement.lang === 'es' ? 'es' : 'en',
+        color: '#06b6d4',
+        position: 'right',
+        theme: 'dark'
+      });
+    }
+  </script>
+</body>
+</html>
