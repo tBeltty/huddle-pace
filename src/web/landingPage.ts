@@ -366,10 +366,18 @@ export function handleStaticAsset(
   const contentType = MIME_TYPES[ext] || "application/octet-stream";
   const stat = fs.statSync(filePath);
 
+  // `?v=<release>` URLs change on every release, so they can be cached for a year.
+  let versioned = false;
+  try {
+    versioned = new URL(req.url ?? "", "http://localhost").searchParams.has("v");
+  } catch {}
+
   res.writeHead(200, {
     "Content-Type": contentType,
     "Content-Length": stat.size,
-    "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+    "Cache-Control": versioned
+      ? "public, max-age=31536000, immutable"
+      : "public, max-age=3600, stale-while-revalidate=86400",
     "X-Content-Type-Options": "nosniff",
   });
 

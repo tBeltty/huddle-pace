@@ -4,6 +4,14 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Auditoría SEO Medida: Metadatos Legales, Fuentes sin Bloqueo y Contraste del Widget
+* **Medición**: recorrido de las 16 URLs del sitemap en producción (título, descripción, canonical, `hreflang`, H1, Open Graph, Twitter, JSON-LD, alts) y Lighthouse móvil sobre la home y la retrospectiva: SEO 100, buenas prácticas 100, accesibilidad 96-97, rendimiento 75 y 83.
+* **Páginas legales (`privacy.html`, `terms.html`, `src/locales/*.json`)**: títulos más descriptivos, descripción en español de privacidad dentro de 160 caracteres, `og:image` con tamaño y alt, etiquetas completas de Twitter y datos estructurados `WebPage` + `BreadcrumbList`.
+* **Rendimiento**: la hoja de Google Fonts bloqueaba el render (unos 950 ms) y el LCP de móvil iba entre 3,3 y 4,4 s con 2,55 s de retraso de render del párrafo del hero. Se carga con `preload` y `onload`, con `noscript` de respaldo.
+* **Accesibilidad**: el botón del widget de soporte pasa de `#06B6D4` (2,42:1 con texto blanco) a `#0E7490` (5,12:1).
+* **Caché (`landingPage.ts`)**: las URLs de assets con `?v=` se sirven con un año de caché e `immutable`; el resto mantiene una hora más `stale-while-revalidate`.
+* **Pendiente**: página 404 con `noindex` (Bolt responde 404 vacío), `lastmod` en el sitemap y autoalojar las fuentes si el LCP sigue por encima de 2,5 s.
+
 ## [2026-10-06] Diseño Landing Aplicado a las Cuatro Páginas de Contenido Restantes
 * **Páginas (EN y ES)**: temporizador para Huddles, daily standup, engineering managers y agencias comparten el layout aprobado de la página de retrospectiva, cada una con contenido y ejemplo propios: reunión de equipo 15/60/25, daily de 15 minutos, repartos de RFC (30 min) y post-mortem (40 min) y reunión semanal con cliente 40/40/20. Entre 570 y 680 palabras por idioma, antes unas 150.
 * **Contenido verificado contra el producto**: comandos reales de `/pace`, hasta 10 módulos, avisos privados a mitad y a un minuto, resumen al terminar el Huddle, controles solo para speakers, reporte de 30 días por defecto y modo Just Chatting. Las afirmaciones sobre la Guía de Scrum se limitan a los 15 minutos de la Daily Scrum y al tope de tres horas de la retrospectiva.

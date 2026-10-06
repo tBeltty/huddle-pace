@@ -218,6 +218,19 @@ describe("Web Landing Page & Asset Delivery", () => {
       handleStaticAsset(req, res as any);
     });
 
+    test("caches ?v= versioned assets for a year as immutable", (t, done) => {
+      const req: any = { url: "/assets/site.css?v=1.9.1", params: { file: "site.css" } };
+      const res = new MockResponse();
+
+      res.on("finish", () => {
+        assert.strictEqual(res.statusCode, 200);
+        assert.strictEqual(res.headers["Cache-Control"], "public, max-age=31536000, immutable");
+        done();
+      });
+
+      handleStaticAsset(req, res as any);
+    });
+
     test("serves avatar.png with 200 OK and image/png", (t, done) => {
       const req: any = { params: { file: "avatar.png" } };
       const res = new MockResponse();
