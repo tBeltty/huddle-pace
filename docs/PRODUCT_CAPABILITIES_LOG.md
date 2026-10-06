@@ -4,6 +4,12 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Auditoría de Diseño: Colores Semánticos de Marca, Contraste y Menos Ruido Visual
+* **Hallazgos medidos contra `docs/BRAND.md`**: el reparto usaba cian, ámbar y naranja como categorías, pero en la marca ámbar es la alerta de punto medio y naranja el último minuto; el punto "en curso" era verde (sesión concluida); los temporizadores no usaban `tabular-nums`; `--text-muted` se había aclarado sin documentarlo.
+* **Correcciones (`sprint-retrospective-agenda.html`, `site.css`)**: rampa de un solo tono cian (`#67E8F9`, `#06B6D4`, `#0E7490`) con etiqueta de texto en cada tramo; punto "en curso" en cian; secciones de errores y consejos como listas planas en lugar de ocho tarjetas; consejo duplicado de Next Module eliminado; `tabular-nums` en minutos, porcentajes y métricas.
+* **Contrastes verificados**: texto sobre superficies de 6,3:1 a 17:1; etiquetas de la barra de 5,1:1 a 13,2:1; tramos contra la superficie de 3,3:1 a 12,3:1.
+* **`BRAND.md`**: `--text-muted` documentado como `#8A9BB3` (el valor anterior da 3,75:1 y 4,14:1, bajo la regla de 4,5:1) y reglas nuevas sobre colores de acento y números tabulares en páginas web.
+
 ## [2026-10-06] Ajuste de Layout del Mock del Hilo en Desktop
 * **`sprint-retrospective-agenda.html`, `site.css`**: el mock del hilo del Huddle comparte fila con tres notas (progreso en vivo, avisos privados, tiempo que se traslada) en lugar de quedar solo a la izquierda con media pantalla vacía. En pantallas angostas la fila se apila.
 

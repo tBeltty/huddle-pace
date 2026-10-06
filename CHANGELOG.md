@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-10-06
+
+### Changed
+- **Retrospective Page Follows the Brand Color Semantics**: The time-split bar and module cards use a single Telemetry Cyan ramp instead of cyan, amber and orange, which `docs/BRAND.md` reserves for the midpoint check and final-minute alerts. The "running now" dot is cyan instead of green.
+- **Calmer Layout**: The "goes off the rails" and tips sections are flat lists with hairline separators instead of eight bordered cards. The duplicated Next Module tip was removed because the thread notes and the FAQ already cover it.
+- **Tabular Numbers**: Timers, minutes and percentages on the page use `tabular-nums`, as the typography rules require.
+- **BRAND.md**: `--text-muted` is documented as `#8A9BB3` (the previous `#64748B` fails the 4.5:1 rule), and the accent-color and tabular-numbers rules now cover web content pages.
+
 ## [1.8.1] - 2026-10-06
 
 ### Fixed
@@ -157,7 +165,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.8.1...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.8.2...HEAD
+[1.8.2]: https://github.com/tBeltty/huddle-pace/compare/v1.8.1...v1.8.2
 [1.8.1]: https://github.com/tBeltty/huddle-pace/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/tBeltty/huddle-pace/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/tBeltty/huddle-pace/compare/v1.7.0...v1.7.1

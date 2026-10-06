@@ -52,7 +52,7 @@ The visual system adapts the **Atmos UI** design philosophy to an **Aerospace Fl
 | **Slack Aubergine (Platform)** | `#611F69` | `--accent-slack` | Official Slack branding, "Add to Slack" OAuth entry points. |
 | **Primary Text** | `#F8FAFC` | `--text-primary` | Headings, high-contrast values, active speaker names. |
 | **Secondary Text** | `#94A3B8` | `--text-secondary` | Labels, module descriptions, helper guidance. |
-| **Muted Text** | `#64748B` | `--text-muted` | ASCII bar remaining blocks, footer metadata, timestamps. |
+| **Muted Text** | `#8A9BB3` | `--text-muted` | ASCII bar remaining blocks, footer metadata, timestamps. Lightened from `#64748B` on 2026-10-06 because that value measures 3.75:1 on `--bg-surface` and 4.14:1 on `--bg-base`, below the 4.5:1 rule below. The new value measures 6.31:1 and 6.96:1. |
 
 ### Semantic State Mapping (Slack Block Kit & Web)
 
@@ -70,6 +70,8 @@ Phase 6: Casual Chat     -> Coffee Warm     [#D97706]  | Emoji: ☕  | Mode:  Ju
 ### Contrast & Accessibility Rules
 - Text on `--bg-base` (`#080B11`) or `--bg-surface` (`#0F172A`) must always maintain at least **4.5:1 contrast** (WCAG AA).
 - `--accent-cyan` (`#06B6D4`) and `--accent-amber` (`#F59E0B`) are used for accents, icons, and borders. When rendering readable body text, use `--text-primary` (`#F8FAFC`).
+- Accent colors keep the meaning in the Semantic State Mapping above on every surface. Do not reuse amber, orange, red or emerald as decorative or categorical colors (for example to tell agenda modules apart). Content pages that need to distinguish parts of one whole use a single-hue Telemetry Cyan ramp (`#67E8F9`, `#06B6D4`, `#0E7490`), each part labeled with text, so meaning never depends on hue alone.
+- Timers, minutes and percentages in JetBrains Mono also set `font-variant-numeric: tabular-nums`, on web pages as well as in Slack.
 - Amber and red alerts must always be paired with icons (`🧭`, `⚠️`, `🚨`) and explicit status text, never relying on color alone for accessibility.
 
 ---
