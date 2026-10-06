@@ -216,18 +216,32 @@
     })();
   </script>
 
-  <!-- tBelt Support Widget SDK -->
-  <script src="https://finances.tbelt.online/support-widget.js"></script>
   <script>
-    if (window.Beacon && typeof window.Beacon.init === 'function') {
-      window.Beacon.init({
-        key: '__BEACON_WIDGET_KEY__',
-        locale: document.documentElement.lang === 'es' ? 'es' : 'en',
-        color: '#06b6d4',
-        position: 'right',
-        theme: 'dark'
+    // Loaded once the page is idle so the third-party widget never competes
+    // with LCP/INP. window.Beacon can still be undefined (ad blockers), so guard.
+    (function () {
+      function loadWidget() {
+        var el = document.createElement('script');
+        el.src = 'https://finances.tbelt.online/support-widget.js';
+        el.async = true;
+        el.onload = function () {
+          if (window.Beacon && typeof window.Beacon.init === 'function') {
+            window.Beacon.init({
+              key: '__BEACON_WIDGET_KEY__',
+              locale: document.documentElement.lang === 'es' ? 'es' : 'en',
+              color: '#06b6d4',
+              position: 'right',
+              theme: 'dark'
+            });
+          }
+        };
+        document.body.appendChild(el);
+      }
+      addEventListener('load', function () {
+        if ('requestIdleCallback' in window) requestIdleCallback(loadWidget, { timeout: 4000 });
+        else setTimeout(loadWidget, 2500);
       });
-    }
+    })();
   </script>
 </body>
 </html>
