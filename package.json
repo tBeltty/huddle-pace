@@ -1,6 +1,6 @@
 {
   "name": "huddle-pace",
-  "version": "1.9.5",
+  "version": "1.10.0",
   "description": "Slack-native meeting time tracker and speaker copilot",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "version:patch": "npm version patch --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version",
-    "version:major": "npm version major --no-git-tag-version"
+    "version:major": "npm version major --no-git-tag-version",
+    "page-dates": "tsx scripts/update-page-dates.ts"
   },
   "engines": {
     "node": ">=20.0.0"

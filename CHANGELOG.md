@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-10-06
+
+### Added
+- **404 Page**: Unknown paths answer `404` with a branded page (English, or Spanish under `/es/`) that sends `X-Robots-Tag: noindex`, `<meta name="robots" content="noindex, follow">` and `Cache-Control: no-store`, and links back to the home page and every guide. It is a catch-all route registered last; Bolt resolves its own Slack endpoints (`/slack/events`, install and OAuth callback) before custom routes, so they are unaffected.
+- **Sitemap `lastmod`**: Every sitemap URL carries a `<lastmod>`. Dates live in `src/web/pageDates.json` next to a content hash of each page (HTML file, meta block, rendered locale strings and FAQ strings). `pnpm page-dates` moves a page's date only when its hash changes, the release version is not part of the hash, and the test suite fails when the file is stale.
+
+### Changed
+- **Cloudflare Web Analytics Loads After the Page**: Cloudflare was injecting its beacon (`beacon.min.js` plus a `cdn-cgi/rum` call) as a module script during page load. Lighthouse runs with only that script blocked moved mobile performance from 88-97 to 96-97 and median LCP from 2.89 s to 2.39 s; blocking the support widget changed nothing. HTML responses now carry `Cache-Control: no-transform`, which stops the injection, and every page loads the same beacon (same versioned URL, token and integrity hash) from its idle loader right after the `load` event. Analytics keep working; a visit that ends before the page finishes loading is no longer counted.
+- **AGENTS.md** documents the `pnpm page-dates` step in the verification protocol.
+
 ## [1.9.5] - 2026-10-06
 
 ### Fixed
@@ -213,7 +223,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.5...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/tBeltty/huddle-pace/compare/v1.9.5...v1.10.0
 [1.9.5]: https://github.com/tBeltty/huddle-pace/compare/v1.9.4...v1.9.5
 [1.9.4]: https://github.com/tBeltty/huddle-pace/compare/v1.9.3...v1.9.4
 [1.9.3]: https://github.com/tBeltty/huddle-pace/compare/v1.9.2...v1.9.3

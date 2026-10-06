@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -22,6 +23,8 @@ const MIME_TYPES: Record<string, string> = {
 
 const PUBLIC_DIR = path.resolve(process.cwd(), "public");
 const LOCALES_DIR = path.resolve(process.cwd(), "src", "locales");
+
+const PAGE_DATES_FILE = path.resolve(process.cwd(), "src", "web", "pageDates.json");
 
 const SITE_ORIGIN = "https://huddlepace.com";
 
@@ -288,7 +291,8 @@ function handleStaticPage(pagePath: string) {
       "Content-Type": "text/html; charset=utf-8",
       "Content-Length": Buffer.byteLength(html),
       "Content-Language": lang,
-      "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600",
+      // `no-transform` stops Cloudflare from injecting its own analytics script (the page loads it after `load`).
+      "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600, no-transform",
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
       "Referrer-Policy": "strict-origin-when-cross-origin",
@@ -303,15 +307,51 @@ function handleStaticPage(pagePath: string) {
   };
 }
 
+export const PAGE_PATHS = Object.keys(PAGES);
+
+function readRawLocale(lang: Lang): any {
+  return JSON.parse(fs.readFileSync(path.join(LOCALES_DIR, `${lang}.json`), "utf-8"));
+}
+
+// Fingerprint of everything that makes up a page's content: its HTML file, its meta block,
+// every locale string it renders and its FAQ strings. The release version is not part of it,
+// so deploys without content changes leave the hash (and the sitemap lastmod) alone.
+export function computePageHash(pagePath: string): string {
+  const page = PAGES[pagePath];
+  const html = fs.readFileSync(path.join(PUBLIC_DIR, page.file), "utf-8");
+  const locale = readRawLocale(page.lang);
+  const keys = new Set<string>(Array.from(html.matchAll(/data-i18n="([^"]+)"/g), (m) => m[1]));
+  for (const m of html.matchAll(/__FAQ_JSON_LD(?::([a-z]+))?__/g)) {
+    const prefix = m[1] ? `${m[1]}Faq` : "faq";
+    for (let i = 1; locale[`${prefix}${i}Q`]; i++) {
+      keys.add(`${prefix}${i}Q`);
+      keys.add(`${prefix}${i}A`);
+    }
+  }
+  const content = { html, meta: locale[page.metaKey], strings: [...keys].sort().map((k) => [k, locale[k]]) };
+  return crypto.createHash("sha256").update(pagePath).update(JSON.stringify(content)).digest("hex").slice(0, 16);
+}
+
+export function readPageDates(): Record<string, { hash: string; lastmod: string }> {
+  try {
+    return JSON.parse(fs.readFileSync(PAGE_DATES_FILE, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
 export function buildSitemapXml(): string {
   const alt = (hl: string, p: string) =>
     `    <xhtml:link rel="alternate" hreflang="${hl}" href="${SITE_ORIGIN}${p}"/>`;
+  const dates = readPageDates();
   const urls = Object.values(PAGES)
     .map((page) => {
       const loc = page.lang === "es" ? page.esPath : page.enPath;
+      const lastmod = dates[loc]?.lastmod;
       return [
         "  <url>",
         `    <loc>${SITE_ORIGIN}${loc}</loc>`,
+        ...(lastmod ? [`    <lastmod>${lastmod}</lastmod>`] : []),
         alt("en", page.enPath),
         alt("es", page.esPath),
         alt("x-default", page.enPath),
@@ -392,6 +432,26 @@ export function handleStaticAsset(
   readStream.pipe(res);
 }
 
+function handleNotFound(req: IncomingMessage, res: ServerResponse): void {
+  let pathname = "/";
+  try {
+    pathname = new URL(req.url ?? "/", "http://localhost").pathname;
+  } catch {}
+  const lang: Lang = pathname === "/es" || pathname.startsWith("/es/") ? "es" : "en";
+  const html = renderLocalizedHtml(getPageHtml("404.html"), lang, "notFoundMeta");
+
+  res.writeHead(404, {
+    "Content-Type": "text/html; charset=utf-8",
+    "Content-Length": Buffer.byteLength(html),
+    "Content-Language": lang,
+    "Cache-Control": "no-store, no-transform",
+    "X-Robots-Tag": "noindex",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+  });
+  res.end(req.method === "HEAD" ? undefined : html);
+}
+
 export function getWebCustomRoutes() {
   const pageRoutes = Object.keys(PAGES).flatMap((canonicalPath) => {
     const routes = [{ path: canonicalPath, method: ["GET", "HEAD"], handler: handleStaticPage(canonicalPath) }];
@@ -428,6 +488,12 @@ export function getWebCustomRoutes() {
       path: "/apple-touch-icon.png",
       method: ["GET", "HEAD"],
       handler: (req: ParamsIncomingMessage, res: ServerResponse) => handleStaticAsset(req, res, "apple-touch-icon.png"),
+    },
+    // Must stay last: Bolt answers its own Slack endpoints first, then tries these in order.
+    {
+      path: "/*notFound",
+      method: ["GET", "HEAD"],
+      handler: handleNotFound,
     },
   ];
 }

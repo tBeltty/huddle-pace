@@ -527,5 +527,14 @@
   "agFaq4A": "No. It records 0% audio and stores no transcripts. It keeps only the timestamps and the agenda modules it needs to run the timer.",
   "agFaqH": "Questions from agencies",
   "agCtaH": "Keep your next client call on budget",
-  "agCtaP": "Install HuddlePace, run <code>/pace</code> and save the weekly sync as a template."
+  "agCtaP": "Install HuddlePace, run <code>/pace</code> and save the weekly sync as a template.",
+  "notFoundMeta": {
+    "title": "Page not found | HuddlePace",
+    "description": "This page does not exist. Go back to the HuddlePace home page or pick one of the guides.",
+    "ogTitle": "Page not found | HuddlePace",
+    "ogDescription": "This page does not exist."
+  },
+  "nfTitle": "This page does not exist",
+  "nfLead": "The address may have changed, or the page was never here. Start from the home page or pick a guide.",
+  "nfHome": "Back to the home page"
 }

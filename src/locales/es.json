@@ -528,5 +528,14 @@
   "agFaq4A": "No. Graba 0% de audio y no guarda transcripciones. Solo conserva las marcas de tiempo y los módulos de agenda que necesita para correr el temporizador.",
   "agFaqH": "Preguntas de agencias",
   "agCtaH": "Mantén tu próxima llamada con cliente dentro del presupuesto",
-  "agCtaP": "Instala HuddlePace, ejecuta <code>/pace</code> y guarda la reunión semanal como plantilla."
+  "agCtaP": "Instala HuddlePace, ejecuta <code>/pace</code> y guarda la reunión semanal como plantilla.",
+  "notFoundMeta": {
+    "title": "Página no encontrada | HuddlePace",
+    "description": "Esta página no existe. Vuelve al inicio de HuddlePace o elige una de las guías.",
+    "ogTitle": "Página no encontrada | HuddlePace",
+    "ogDescription": "Esta página no existe."
+  },
+  "nfTitle": "Esta página no existe",
+  "nfLead": "Es posible que la dirección haya cambiado o que la página nunca haya existido. Empieza por el inicio o elige una guía.",
+  "nfHome": "Volver al inicio"
 }
