@@ -78,3 +78,22 @@ model MeetupModule {
 
   @@index([meetupId])
 }
+
+model MeetupTemplate {
+  id                   String   @id @default(uuid())
+  teamId               String   @default("default")
+  ownerUserId          String
+  name                 String
+  channelId            String
+  speakerUserId        String // Single ID or comma-separated IDs
+  totalMinutes         Int
+  destination          String   @default("auto") // auto, main (specific Huddle threads are never reusable)
+  reminderTextEnabled  Boolean  @default(true)
+  reminderImageEnabled Boolean  @default(false)
+  modulesJson          String // JSON array of {title, percentage}
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([teamId, ownerUserId, name])
+  @@index([teamId, ownerUserId])
+}

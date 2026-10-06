@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-06
+
+### Added
+- **Session Templates**: Tick "Save as template" in the Schedule Meetup modal to store the title, channel, speakers, duration, Huddle destination, reminder toggles, and agenda modules. Saving the same title again updates the template.
+- **Start from a Template**: A new template picker at the top of the modal (available from `/pace`, the App Home button, and the global shortcut) prefills every field so a recurring call only needs `Schedule & Ready`.
+- **Template Deletion**: A confirmed `Delete template` button appears when a template is selected.
+- **Database Schema Support**: Added the `MeetupTemplate` model, private to its creator within the workspace.
+
+### Changed
+- Schedule modal inputs now carry a revision suffix in their `block_id` so Slack applies prefilled values, and handlers read inputs by `action_id`.
+
+### Removed
+- Dead `custom_duration_block` lookups in the schedule modal handlers (the block was never rendered).
+
 ## [1.2.0] - 2026-09-30
 
 ### Added
@@ -63,7 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/tBeltty/huddle-pace/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/tBeltty/huddle-pace/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/tBeltty/huddle-pace/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/tBeltty/huddle-pace/compare/v1.0.1...v1.1.0

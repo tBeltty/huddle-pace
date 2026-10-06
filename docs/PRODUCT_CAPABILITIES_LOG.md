@@ -4,6 +4,20 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Templates de Sesión: Guarda una vez, agenda en un clic
+* **Guardar como Template desde el modal de agenda (`scheduleModal.ts`, `modalHandlers.ts`, `meetupService.ts`)**:
+  * **Checkbox "Save as template":** Al final del modal `Schedule Meetup` puedes marcar la opción antes de agendar. El template toma el título de la sesión como nombre; si guardas otro con el mismo título, lo actualiza en lugar de duplicarlo.
+  * **Qué se guarda:** Canal, speakers, duración, destino del Huddle (`auto` o feed principal), recordatorios de cierre y todos los módulos con su porcentaje.
+  * **Hilos de Huddle específicos no se guardan:** Un hilo concreto termina con la llamada, así que el template vuelve a detectar el Huddle activo (`auto`). El destino "feed principal" sí se conserva.
+* **Usar un template (`template_select`)**:
+  * **Selector "Start from a template":** Aparece arriba del modal cuando tienes templates guardados, desde `/pace`, el botón de App Home y el atajo global. Al elegir uno, todos los campos se precargan y, si no necesitas cambios, solo pulsas `Schedule & Ready`.
+  * **Precarga confiable:** Slack conserva lo que ya escribiste en inputs con el mismo `block_id` e ignora el nuevo `initial_value`. Por eso los `block_id` llevan un sufijo de revisión (`modalBlockId`) que cambia al aplicar un template, y los handlers leen los valores por `action_id` (`getModalAction`).
+  * **Eliminar:** Con un template elegido aparece `🗑 Delete template` con confirmación.
+* **Persistencia y privacidad (`schema.prisma`)**:
+  * **Nuevo modelo `MeetupTemplate`:** Único por `teamId + ownerUserId + name`. Cada template es privado de su creador dentro del workspace; las consultas de lectura y borrado filtran por dueño.
+  * **Sin migraciones manuales:** El modelo es aditivo y el pipeline de deploy ya ejecuta `pnpm db:push`.
+* **Cobertura (`tests/meetupTemplates.test.ts`)**: Guardado, actualización por nombre, aislamiento por usuario y workspace, borrado, visibilidad del selector, revisión de `block_id` y precarga de módulos.
+
 ## [2026-09-30] Control de Acceso Basado en Roles y Rol Delegado "Bot Manager" para Ajustes
 * **Jerarquía de Permisos en Ajustes (`meetupService.ts`, `settingsModal.ts`, `homeHandlers.ts`, `commandHandlers.ts`, `modalHandlers.ts`)**:
   * **Acceso de Edición Reservado (`canEdit`):** Solo pueden modificar los valores globales del espacio de trabajo los administradores/propietarios de Slack (`is_admin`, `is_owner`, `is_primary_owner`), el instalador original de la aplicación (`installedByUserId`) y los miembros designados con el rol delegado de "Bot Manager".

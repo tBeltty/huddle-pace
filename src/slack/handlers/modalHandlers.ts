@@ -1,11 +1,65 @@
 import { App } from "@slack/bolt";
 import { MeetupService, SubtopicInput } from "../../services/meetupService.js";
-import { buildScheduleModal, MAX_SUBTOPICS } from "../ui/scheduleModal.js";
+import {
+  buildScheduleModal,
+  getModalAction,
+  findModalBlockId,
+  MAX_SUBTOPICS,
+  ModalStateData,
+  ModalSubtopicState,
+  ModalTemplateOption,
+} from "../ui/scheduleModal.js";
 import { findChannelHuddles, DetectedHuddle } from "../utils/huddleDiscovery.js";
 import { launchMeetupInThread } from "./actionHandlers.js";
 import { scheduleModalInputSchema } from "../schemas/scheduleSchema.js";
 import { ensureBotInChannel } from "../utils/channelUtils.js";
 import { publishHomeTab } from "./homeHandlers.js";
+
+/**
+ * Reads the current schedule modal inputs (by action_id, so block_id revisions don't matter)
+ * so the view can be re-rendered without losing what the user already typed.
+ */
+function readScheduleModalState(values: Record<string, any>, metadata: any): Partial<ModalStateData> {
+  const count: number = metadata.subtopicCount || 3;
+  const reminderValues: string[] = (getModalAction(values, "schedule_reminder_checkboxes")?.selected_options || []).map(
+    (o: any) => o.value
+  );
+
+  const customSubtopics: ModalSubtopicState[] = [];
+  for (let i = 0; i < count; i++) {
+    customSubtopics.push({
+      title: getModalAction(values, `subtopic_title_input_${i}`)?.value || "",
+      pct: getModalAction(values, `subtopic_pct_input_${i}`)?.value || "",
+    });
+  }
+
+  return {
+    title: getModalAction(values, "title_input")?.value || "",
+    channelId: getModalAction(values, "channel_select")?.selected_conversation || metadata.channelId,
+    speakerUserIds: getModalAction(values, "speaker_select")?.selected_users || [],
+    duration: parseInt(getModalAction(values, "duration_select")?.selected_option?.value || "60", 10),
+    selectedHuddleChoice: getModalAction(values, "huddle_select")?.selected_option?.value,
+    customThreadTs: getModalAction(values, "custom_thread_input")?.value || "",
+    subtopicCount: count,
+    customSubtopics,
+    reminderTextEnabled: reminderValues.includes("reminder_text"),
+    reminderImageEnabled: reminderValues.includes("reminder_image"),
+    saveAsTemplate: (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0,
+    selectedTemplateId: getModalAction(values, "template_select")?.selected_option?.value,
+    rev: metadata.rev,
+  };
+}
+
+async function loadTemplateOptions(teamId: string | undefined, userId: string | undefined): Promise<ModalTemplateOption[]> {
+  if (!userId) return [];
+  try {
+    const templates = await MeetupService.listTemplates(teamId || "default", userId);
+    return templates.map((t) => ({ id: t.id, name: t.name }));
+  } catch (error) {
+    console.warn("Could not load meetup templates:", error);
+    return [];
+  }
+}
 
 export function registerModalHandlers(app: App) {
   // Action: Dynamically refresh Huddle list when user selects a target channel in the modal
@@ -17,43 +71,18 @@ export function registerModalHandlers(app: App) {
       if (!selectedChannel) return;
 
       const huddles = await findChannelHuddles(client, selectedChannel);
-
-      const values = b.view.state.values;
-      const title = values.title_block?.title_input?.value || "";
-      const selectedSpeakers = values.speaker_block?.speaker_select?.selected_users || [];
-      const duration = parseInt(values.duration_block?.duration_select?.selected_option?.value || "60", 10);
-      const customDuration = values.custom_duration_block?.custom_duration_input?.value || "";
-      const customThreadTs = values.custom_thread_block?.custom_thread_input?.value || "";
-      const metadata = JSON.parse(b.view.private_metadata || "{}");
-      const count = metadata.subtopicCount || 3;
-
-      const reminderSelected = values.reminder_options_block?.schedule_reminder_checkboxes?.selected_options || [];
-      const reminderValues = reminderSelected.map((o: any) => o.value);
-      const reminderTextEnabled = reminderValues.includes("reminder_text");
-      const reminderImageEnabled = reminderValues.includes("reminder_image");
-
-      const customSubtopics: Array<{ title: string; pct: string }> = [];
-      for (let i = 0; i < count; i++) {
-        customSubtopics.push({
-          title: values[`subtopic_title_${i}`]?.[`subtopic_title_input_${i}`]?.value || "",
-          pct: values[`subtopic_pct_${i}`]?.[`subtopic_pct_input_${i}`]?.value || "",
-        });
-      }
+      const state = readScheduleModalState(b.view.state.values, JSON.parse(b.view.private_metadata || "{}"));
+      const templates = await loadTemplateOptions(b.team?.id || b.user?.team_id, b.user?.id);
 
       await client.views.update({
         view_id: b.view.id,
         view: buildScheduleModal({
-          title,
+          ...state,
           channelId: selectedChannel,
-          speakerUserIds: selectedSpeakers,
-          duration,
-          customDuration,
-          subtopicCount: count,
-          customThreadTs,
+          selectedHuddleChoice: undefined,
+          subtopicCount: state.subtopicCount ?? 3,
           availableHuddles: huddles,
-          customSubtopics,
-          reminderTextEnabled,
-          reminderImageEnabled,
+          templates,
         }),
       });
     } catch (error) {
@@ -71,54 +100,98 @@ export function registerModalHandlers(app: App) {
       if (currentCount >= MAX_SUBTOPICS) {
         return;
       }
-      const newCount = Math.min(MAX_SUBTOPICS, currentCount + 1);
 
-      const values = b.view.state.values;
-      const channelId = values.channel_block?.channel_select?.selected_conversation || metadata.channelId;
-      const title = values.title_block?.title_input?.value || "";
-      const selectedSpeakers = values.speaker_block?.speaker_select?.selected_users || [];
-      const duration = parseInt(values.duration_block?.duration_select?.selected_option?.value || "60", 10);
-      const customDuration = values.custom_duration_block?.custom_duration_input?.value || "";
-      const selectedHuddleChoice = values.huddle_select_block?.huddle_select?.selected_option?.value;
-      const customThreadTs = values.custom_thread_block?.custom_thread_input?.value || "";
-
-      const reminderSelected = values.reminder_options_block?.schedule_reminder_checkboxes?.selected_options || [];
-      const reminderValues = reminderSelected.map((o: any) => o.value);
-      const reminderTextEnabled = reminderValues.includes("reminder_text");
-      const reminderImageEnabled = reminderValues.includes("reminder_image");
-
+      const state = readScheduleModalState(b.view.state.values, metadata);
       let huddles: DetectedHuddle[] = [];
-      if (channelId) {
-        huddles = await findChannelHuddles(client, channelId);
+      if (state.channelId) {
+        huddles = await findChannelHuddles(client, state.channelId);
       }
-
-      const customSubtopics: Array<{ title: string; pct: string }> = [];
-      for (let i = 0; i < currentCount; i++) {
-        customSubtopics.push({
-          title: values[`subtopic_title_${i}`]?.[`subtopic_title_input_${i}`]?.value || "",
-          pct: values[`subtopic_pct_${i}`]?.[`subtopic_pct_input_${i}`]?.value || "",
-        });
-      }
+      const templates = await loadTemplateOptions(b.team?.id || b.user?.team_id, b.user?.id);
 
       await client.views.update({
         view_id: b.view.id,
         view: buildScheduleModal({
-          title,
-          channelId,
-          speakerUserIds: selectedSpeakers,
-          duration,
-          customDuration,
-          subtopicCount: newCount,
-          selectedHuddleChoice,
-          customThreadTs,
+          ...state,
+          subtopicCount: Math.min(MAX_SUBTOPICS, currentCount + 1),
           availableHuddles: huddles,
-          customSubtopics,
-          reminderTextEnabled,
-          reminderImageEnabled,
+          templates,
         }),
       });
     } catch (error) {
       console.error("Error dynamically appending subtopic row:", error);
+    }
+  });
+
+  // Action: Prefill the schedule modal from a saved template
+  app.action("template_select", async ({ ack, body, client }) => {
+    await ack();
+    try {
+      const b = body as any;
+      const templateId = b.actions[0]?.selected_option?.value;
+      const teamId = b.team?.id || b.user?.team_id || "default";
+      const userId = b.user?.id;
+      if (!templateId || !userId) return;
+
+      const template = await MeetupService.getTemplate(templateId, teamId, userId);
+      const templates = await loadTemplateOptions(teamId, userId);
+      if (!template) {
+        // Deleted elsewhere: refresh the picker so the stale entry disappears.
+        const state = readScheduleModalState(b.view.state.values, JSON.parse(b.view.private_metadata || "{}"));
+        await client.views.update({
+          view_id: b.view.id,
+          view: buildScheduleModal({ ...state, selectedTemplateId: undefined, templates }),
+        });
+        return;
+      }
+
+      const huddles = await findChannelHuddles(client, template.channelId);
+      const moduleCount = Math.min(MAX_SUBTOPICS, Math.max(1, template.modules.length));
+
+      await client.views.update({
+        view_id: b.view.id,
+        view: buildScheduleModal({
+          title: template.name,
+          channelId: template.channelId,
+          speakerUserIds: MeetupService.parseSpeakerIds(template.speakerUserId),
+          duration: template.totalMinutes,
+          selectedHuddleChoice: template.destination,
+          subtopicCount: moduleCount,
+          customSubtopics: template.modules
+            .slice(0, MAX_SUBTOPICS)
+            .map((m) => ({ title: m.title, pct: String(m.percentage) })),
+          reminderTextEnabled: template.reminderTextEnabled,
+          reminderImageEnabled: template.reminderImageEnabled,
+          availableHuddles: huddles,
+          templates,
+          selectedTemplateId: template.id,
+          rev: Date.now().toString(36),
+        }),
+      });
+    } catch (error) {
+      console.error("Error applying meetup template to modal:", error);
+    }
+  });
+
+  // Action: Delete the selected template and reset the picker
+  app.action("delete_template_action", async ({ ack, body, client }) => {
+    await ack();
+    try {
+      const b = body as any;
+      const teamId = b.team?.id || b.user?.team_id || "default";
+      const userId = b.user?.id;
+      const templateId = b.actions[0]?.value;
+      if (!templateId || !userId) return;
+
+      await MeetupService.deleteTemplate(templateId, teamId, userId);
+
+      const state = readScheduleModalState(b.view.state.values, JSON.parse(b.view.private_metadata || "{}"));
+      const templates = await loadTemplateOptions(teamId, userId);
+      await client.views.update({
+        view_id: b.view.id,
+        view: buildScheduleModal({ ...state, selectedTemplateId: undefined, templates }),
+      });
+    } catch (error) {
+      console.error("Error deleting meetup template:", error);
     }
   });
 
@@ -128,24 +201,17 @@ export function registerModalHandlers(app: App) {
     const metadata = JSON.parse(view.private_metadata || "{}");
     const count = metadata.subtopicCount || 3;
 
-    const title = values.title_block?.title_input?.value || "";
-    const channelId = values.channel_block?.channel_select?.selected_conversation || "";
-    const presetMinutes = parseInt(values.duration_block?.duration_select?.selected_option?.value || "60", 10);
-    const customDurationStr = values.custom_duration_block?.custom_duration_input?.value?.trim() || "";
-
-    let totalMinutes = presetMinutes;
-    if (customDurationStr) {
-      const parsedCustom = Number(customDurationStr);
-      totalMinutes = isNaN(parsedCustom) ? -1 : parsedCustom;
-    }
+    const title = getModalAction(values, "title_input")?.value || "";
+    const channelId = getModalAction(values, "channel_select")?.selected_conversation || "";
+    const totalMinutes = parseInt(getModalAction(values, "duration_select")?.selected_option?.value || "60", 10);
 
     // Multi-speaker selection support
-    const selectedSpeakers: string[] = values.speaker_block?.speaker_select?.selected_users || [];
+    const selectedSpeakers: string[] = getModalAction(values, "speaker_select")?.selected_users || [];
     const speakerUserId = selectedSpeakers.length > 0 ? selectedSpeakers.join(",") : body.user.id;
 
     // Huddle destination selection
-    const huddleChoice = values.huddle_select_block?.huddle_select?.selected_option?.value || "auto";
-    const customThread = values.custom_thread_block?.custom_thread_input?.value?.trim() || "";
+    const huddleChoice = getModalAction(values, "huddle_select")?.selected_option?.value || "auto";
+    const customThread = getModalAction(values, "custom_thread_input")?.value?.trim() || "";
 
     let threadTs: string | null = null;
     if (customThread) {
@@ -163,15 +229,16 @@ export function registerModalHandlers(app: App) {
       threadTs = "auto";
     }
 
-    const reminderSelected = values.reminder_options_block?.schedule_reminder_checkboxes?.selected_options || [];
+    const reminderSelected = getModalAction(values, "schedule_reminder_checkboxes")?.selected_options || [];
     const reminderValues = reminderSelected.map((o: any) => o.value);
     const reminderTextEnabled = reminderValues.includes("reminder_text");
     const reminderImageEnabled = reminderValues.includes("reminder_image");
+    const saveAsTemplate = (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0;
 
     const rawModules = [];
     for (let i = 0; i < count; i++) {
-      const subTitle = values[`subtopic_title_${i}`]?.[`subtopic_title_input_${i}`]?.value || "";
-      const rawPct = values[`subtopic_pct_${i}`]?.[`subtopic_pct_input_${i}`]?.value;
+      const subTitle = getModalAction(values, `subtopic_title_input_${i}`)?.value || "";
+      const rawPct = getModalAction(values, `subtopic_pct_input_${i}`)?.value;
       const parsedPct = Number(rawPct);
       rawModules.push({
         title: subTitle,
@@ -198,17 +265,16 @@ export function registerModalHandlers(app: App) {
           const index = path[1];
           const field = path[2];
           if (field === "percentage") {
-            errors[`subtopic_pct_${index}`] = issue.message;
+            errors[findModalBlockId(values, `subtopic_pct_input_${index}`) ?? `subtopic_pct_${index}`] = issue.message;
           } else {
-            errors[`subtopic_title_${index}`] = issue.message;
+            errors[findModalBlockId(values, `subtopic_title_input_${index}`) ?? `subtopic_title_${index}`] = issue.message;
           }
         } else if (path[0] === "title") {
-          errors["title_block"] = issue.message;
+          errors[findModalBlockId(values, "title_input") ?? "title_block"] = issue.message;
         } else if (path[0] === "channelId") {
-          errors["channel_block"] = issue.message;
+          errors[findModalBlockId(values, "channel_select") ?? "channel_block"] = issue.message;
         } else if (path[0] === "totalMinutes") {
-          const targetBlock = customDurationStr ? "custom_duration_block" : "duration_block";
-          errors[targetBlock] = issue.message;
+          errors[findModalBlockId(values, "duration_select") ?? "duration_block"] = issue.message;
         }
       }
 
@@ -241,6 +307,28 @@ export function registerModalHandlers(app: App) {
         modules: validatedData.modules,
       });
 
+      let templateNote = "";
+      if (saveAsTemplate) {
+        try {
+          await MeetupService.saveTemplate({
+            teamId,
+            ownerUserId: body.user.id,
+            name: validatedData.title,
+            channelId: validatedData.channelId,
+            speakerUserId: validatedData.speakerUserId,
+            totalMinutes: validatedData.totalMinutes,
+            threadTs: validatedData.threadTs,
+            reminderTextEnabled: validatedData.reminderTextEnabled,
+            reminderImageEnabled: validatedData.reminderImageEnabled,
+            modules: validatedData.modules,
+          });
+          templateNote = " Saved as a template.";
+        } catch (templateError) {
+          console.error("Meetup scheduled but template could not be saved:", templateError);
+          templateNote = " The template could not be saved.";
+        }
+      }
+
       const speakerText = MeetupService.formatSpeakerMentions(speakerUserId);
       const destinationNote = threadTs && threadTs !== "auto" && threadTs !== "main"
         ? "locked to selected Huddle thread"
@@ -261,7 +349,7 @@ export function registerModalHandlers(app: App) {
         await client.chat.postEphemeral({
           channel: channelId,
           user: body.user.id,
-          text: `*Scheduled:* '${title}' (${totalMinutes}m) with ${speakerText} (${destinationNote}). Ready to launch from your Home tab!`,
+          text: `*Scheduled:* '${title}' (${totalMinutes}m) with ${speakerText} (${destinationNote}). Ready to launch from your Home tab!${templateNote}`,
         });
       } catch {
         await client.chat.postMessage({
