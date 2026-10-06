@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.5] - 2026-10-06
+
+### Fixed
+- **Main Landmark on Legal Pages**: `/privacy` and `/terms` (EN and ES) had no `<main>` region, which Lighthouse flagged as `landmark-one-main` (accessibility 98). Both now wrap their content in `<main id="main">` and have the skip link the other pages already had.
+- **Test Coverage**: A test checks that eight representative pages each expose exactly one `<main>` and a skip link.
+
 ## [1.9.4] - 2026-10-06
 
 ### Changed
@@ -207,7 +213,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.4...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.5...HEAD
+[1.9.5]: https://github.com/tBeltty/huddle-pace/compare/v1.9.4...v1.9.5
 [1.9.4]: https://github.com/tBeltty/huddle-pace/compare/v1.9.3...v1.9.4
 [1.9.3]: https://github.com/tBeltty/huddle-pace/compare/v1.9.2...v1.9.3
 [1.9.2]: https://github.com/tBeltty/huddle-pace/compare/v1.9.1...v1.9.2

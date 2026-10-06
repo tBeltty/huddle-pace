@@ -183,6 +183,16 @@ describe("Web Landing Page & Asset Delivery", () => {
       }
     });
 
+    test("every page exposes exactly one main landmark and a skip link", () => {
+      const routes = getWebCustomRoutes();
+      for (const route of ["/", "/privacy", "/terms", "/es/privacy", "/es/terms", "/es/", "/slack-huddle-timer", "/sprint-retrospective-agenda"]) {
+        const res = new MockResponse();
+        routes.find((r) => r.path === route)!.handler({ url: route } as any, res as any);
+        assert.strictEqual((res.body.match(/<main[\s>]/g) ?? []).length, 1, `${route} <main>`);
+        assert.match(res.body, /class="skip-link" href="#main"/, route);
+      }
+    });
+
     test("serves legal pages in both languages", () => {
       const routes = getWebCustomRoutes();
       const es = new MockResponse();
