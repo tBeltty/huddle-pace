@@ -44,6 +44,9 @@ const PAGE_PAIRS: Array<{ file: string; metaKey: string; enPath: string; esPath:
   { file: "index.html", metaKey: "meta", enPath: "/", esPath: "/es/" },
   { file: "slack-huddle-timer.html", metaKey: "huddleTimerMeta", enPath: "/slack-huddle-timer", esPath: "/es/temporizador-huddle-slack" },
   { file: "daily-standup-timer-slack.html", metaKey: "standupMeta", enPath: "/daily-standup-timer-slack", esPath: "/es/temporizador-daily-standup-slack" },
+  { file: "engineering-managers-meeting-timer.html", metaKey: "emMeta", enPath: "/engineering-managers-meeting-timer", esPath: "/es/temporizador-reuniones-engineering-managers" },
+  { file: "client-call-timer-slack.html", metaKey: "agencyMeta", enPath: "/client-call-timer-slack", esPath: "/es/temporizador-llamadas-clientes-slack" },
+  { file: "sprint-retrospective-agenda.html", metaKey: "retroMeta", enPath: "/sprint-retrospective-agenda", esPath: "/es/agenda-retrospectiva-sprint" },
   { file: "privacy.html", metaKey: "privacyMeta", enPath: "/privacy", esPath: "/es/privacy" },
   { file: "terms.html", metaKey: "termsMeta", enPath: "/terms", esPath: "/es/terms" },
 ];

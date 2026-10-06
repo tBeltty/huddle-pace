@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slack Huddle Timer with Progress Bar | HuddlePace</title>
+  <title>Client Call Timer for Agencies on Slack | HuddlePace</title>
 
   <!-- Primary Meta Tags -->
-  <meta name="description" content="Add a timer to any Slack Huddle. HuddlePace posts a live progress bar in the thread, alerts speakers at midpoint and wraps up on time. 0% audio recorded.">
+  <meta name="description" content="Keep weekly client syncs inside the time you bill for. HuddlePace shows pacing in the Huddle thread and has a Just Chatting mode for off-the-clock talk.">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://huddlepace.com/slack-huddle-timer">
+  <link rel="canonical" href="https://huddlepace.com/client-call-timer-slack">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://huddlepace.com/slack-huddle-timer">
-  <meta property="og:title" content="Slack Huddle Timer with Progress Bar | HuddlePace">
-  <meta property="og:description" content="A live progress bar in your Huddle thread, private midpoint alerts for speakers and a summary when the call ends. 0% audio recorded.">
+  <meta property="og:url" content="https://huddlepace.com/client-call-timer-slack">
+  <meta property="og:title" content="Client Call Timer for Agencies on Slack | HuddlePace">
+  <meta property="og:description" content="Weekly client syncs split into timed modules, with a Just Chatting mode for the conversation that is off the clock.">
   <meta property="og:image" content="https://huddlepace.com/assets/og-image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -34,8 +34,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Slack Huddle Timer with Progress Bar | HuddlePace">
-  <meta name="twitter:description" content="A live progress bar in your Huddle thread, private midpoint alerts for speakers and a summary when the call ends. 0% audio recorded.">
+  <meta name="twitter:title" content="Client Call Timer for Agencies on Slack | HuddlePace">
+  <meta name="twitter:description" content="Weekly client syncs split into timed modules, with a Just Chatting mode for the conversation that is off the clock.">
   <meta name="twitter:image" content="https://huddlepace.com/assets/og-image.jpg">
 
   <script type="application/ld+json">
@@ -44,9 +44,9 @@
     "@graph": [
       {
         "@type": "WebPage",
-        "@id": "https://huddlepace.com/slack-huddle-timer#page",
-        "url": "https://huddlepace.com/slack-huddle-timer",
-        "name": "Slack Huddle Timer with Progress Bar",
+        "@id": "https://huddlepace.com/client-call-timer-slack#page",
+        "url": "https://huddlepace.com/client-call-timer-slack",
+        "name": "Client Call Timer for Agencies on Slack",
         "inLanguage": "en",
         "isPartOf": { "@id": "https://huddlepace.com/#website" }
       },
@@ -54,7 +54,7 @@
         "@type": "BreadcrumbList",
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://huddlepace.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Slack Huddle Timer with Progress Bar", "item": "https://huddlepace.com/slack-huddle-timer" }
+          { "@type": "ListItem", "position": 2, "name": "Client Call Timer for Agencies on Slack", "item": "https://huddlepace.com/client-call-timer-slack" }
         ]
       }
     ]
@@ -96,10 +96,10 @@
 
     <section class="legal-hero">
       <div class="badge-pilot">
-        <span data-i18n="htBadge">⏱️ Slack Huddle Timer</span>
+        <span data-i18n="agBadge">🤝 Agencies</span>
       </div>
-      <h1 data-i18n="htTitle">A timer for your <span>Slack Huddles</span></h1>
-      <p data-i18n="htLead">HuddlePace adds a live progress bar to the Huddle thread, splits the call into timed agenda modules and tells speakers when they are halfway through. It listens to nothing: 0% audio recorded.</p>
+      <h1 data-i18n="agTitle">Client calls that respect <span>billable hours</span></h1>
+      <p data-i18n="agLead">A client call that runs long comes out of your margin. HuddlePace splits the call into timed modules and shows the pacing in the Huddle thread.</p>
       <div class="hero-actions" style="margin-top:28px;">
         <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
       </div>
@@ -108,48 +108,32 @@
     <main id="main">
     <section class="legal-content">
       <section>
-        <h2 data-i18n="htS1Title">How it works</h2>
-        <p data-i18n="htS1P1">Setup takes three steps and no change to how your team already joins Huddles.</p>
-        <ol>
-          <li data-i18n="htS1P2I1">Install HuddlePace from the Add to Slack button.</li>
-          <li data-i18n="htS1P2I2">Run <code>/pace</code> in a channel, choose a duration and split it into agenda modules by percentage. The modules must add up to 100%.</li>
-          <li data-i18n="htS1P2I3">Start the session from App Home. The progress bar appears in the Huddle thread and updates every 30 seconds.</li>
-        </ol>
+        <h2 data-i18n="agS1Title">Time is margin</h2>
+        <p data-i18n="agS1P1">On a fixed-fee project every extra ten minutes of a weekly sync is unpaid work. A clock that everyone in the thread can see keeps the call on its agenda.</p>
       </section>
       <section>
-        <h2 data-i18n="htS2Title">What your team sees during the call</h2>
+        <h2 data-i18n="agS2Title">A weekly sync split</h2>
+        <p data-i18n="agS2P1">For a 30-minute client sync, run <code>/pace</code> and set:</p>
         <ul>
-          <li data-i18n="htS2P1I1">A monospace progress bar with the current topic and the time remaining.</li>
-          <li data-i18n="htS2P1I2">A private Slack DM to the active speaker at the midpoint and again with one minute left.</li>
-          <li data-i18n="htS2P1I3">A <strong>Next Module</strong> button so a speaker who finishes early hands the leftover time to the next topic.</li>
-          <li data-i18n="htS2P1I4">A <strong>Just Chatting</strong> mode that freezes the formal metrics when the meeting turns into open conversation.</li>
-          <li data-i18n="htS2P1I5">A final summary comparing scheduled and actual duration once everyone leaves the Huddle.</li>
+          <li data-i18n="agS2P2I1">Sprint progress, 40% (12 min)</li>
+          <li data-i18n="agS2P2I2">Deliverable demos, 40% (12 min)</li>
+          <li data-i18n="agS2P2I3">Client approvals, 20% (6 min)</li>
         </ul>
       </section>
       <section>
-        <h2 data-i18n="htS3Title">Commands</h2>
-        <ul>
-          <li data-i18n="htS3P1I1"><code>/pace</code> opens the scheduling modal.</li>
-          <li data-i18n="htS3P1I2"><code>/pace status</code> shows the pacing sessions running in the channel.</li>
-          <li data-i18n="htS3P1I3"><code>/pace report 30</code> shows timebox adherence for the last 30 days.</li>
-          <li data-i18n="htS3P1I4"><code>/pace clear</code> deletes past bot DMs sent to you.</li>
-          <li data-i18n="htS3P1I5"><code>/pace help</code> lists the syntax.</li>
-        </ul>
+        <h2 data-i18n="agS3Title">Just Chatting mode</h2>
+        <p data-i18n="agS3P1">When the formal agenda is done and the conversation turns social, switch to <strong>Just Chatting</strong>. It freezes the formal metrics and keeps the Huddle open, so friendly time does not distort your pacing report.</p>
       </section>
       <section>
-        <h2 data-i18n="htS4Title">Zero audio, by design</h2>
-        <p data-i18n="htS4P1">HuddlePace never records or transcribes a call. It keeps only timestamps and the agenda modules it needs to run the timer. Read the <a href="/privacy">privacy policy</a> for the details.</p>
-      </section>
-      <section>
-        <h2 data-i18n="htS5Title">Pricing</h2>
-        <p data-i18n="htS5P1">HuddlePace is in early access and free today. Pricing will be per workspace, never per user, and the features available today stay free.</p>
+        <h2 data-i18n="agS4Title">Pricing</h2>
+        <p data-i18n="agS4P1">HuddlePace is in early access and free today. Pricing will be per workspace, never per user, and the features available today stay free.</p>
       </section>
       <section>
         <h2 data-i18n="relHeading">More guides</h2>
         <ul>
+          <li data-i18n="relHuddle"><a href="/slack-huddle-timer">Slack Huddle timer</a></li>
           <li data-i18n="relStandup"><a href="/daily-standup-timer-slack">Daily standup timer for Slack</a></li>
           <li data-i18n="relEm"><a href="/engineering-managers-meeting-timer">Meeting timer for engineering managers</a></li>
-          <li data-i18n="relAgency"><a href="/client-call-timer-slack">Client call timer for agencies</a></li>
           <li data-i18n="relRetro"><a href="/sprint-retrospective-agenda">Sprint retrospective agenda</a></li>
         </ul>
       </section>

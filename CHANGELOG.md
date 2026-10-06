@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-06
+
+### Added
+- **Three More Content Pages (EN and ES)**: a meeting timer for engineering managers (RFC and post-mortem splits), a client call timer for agencies (weekly sync split and Just Chatting mode) and a sprint retrospective agenda (20/50/30 split). All are in the sitemap, now 16 URLs.
+- **Cross-Linking**: Every content page ends with a "More guides" list linking to the others, with Spanish links resolving to Spanish pages.
+
+### Changed
+- **Support Widget Loads Idle on Every Page**: The legal pages and the first two content pages still loaded the widget synchronously. They now use the same idle loader as the home page.
+
 ## [1.6.2] - 2026-10-06
 
 ### Changed
@@ -129,7 +138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.6.2...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/tBeltty/huddle-pace/compare/v1.6.2...v1.7.0
 [1.6.2]: https://github.com/tBeltty/huddle-pace/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/tBeltty/huddle-pace/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/tBeltty/huddle-pace/compare/v1.5.0...v1.6.0

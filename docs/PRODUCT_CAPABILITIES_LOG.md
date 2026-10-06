@@ -4,6 +4,14 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Tres Páginas de Contenido Más y Enlazado Interno
+* **Páginas nuevas en inglés y español**:
+  * **Engineering managers** (`/engineering-managers-meeting-timer`, `/es/temporizador-reuniones-engineering-managers`): reparto 15/50/35 para revisión de RFC en 30 minutos y 25/45/30 para post-mortem en 40, más `/pace report 30`.
+  * **Agencias** (`/client-call-timer-slack`, `/es/temporizador-llamadas-clientes-slack`): reunión semanal 40/40/20 en 30 minutos y modo Just Chatting. No se afirma compatibilidad con Slack Connect porque no está verificada.
+  * **Retrospectiva** (`/sprint-retrospective-agenda`, `/es/agenda-retrospectiva-sprint`): reparto 20/50/30 en 60 minutos, consejos de facilitación y guardado como template.
+* **Enlazado**: cada página de contenido termina con "Más guías" hacia las demás. El sitemap pasa a 16 URLs.
+* **Widget de soporte**: las páginas legales y las dos primeras páginas de contenido pasan a la carga en idle que ya usaba la home.
+
 ## [2026-10-06] Política de Privacidad Alineada con el Sitio Sin Cookie de Idioma
 * **`privacy.html` y `src/locales/*.json`**: se elimina la mención de la cookie `huddlepace_lang`, que el sitio dejó de escribir al pasar a URLs por idioma, y se actualiza la fecha de última modificación al 6 de octubre de 2026.
 
