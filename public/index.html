@@ -99,7 +99,7 @@
     <header>
       <nav class="navbar" aria-label="Main Navigation">
         <a href="/" class="brand">
-          <img src="/assets/avatar-96.png" alt="HuddlePace" class="brand-avatar-img" width="34" height="34" decoding="async">
+          <picture><source type="image/webp" srcset="/assets/avatar-96.webp"><img src="/assets/avatar-96.png" alt="HuddlePace" class="brand-avatar-img" width="34" height="34" decoding="async"></picture>
           <span>HuddlePace</span>
         </a>
         <div class="nav-actions">
@@ -168,7 +168,10 @@
         <div class="vector-radar-backdrop"></div>
         <div class="vector-display-card">
           <div class="vector-image-container">
-            <img src="/assets/hero-vector.jpg" alt="Vector the Pacer Falcon" fetchpriority="high" width="800" height="800" decoding="async">
+            <picture>
+              <source type="image/webp" srcset="/assets/hero-vector-400.webp 400w, /assets/hero-vector-800.webp 800w" sizes="(max-width: 900px) 90vw, 480px">
+              <img src="/assets/hero-vector.jpg" alt="Vector the Pacer Falcon" fetchpriority="high" width="800" height="800" decoding="async">
+            </picture>
             <div class="vector-floating-tag">
               <div class="tag-identity">
                 <p class="tag-name">Vector</p>
@@ -199,7 +202,7 @@
         <!-- Live (in-progress) view -->
         <div class="slack-message" id="sim-live-view">
           <div class="bot-avatar">
-            <img src="/assets/avatar-96.png" alt="HuddlePace Bot Avatar" width="48" height="48" decoding="async">
+            <picture><source type="image/webp" srcset="/assets/avatar-96.webp"><img src="/assets/avatar-96.png" alt="HuddlePace Bot Avatar" width="48" height="48" decoding="async"></picture>
           </div>
           <div class="message-content">
             <p class="message-author">
@@ -247,7 +250,7 @@
         <!-- Concluded (wrap-up) view, shown after "Conclude Meetup" -->
         <div class="slack-message" id="sim-concluded-view" style="display:none;">
           <div class="bot-avatar">
-            <img src="/assets/avatar-96.png" alt="HuddlePace Bot Avatar" width="48" height="48" decoding="async">
+            <picture><source type="image/webp" srcset="/assets/avatar-96.webp"><img src="/assets/avatar-96.png" alt="HuddlePace Bot Avatar" width="48" height="48" decoding="async"></picture>
           </div>
           <div class="message-content">
             <p class="message-author">
@@ -283,7 +286,10 @@
     <section class="vector-section" id="vector">
       <div class="vector-card">
         <div class="vector-visual">
-          <img src="/assets/vectorfull.png" alt="Vector - The Meeting Timekeeper" loading="lazy" width="467" height="534" decoding="async">
+          <picture>
+            <source type="image/webp" srcset="/assets/vectorfull.webp">
+            <img src="/assets/vectorfull.png" alt="Vector - The Meeting Timekeeper" loading="lazy" width="467" height="534" decoding="async">
+          </picture>
         </div>
         <div class="vector-info">
           <div class="vector-badge">⚡ COMPANION BOT</div>
@@ -384,7 +390,7 @@
           <!-- Brand Column -->
           <div class="footer-brand">
             <a href="/" class="brand">
-              <img src="/assets/avatar-96.png" alt="HuddlePace" class="brand-avatar-img" width="34" height="34" decoding="async">
+              <picture><source type="image/webp" srcset="/assets/avatar-96.webp"><img src="/assets/avatar-96.png" alt="HuddlePace" class="brand-avatar-img" width="34" height="34" decoding="async"></picture>
               <span>HuddlePace</span>
             </a>
             <p class="footer-desc" data-i18n="footerDesc">
@@ -912,7 +918,7 @@
     <div class="contact-modal" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
       <button type="button" class="contact-modal-close" id="contact-modal-close" aria-label="Close">&times;</button>
       <div class="contact-modal-header">
-        <img src="/assets/avatar-96.png" alt="" class="contact-modal-avatar" />
+        <picture><source type="image/webp" srcset="/assets/avatar-96.webp"><img src="/assets/avatar-96.png" alt="" class="contact-modal-avatar" /></picture>
         <div>
           <h3 id="contact-modal-title" data-i18n="contactModalTitle">Contact Support</h3>
           <p data-i18n="contactModalSubtitle">Tell us what's going on, Vector will route it to the team.</p>
