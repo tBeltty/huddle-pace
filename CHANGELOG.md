@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-06
+
+### Changed
+- **Sprint Retrospective Page Redesigned**: `/sprint-retrospective-agenda` and `/es/agenda-retrospectiva-sprint` are now a full landing page instead of the legal-page template. It has a two-column hero with an example agenda card, a segmented 20/50/30 time bar, module cards that reflow with container queries, a "four ways a retro goes off the rails" section, three setup steps with a mock of the Huddle thread, facilitator tips, a four-question FAQ and a closing call to action. Copy grew from about 150 to about 640 words per language.
+
+### Added
+- **Per-Page FAQ Structured Data**: A page can declare `__FAQ_JSON_LD:<prefix>__` and the server builds its `FAQPage` JSON-LD from the `<prefix>Faq<n>Q/A` locale keys, so markup and visible text cannot drift.
+- **Landing Components in `site.css`**: `.lp-*`, `.split-bar`, `.agenda-card`, `.mod-card`, `.step`, `.thread` and `.reveal`. Entry reveals use scroll-driven animation only where supported and when motion is allowed.
+
 ## [1.7.1] - 2026-10-06
 
 ### Removed
@@ -143,7 +152,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.7.1...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/tBeltty/huddle-pace/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/tBeltty/huddle-pace/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/tBeltty/huddle-pace/compare/v1.6.2...v1.7.0
 [1.6.2]: https://github.com/tBeltty/huddle-pace/compare/v1.6.1...v1.6.2

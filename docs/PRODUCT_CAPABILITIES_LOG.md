@@ -4,6 +4,12 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Página de Retrospectiva Rediseñada como Landing Completa
+* **Diseño (`public/sprint-retrospective-agenda.html`, `site.css`)**: hero en dos columnas con tarjeta de agenda de ejemplo, barra segmentada 20/50/30 con minutos reales, tarjetas por módulo que se reorganizan con container queries, sección de errores comunes, tres pasos con un mock del hilo del Huddle, consejos, FAQ y CTA final. Las animaciones de entrada son una mejora progresiva que respeta `prefers-reduced-motion`.
+* **Contenido**: de unas 150 a unas 640 palabras por idioma, con ejemplos de minutos y respuestas a preguntas reales (duración, cambio de porcentajes, bloque que termina antes, audio). Pasado por la revisión de patrones `no-ai-slop` y tuteo en español.
+* **Datos estructurados (`landingPage.ts`)**: `__FAQ_JSON_LD:<prefijo>__` genera el `FAQPage` de una página a partir de sus claves `<prefijo>Faq<n>Q/A`, por lo que el marcado siempre coincide con el texto visible.
+* **Pendiente**: replicar el diseño en las otras cuatro páginas de contenido una vez aprobado el prototipo.
+
 ## [2026-10-06] Limpieza: Imagen Duplicada Eliminada
 * **`public/assets/vectorful.png`** se elimina. Era una copia idéntica de `vectorfull.png`, que es la que usa la página principal; ninguna página, test ni documento referenciaba la copia.
 

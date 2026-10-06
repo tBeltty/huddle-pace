@@ -144,6 +144,24 @@ describe("Web Landing Page & Asset Delivery", () => {
       assert.match(es.body, /href="\/es\/temporizador-daily-standup-slack"/);
     });
 
+    test("retrospective page is a full landing page with its own FAQPage markup in each language", () => {
+      const routes = getWebCustomRoutes();
+      for (const [route, lang, question] of [
+        ["/sprint-retrospective-agenda", "en", "How long should a sprint retrospective be?"],
+        ["/es/agenda-retrospectiva-sprint", "es", "¿Cuánto debe durar una retrospectiva de sprint?"],
+      ]) {
+        const res = new MockResponse();
+        routes.find((r) => r.path === route)!.handler({ url: route } as any, res as any);
+        assert.strictEqual(res.statusCode, 200, route);
+        assert.match(res.body, /class="split-bar"/, lang);
+        assert.match(res.body, /class="agenda-card"/, lang);
+        assert.ok(res.body.includes(`"name": "${question}"`), lang);
+        assert.doesNotMatch(res.body, /__FAQ_JSON_LD/, lang);
+        const text = res.body.replace(/<[^>]+>/g, " ").split(/\s+/).length;
+        assert.ok(text > 600, `${lang} has ${text} words`);
+      }
+    });
+
     test("serves legal pages in both languages", () => {
       const routes = getWebCustomRoutes();
       const es = new MockResponse();

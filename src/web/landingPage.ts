@@ -114,14 +114,14 @@ export function getLocaleDictionary(lang: string): any {
   return null;
 }
 
-function buildFaqJsonLd(locale: any): string {
+function buildFaqJsonLd(locale: any, prefix = "faq"): string {
   const strip = (v: string) => v.replace(/<[^>]*>/g, "").trim();
   const mainEntity: any[] = [];
-  for (let i = 1; locale?.[`faq${i}Q`]; i++) {
+  for (let i = 1; locale?.[`${prefix}${i}Q`]; i++) {
     mainEntity.push({
       "@type": "Question",
-      name: strip(locale[`faq${i}Q`]),
-      acceptedAnswer: { "@type": "Answer", text: strip(locale[`faq${i}A`]) },
+      name: strip(locale[`${prefix}${i}Q`]),
+      acceptedAnswer: { "@type": "Answer", text: strip(locale[`${prefix}${i}A`]) },
     });
   }
   if (mainEntity.length === 0) return "";
@@ -161,9 +161,10 @@ export function renderLocalizedHtml(
 
   // FAQPage structured data is generated from the same locale strings as the visible FAQ.
   const faqLocale = getLocaleDictionary(lang);
-  if (html.includes("__FAQ_JSON_LD__")) {
-    html = html.replace("__FAQ_JSON_LD__", buildFaqJsonLd(faqLocale));
-  }
+  // `__FAQ_JSON_LD__` uses the `faq` keys; `__FAQ_JSON_LD:xx__` uses the `xxFaq` keys of a page.
+  html = html.replace(/__FAQ_JSON_LD(?::([a-z]+))?__/g, (_m, page?: string) =>
+    buildFaqJsonLd(faqLocale, page ? `${page}Faq` : "faq")
+  );
 
   if (lang === "en") {
     return html;
