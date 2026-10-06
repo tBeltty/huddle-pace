@@ -4,6 +4,9 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Limpieza: Imagen Duplicada Eliminada
+* **`public/assets/vectorful.png`** se elimina. Era una copia idéntica de `vectorfull.png`, que es la que usa la página principal; ninguna página, test ni documento referenciaba la copia.
+
 ## [2026-10-06] Tres Páginas de Contenido Más y Enlazado Interno
 * **Páginas nuevas en inglés y español**:
   * **Engineering managers** (`/engineering-managers-meeting-timer`, `/es/temporizador-reuniones-engineering-managers`): reparto 15/50/35 para revisión de RFC en 30 minutos y 25/45/30 para post-mortem en 40, más `/pace report 30`.
