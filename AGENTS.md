@@ -58,6 +58,7 @@ Any agent operating in this codebase must reference and respect the following co
 * Always run `pnpm test` and `pnpm build` locally before committing or reporting changes.
 * Ensure all tests (access control, time allocation math, progress bar rendering, Zod schemas) pass with 0 failures.
 * Confirm that post-deploy smoke checks on production (`https://huddlepace.com/healthz`) return HTTP 200 OK.
+* After editing any page in `public/*.html`, the strings it renders in `src/locales/*.json`, or its FAQ, run `pnpm page-dates` and commit `src/web/pageDates.json`. It feeds the sitemap `<lastmod>` values, moves a page's date only when that page's content hash changes, and `pnpm test` fails when it is stale.
 
 ### 5. Mandatory Proactive Versioning & GitHub Releases Protocol (Zero User Reminders)
 * **Automatic Execution Required**: The agent MUST NEVER complete any task involving functional code, bug fixes, schema changes, or UI updates without proactively executing the full release lifecycle. **Do NOT wait for the user to ask or remind you to update the changelog or cut a release.**

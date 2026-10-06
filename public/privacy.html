@@ -273,7 +273,19 @@
         };
         document.body.appendChild(el);
       }
+      // Cloudflare Web Analytics, same beacon, token and integrity hash Cloudflare used to inject
+      // automatically. It now starts after the page has loaded, so it never delays first paint.
+      function loadAnalytics() {
+        var el = document.createElement('script');
+        el.type = 'module';
+        el.src = 'https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495';
+        el.integrity = 'sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==';
+        el.crossOrigin = 'anonymous';
+        el.setAttribute('data-cf-beacon', '{"version":"2024.11.0","token":"4279abbc63f643ac85fd3f06f9bd2538","r":1,"spa":2}');
+        document.body.appendChild(el);
+      }
       addEventListener('load', function () {
+        loadAnalytics();
         if ('requestIdleCallback' in window) requestIdleCallback(loadWidget, { timeout: 4000 });
         else setTimeout(loadWidget, 2500);
       });

@@ -6,6 +6,9 @@ import {
   getWebCustomRoutes,
   buildSitemapXml,
   buildRobotsTxt,
+  PAGE_PATHS,
+  computePageHash,
+  readPageDates,
   renderLocalizedHtml,
   clearLandingCache,
   getAppVersion,
@@ -193,6 +196,18 @@ describe("Web Landing Page & Asset Delivery", () => {
       }
     });
 
+    test("every page loads Cloudflare analytics exactly once, after the load event", () => {
+      const routes = getWebCustomRoutes();
+      for (const route of ["/", "/es/", "/privacy", "/terms", "/slack-huddle-timer", "/es/agenda-retrospectiva-sprint", "/engineering-managers-meeting-timer", "/client-call-timer-slack", "/daily-standup-timer-slack"]) {
+        const res = new MockResponse();
+        routes.find((r) => r.path === route)!.handler({ url: route } as any, res as any);
+        assert.strictEqual((res.body.match(/static\.cloudflareinsights\.com\/beacon\.min\.js/g) ?? []).length, 1, route);
+        assert.match(res.body, /4279abbc63f643ac85fd3f06f9bd2538/, route);
+        assert.match(res.body, /addEventListener\('load', function \(\) \{\s+loadAnalytics\(\);/, route);
+        assert.match(String(res.headers["Cache-Control"]), /no-transform/, route);
+      }
+    });
+
     test("serves legal pages in both languages", () => {
       const routes = getWebCustomRoutes();
       const es = new MockResponse();
@@ -343,6 +358,65 @@ describe("Web Landing Page & Asset Delivery", () => {
       await handleLandingPage(req, res as any);
       assert.ok(res.body.includes(`v${version}`));
       assert.ok(!res.body.includes("__APP_VERSION__"));
+    });
+  });
+
+  describe("404 page", () => {
+    const notFound = () => getWebCustomRoutes().find((r) => r.path === "/*notFound")!;
+
+    test("unknown paths get a 404 that search engines are told not to index", () => {
+      const res = new MockResponse();
+      notFound().handler({ url: "/does-not-exist" } as any, res as any);
+
+      assert.strictEqual(res.statusCode, 404);
+      assert.strictEqual(res.headers["X-Robots-Tag"], "noindex");
+      assert.strictEqual(res.headers["Cache-Control"], "no-store, no-transform");
+      assert.strictEqual(res.headers["Content-Language"], "en");
+      assert.match(res.body, /<meta name="robots" content="noindex, follow">/);
+      assert.match(res.body, /This page does not exist/);
+      assert.doesNotMatch(res.body, /rel="canonical"/);
+      assert.match(res.body, /<main id="main">/);
+    });
+
+    test("Spanish paths get a Spanish 404 whose links stay in Spanish", () => {
+      const res = new MockResponse();
+      notFound().handler({ url: "/es/nada-aqui" } as any, res as any);
+
+      assert.strictEqual(res.statusCode, 404);
+      assert.strictEqual(res.headers["Content-Language"], "es");
+      assert.match(res.body, /<html lang="es">/);
+      assert.match(res.body, /Esta página no existe/);
+      assert.match(res.body, /href="\/es\/"/);
+    });
+
+    test("HEAD returns the 404 status without a body, and the catch-all is the last route", () => {
+      const res = new MockResponse();
+      notFound().handler({ url: "/x", method: "HEAD" } as any, res as any);
+      assert.strictEqual(res.statusCode, 404);
+      assert.strictEqual(res.body, "");
+
+      const routes = getWebCustomRoutes();
+      assert.strictEqual(routes[routes.length - 1].path, "/*notFound");
+    });
+  });
+
+  describe("sitemap lastmod", () => {
+    test("pageDates.json is current: run `pnpm page-dates` after editing a page or its strings", () => {
+      const dates = readPageDates();
+      for (const pagePath of PAGE_PATHS) {
+        assert.ok(dates[pagePath], `${pagePath} is missing from pageDates.json`);
+        assert.strictEqual(dates[pagePath].hash, computePageHash(pagePath), `${pagePath} changed since its lastmod was recorded; run pnpm page-dates`);
+        assert.match(dates[pagePath].lastmod, /^\d{4}-\d{2}-\d{2}$/, pagePath);
+      }
+    });
+
+    test("every sitemap url carries a lastmod and the hash ignores the release version", () => {
+      const xml = buildSitemapXml();
+      assert.strictEqual((xml.match(/<url>/g) ?? []).length, PAGE_PATHS.length);
+      assert.strictEqual((xml.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g) ?? []).length, PAGE_PATHS.length);
+      const before = computePageHash("/");
+      clearLandingCache();
+      assert.strictEqual(computePageHash("/"), before);
     });
   });
 
