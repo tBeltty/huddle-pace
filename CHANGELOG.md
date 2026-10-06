@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-06
+
+### Changed
+- **Time Budget Fields Hold Real Values**: The agenda modal now starts with 15 / 60 / 25 as actual values (previously placeholders), so the default split can be scheduled as-is.
+- **Auto-Balanced Percentages**: Editing a module's % and pressing Enter splits the remainder evenly across the other modules so the total stays at 100. Adding a module gives it an equal share and shrinks the others proportionally.
+
 ## [1.3.0] - 2026-10-06
 
 ### Added
@@ -77,7 +83,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/tBeltty/huddle-pace/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/tBeltty/huddle-pace/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/tBeltty/huddle-pace/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/tBeltty/huddle-pace/compare/v1.1.0...v1.1.1
