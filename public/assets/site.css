@@ -1495,7 +1495,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-cyan); o
 /* Entry reveal: decorative progressive enhancement, no fallback needed. */
 @media (prefers-reduced-motion: no-preference) {
   @supports ((animation-timeline: view()) and (animation-range: entry)) {
-    @keyframes lp-reveal { from { opacity: 0; translate: 0 24px; } }
+    @keyframes lp-reveal { from { translate: 0 24px; } }
     .reveal { animation: lp-reveal linear backwards; animation-timeline: view(); animation-range: entry 0% entry 40%; }
   }
 }

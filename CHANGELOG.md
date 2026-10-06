@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.2] - 2026-10-06
+
+### Changed
+- **Responsive WebP Images**: The home hero image is served as `hero-vector-400.webp` and `hero-vector-800.webp` with `srcset` (JPEG fallback kept), the full-body Vector image as `vectorfull.webp` (38 KB instead of 322 KB), and the 96 px avatar as `avatar-96.webp` (2 KB instead of 17 KB). Lighthouse had estimated 392 KiB of image savings and the hero image was the LCP element.
+
+### Fixed
+- **Scroll Reveal No Longer Fades Text In**: The entry animation on content pages only slides cards up. It used to start at `opacity: 0`, so Lighthouse and any renderer that does not scroll measured the card text at a 1.3:1 contrast ratio.
+
 ## [1.9.1] - 2026-10-06
 
 ### Fixed
@@ -185,7 +193,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.1...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.2...HEAD
+[1.9.2]: https://github.com/tBeltty/huddle-pace/compare/v1.9.1...v1.9.2
 [1.9.1]: https://github.com/tBeltty/huddle-pace/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/tBeltty/huddle-pace/compare/v1.8.2...v1.9.0
 [1.8.2]: https://github.com/tBeltty/huddle-pace/compare/v1.8.1...v1.8.2

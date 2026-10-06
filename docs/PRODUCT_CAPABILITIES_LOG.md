@@ -4,6 +4,11 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Imágenes Responsivas en WebP y Revelado sin Opacidad
+* **Imágenes (`index.html`, todas las páginas)**: el halcón de la home se sirve en WebP de 400 y 800 px con `srcset` y JPEG de respaldo; `vectorfull.webp` pesa 38 KB (antes 322 KB) y `avatar-96.webp` 2 KB (antes 17 KB). El halcón era el elemento LCP de la home y Lighthouse estimaba 392 KiB de ahorro.
+* **Accesibilidad (`site.css`)**: la animación de entrada de las tarjetas ya no parte de `opacity: 0`; Lighthouse y cualquier renderizador sin scroll medían el texto con contraste de 1,3:1.
+* **Pendiente medir**: segunda pasada de Lighthouse sobre la home y la retrospectiva tras este cambio.
+
 ## [2026-10-06] Auditoría SEO Medida: Metadatos Legales, Fuentes sin Bloqueo y Contraste del Widget
 * **Medición**: recorrido de las 16 URLs del sitemap en producción (título, descripción, canonical, `hreflang`, H1, Open Graph, Twitter, JSON-LD, alts) y Lighthouse móvil sobre la home y la retrospectiva: SEO 100, buenas prácticas 100, accesibilidad 96-97, rendimiento 75 y 83.
 * **Páginas legales (`privacy.html`, `terms.html`, `src/locales/*.json`)**: títulos más descriptivos, descripción en español de privacidad dentro de 160 caracteres, `og:image` con tamaño y alt, etiquetas completas de Twitter y datos estructurados `WebPage` + `BreadcrumbList`.
