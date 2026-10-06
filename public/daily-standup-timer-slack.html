@@ -61,6 +61,8 @@
   }
   </script>
 
+  __FAQ_JSON_LD:sp__
+
   <link rel="stylesheet" href="/assets/site.css?v=__APP_VERSION__">
 </head>
 <body>
@@ -94,54 +96,142 @@
       </nav>
     </header>
 
-    <section class="legal-hero">
-      <div class="badge-pilot">
-        <span data-i18n="spBadge">🧭 Daily Standups</span>
+    <main id="main">
+    <section class="lp-hero">
+      <div class="lp-hero-text">
+        <div class="badge-pilot"><span data-i18n="spBadge">🧭 Daily standups</span></div>
+        <h1 class="lp-title" data-i18n="spTitle">Daily standup timer <span>for Slack</span></h1>
+        <p class="lp-lead" data-i18n="spLead">Keep a 15-minute standup at 15 minutes. HuddlePace gives the team one visible clock in the Huddle thread, so the facilitator stops being the one who interrupts.</p>
+        <div class="hero-actions">
+          <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+          <a class="btn-secondary" href="#split" data-i18n="spSeeMore">See the split</a>
+        </div>
+        <ul class="lp-chips"><li class="lp-chip" data-i18n="spChip1">15-minute template</li><li class="lp-chip" data-i18n="spChip2">Private alert to the speaker</li><li class="lp-chip" data-i18n="spChip3">0% audio recorded</li></ul>
       </div>
-      <h1 data-i18n="spTitle">Daily standup timer <span>for Slack</span></h1>
-      <p data-i18n="spLead">Keep a 15-minute standup at 15 minutes. HuddlePace gives the team one visible clock in the Huddle thread, so the facilitator no longer has to be the one who interrupts.</p>
-      <div class="hero-actions" style="margin-top:28px;">
-        <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+      <aside class="agenda-card" aria-label="Example agenda">
+        <div class="agenda-head">
+          <span class="agenda-kicker" data-i18n="lpCardKicker">Example agenda</span>
+          <strong class="agenda-title" data-i18n="spCardTitle">Daily standup · 15 min</strong>
+        </div>
+        <div class="split-bar" role="img" aria-label="15% / 60% / 25%"><span class="split-seg" style="--w:15;--c:#67e8f9;--t:#06101a"><span class="split-seg-label">15%</span></span><span class="split-seg" style="--w:60;--c:#06b6d4;--t:#06101a"><span class="split-seg-label">60%</span></span><span class="split-seg" style="--w:25;--c:#0e7490;--t:#f8fafc"><span class="split-seg-label">25%</span></span></div>
+        <ul class="agenda-rows">
+          <li class="agenda-row"><span class="agenda-dot" style="--c:#67e8f9"></span><span class="agenda-name" data-i18n="spCardM1">Context</span><span class="agenda-min">2 min 15 s</span></li>
+          <li class="agenda-row"><span class="agenda-dot" style="--c:#06b6d4"></span><span class="agenda-name" data-i18n="spCardM2">Updates</span><span class="agenda-min">9 min</span></li>
+          <li class="agenda-row"><span class="agenda-dot" style="--c:#0e7490"></span><span class="agenda-name" data-i18n="spCardM3">Blockers</span><span class="agenda-min">3 min 45 s</span></li>
+        </ul>
+        <div class="agenda-foot"><span class="agenda-live"></span>
+          <span><span data-i18n="lpNowRunning">Now running:</span> <span data-i18n="spCardM2">Updates</span></span>
+        </div>
+      </aside>
+    </section>
+    <section class="lp-section" id="split">
+      <div class="lp-section-head">
+        <h2 data-i18n="spSp1H">A 15-minute standup, split</h2>
+        <p data-i18n="spSp1P">Run <code>/pace</code>, set 15 minutes and divide the time into three modules. The Scrum Guide sets the Daily Scrum at 15 minutes, and this split gives each part of it a limit.</p>
+      </div>
+      <div class="split-bar" role="img" aria-label="15% / 60% / 25%"><span class="split-seg" style="--w:15;--c:#67e8f9;--t:#06101a"><span class="split-seg-label">15%</span></span><span class="split-seg" style="--w:60;--c:#06b6d4;--t:#06101a"><span class="split-seg-label">60%</span></span><span class="split-seg" style="--w:25;--c:#0e7490;--t:#f8fafc"><span class="split-seg-label">25%</span></span></div>
+      <div class="lp-cards">
+        <article class="mod-card reveal" style="--c:#67e8f9">
+          <div class="mod-figure"><span class="mod-pct">15%</span><span class="mod-min">2 min 15 s</span></div>
+          <div class="mod-body"><h3 data-i18n="spSp1M1">Context</h3><p data-i18n="spSp1M1D">Remind the team of the sprint goal and anything that changed overnight.</p></div>
+        </article>
+        <article class="mod-card reveal" style="--c:#06b6d4">
+          <div class="mod-figure"><span class="mod-pct">60%</span><span class="mod-min">9 min</span></div>
+          <div class="mod-body"><h3 data-i18n="spSp1M2">Updates</h3><p data-i18n="spSp1M2D">Each person shares progress and plans. Nine minutes keeps updates short enough to stay useful.</p></div>
+        </article>
+        <article class="mod-card reveal" style="--c:#0e7490">
+          <div class="mod-figure"><span class="mod-pct">25%</span><span class="mod-min">3 min 45 s</span></div>
+          <div class="mod-body"><h3 data-i18n="spSp1M3">Blockers</h3><p data-i18n="spSp1M3D">Raise what is stuck and who can help. Naming an owner matters more than solving it during the call.</p></div>
+        </article>
       </div>
     </section>
-
-    <main id="main">
-    <section class="legal-content">
-      <section>
-        <h2 data-i18n="spS1Title">Why standups run long</h2>
-        <p data-i18n="spS1P1">A standup planned for 15 minutes stretches when one topic grows and nobody owns the clock. A shared progress bar makes the remaining time visible to everyone at once.</p>
-      </section>
-      <section>
-        <h2 data-i18n="spS2Title">Set up a 15-minute standup</h2>
-        <p data-i18n="spS2P1">Run <code>/pace</code>, set 15 minutes and split the time into modules. A common split:</p>
-        <ul>
-          <li data-i18n="spS2P2I1">Context, 15% (2 min 15 s)</li>
-          <li data-i18n="spS2P2I2">Updates, 60% (9 min)</li>
-          <li data-i18n="spS2P2I3">Blockers, 25% (3 min 45 s)</li>
+    <section class="lp-section">
+      <div class="lp-section-head"><h2 data-i18n="spDerH">Why standups run long</h2></div>
+      <div class="lp-cards lp-cards-2">
+        <article class="derail"><span class="derail-n">1</span><div>
+          <h3 data-i18n="spDer1H">One topic grows</h3>
+          <p data-i18n="spDer1P">A problem gets debated in front of everyone when it could be taken offline.</p>
+        </div></article>
+        <article class="derail"><span class="derail-n">2</span><div>
+          <h3 data-i18n="spDer2H">Nobody owns the clock</h3>
+          <p data-i18n="spDer2P">The facilitator ends up cutting people off. A visible bar shares that job with the room.</p>
+        </div></article>
+        <article class="derail"><span class="derail-n">3</span><div>
+          <h3 data-i18n="spDer3H">Blockers arrive last and rushed</h3>
+          <p data-i18n="spDer3P">With 25% of the time reserved, blockers get a real slot instead of the final minute.</p>
+        </div></article>
+        <article class="derail"><span class="derail-n">4</span><div>
+          <h3 data-i18n="spDer4H">Updates sprawl</h3>
+          <p data-i18n="spDer4P">A short fixed time keeps each update on what changed since yesterday.</p>
+        </div></article>
+      </div>
+    </section>
+    <section class="lp-section">
+      <div class="lp-section-head"><h2 data-i18n="spStepsH">Set it up once</h2></div>
+      <ol class="steps">
+        <li class="step reveal"><span class="step-n">1</span>
+          <h3 data-i18n="spSt1H">Open the modal</h3>
+          <p data-i18n="spSt1P">Type <code>/pace</code> in the channel where your team holds the standup.</p>
+        </li>
+        <li class="step reveal"><span class="step-n">2</span>
+          <h3 data-i18n="spSt2H">Set 15 minutes</h3>
+          <p data-i18n="spSt2P">Choose 15 minutes and enter the three modules with 15, 60 and 25 percent.</p>
+        </li>
+        <li class="step reveal"><span class="step-n">3</span>
+          <h3 data-i18n="spSt3H">Save it as a template</h3>
+          <p data-i18n="spSt3P">Tick <strong>Save as template</strong>. Tomorrow the standup starts from the same channel, speakers, duration and modules in one click.</p>
+        </li>
+      </ol>
+      <div class="thread-layout">
+        <div class="thread-wrap">
+          <p class="thread-cap" data-i18n="lpThreadCap">What the team sees in the Huddle thread</p>
+          <div class="thread" role="img" aria-label="Example HuddlePace message in a Slack Huddle thread">
+            <div class="thread-head"><img src="/assets/avatar-96.png" alt="" width="36" height="36" decoding="async" loading="lazy"><strong>HuddlePace</strong><span class="bot-pill">APP</span></div>
+            <div class="thread-title"><span data-i18n="spThName">Daily standup</span></div>
+            <div class="thread-bar"><span class="progress-ascii">██████████░░░░░░░░░░</span> <strong>50%</strong></div>
+            <div class="thread-meta"><span data-i18n="lpElapsed">Elapsed</span> <strong>7m 30s</strong> / 15m · <span data-i18n="lpRemaining">Remaining</span> <strong>7m 30s</strong></div>
+            <div class="thread-mod"><strong><span data-i18n="lpActive">Active module:</span></strong> <span data-i18n="spThActive">Updates</span></div>
+            <div class="thread-mod">⏭️ <strong><span data-i18n="lpNext">Next up:</span></strong> <span data-i18n="spThNext">Blockers</span></div>
+          </div>
+        </div>
+        <ul class="thread-notes">
+          <li class="thread-note"><strong data-i18n="spNote1H">Live progress</strong><span data-i18n="spNote1P">The bar updates every 30 seconds, so nobody has to ask how much time is left.</span></li>
+          <li class="thread-note"><strong data-i18n="spNote2H">Private nudges</strong><span data-i18n="spNote2P">The active speaker gets a DM at the midpoint and with one minute left, so nobody is called out in front of the team.</span></li>
+          <li class="thread-note"><strong data-i18n="spNote3H">Time that moves</strong><span data-i18n="spNote3P">Finish early, tap Next Module and the spare minutes go to the next block.</span></li>
         </ul>
-        <p data-i18n="spS2P3">Tick <strong>Save as template</strong> and the next standup starts from the same channel, speakers, duration and modules in one click.</p>
-      </section>
-      <section>
-        <h2 data-i18n="spS3Title">Nudges that stay private</h2>
-        <p data-i18n="spS3P1">The active speaker gets a Slack DM at the midpoint and with one minute left, so nobody is called out in front of the team. Whoever finishes early taps <strong>Next Module</strong> to hand the spare time forward.</p>
-      </section>
-      <section>
-        <h2 data-i18n="spS4Title">Check how the team is doing</h2>
-        <p data-i18n="spS4P1"><code>/pace report 30</code> shows timebox adherence and session logs for the last 30 days, which is useful evidence for a retro.</p>
-      </section>
-      <section>
-        <h2 data-i18n="spS5Title">Pricing</h2>
-        <p data-i18n="spS5P1">HuddlePace is in early access and free today. Pricing will be per workspace, never per user, and the features available today stay free. See the <a href="/slack-huddle-timer">Slack Huddle timer</a> page for everything it does.</p>
-      </section>
-      <section>
-        <h2 data-i18n="relHeading">More guides</h2>
-        <ul>
-          <li data-i18n="relHuddle"><a href="/slack-huddle-timer">Slack Huddle timer</a></li>
-          <li data-i18n="relEm"><a href="/engineering-managers-meeting-timer">Meeting timer for engineering managers</a></li>
-          <li data-i18n="relAgency"><a href="/client-call-timer-slack">Client call timer for agencies</a></li>
-          <li data-i18n="relRetro"><a href="/sprint-retrospective-agenda">Sprint retrospective agenda</a></li>
-        </ul>
-      </section>
+      </div>
+    </section>
+    <section class="lp-section">
+      <div class="lp-section-head"><h2 data-i18n="spTipsH">Make it a habit</h2></div>
+      <div class="lp-tips">
+        <article class="tip">
+          <h3 data-i18n="spTip1H">Look at the trend</h3>
+          <p data-i18n="spTip1P">Run <code>/pace report 30</code> to see how often your standups stayed inside the timebox.</p>
+        </article>
+        <article class="tip">
+          <h3 data-i18n="spTip2H">Keep the blockers block</h3>
+          <p data-i18n="spTip2P">Even on quiet days, leave it in the agenda. It is where problems surface early.</p>
+        </article>
+      </div>
+    </section>
+    <section class="lp-section">
+      <div class="lp-section-head"><h2 data-i18n="spFaqH">Standup questions</h2></div>
+      <div class="faq-list">
+        <details class="faq-item" name="sp-faq"><summary data-i18n="spFaq1Q">How long should a daily standup be?</summary><p data-i18n="spFaq1A">The Scrum Guide describes the Daily Scrum as a 15-minute event. HuddlePace helps you hold that limit.</p></details>
+        <details class="faq-item" name="sp-faq"><summary data-i18n="spFaq2Q">Does the speaker get a private alert?</summary><p data-i18n="spFaq2A">Yes. The active speaker receives a Slack DM at the midpoint and with one minute left.</p></details>
+        <details class="faq-item" name="sp-faq"><summary data-i18n="spFaq3Q">Can I reuse the same standup every day?</summary><p data-i18n="spFaq3A">Yes. Save it as a template and start from it in one click.</p></details>
+        <details class="faq-item" name="sp-faq"><summary data-i18n="spFaq4Q">Does HuddlePace record audio?</summary><p data-i18n="spFaq4A">No. It records 0% audio and stores no transcripts. It keeps only the timestamps and the agenda modules it needs to run the timer.</p></details>
+      </div>
+    </section>
+    <section class="lp-cta">
+      <h2 data-i18n="spCtaH">Run tomorrow's standup on the clock</h2>
+      <p data-i18n="spCtaP">Install HuddlePace, run <code>/pace</code> and save the 15-minute agenda as a template.</p>
+      <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+      <p class="lp-price" data-i18n="lpPrice">Early access, free today. Pricing will be per workspace, never per user, and the features available today stay free.</p>
+    </section>
+    <section class="lp-section lp-related">
+      <h2 data-i18n="relHeading">More guides</h2>
+      <ul class="related-list"><li data-i18n="relHuddle"><a href="/slack-huddle-timer">Slack Huddle timer</a></li><li data-i18n="relEm"><a href="/engineering-managers-meeting-timer">Meeting timer for engineering managers</a></li><li data-i18n="relAgency"><a href="/client-call-timer-slack">Client call timer for agencies</a></li><li data-i18n="relRetro"><a href="/sprint-retrospective-agenda">Sprint retrospective agenda</a></li></ul>
     </section>
     </main>
 

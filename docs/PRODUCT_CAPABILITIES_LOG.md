@@ -4,6 +4,12 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] Diseño Landing Aplicado a las Cuatro Páginas de Contenido Restantes
+* **Páginas (EN y ES)**: temporizador para Huddles, daily standup, engineering managers y agencias comparten el layout aprobado de la página de retrospectiva, cada una con contenido y ejemplo propios: reunión de equipo 15/60/25, daily de 15 minutos, repartos de RFC (30 min) y post-mortem (40 min) y reunión semanal con cliente 40/40/20. Entre 570 y 680 palabras por idioma, antes unas 150.
+* **Contenido verificado contra el producto**: comandos reales de `/pace`, hasta 10 módulos, avisos privados a mitad y a un minuto, resumen al terminar el Huddle, controles solo para speakers, reporte de 30 días por defecto y modo Just Chatting. Las afirmaciones sobre la Guía de Scrum se limitan a los 15 minutos de la Daily Scrum y al tope de tres horas de la retrospectiva.
+* **Marca**: rampa cian de un solo tono, `tabular-nums` en minutos y porcentajes, sin reutilizar colores semánticos; copy revisado con `no-ai-slop` y tuteo.
+* **Cobertura**: un test recorre las ocho URLs de contenido (barra, tarjeta de agenda, `FAQPage`, marcadores resueltos, mínimo de palabras).
+
 ## [2026-10-06] Auditoría de Diseño: Colores Semánticos de Marca, Contraste y Menos Ruido Visual
 * **Hallazgos medidos contra `docs/BRAND.md`**: el reparto usaba cian, ámbar y naranja como categorías, pero en la marca ámbar es la alerta de punto medio y naranja el último minuto; el punto "en curso" era verde (sesión concluida); los temporizadores no usaban `tabular-nums`; `--text-muted` se había aclarado sin documentarlo.
 * **Correcciones (`sprint-retrospective-agenda.html`, `site.css`)**: rampa de un solo tono cian (`#67E8F9`, `#06B6D4`, `#0E7490`) con etiqueta de texto en cada tramo; punto "en curso" en cian; secciones de errores y consejos como listas planas en lugar de ocho tarjetas; consejo duplicado de Next Module eliminado; `tabular-nums` en minutos, porcentajes y métricas.

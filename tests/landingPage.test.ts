@@ -162,6 +162,27 @@ describe("Web Landing Page & Asset Delivery", () => {
       }
     });
 
+    test("every content page is a full landing page with FAQPage markup and no stray template keys", () => {
+      const routes = getWebCustomRoutes();
+      const pages = [
+        "/slack-huddle-timer", "/es/temporizador-huddle-slack",
+        "/daily-standup-timer-slack", "/es/temporizador-daily-standup-slack",
+        "/engineering-managers-meeting-timer", "/es/temporizador-reuniones-engineering-managers",
+        "/client-call-timer-slack", "/es/temporizador-llamadas-clientes-slack",
+      ];
+      for (const route of pages) {
+        const res = new MockResponse();
+        routes.find((r) => r.path === route)!.handler({ url: route } as any, res as any);
+        assert.strictEqual(res.statusCode, 200, route);
+        assert.match(res.body, /class="split-bar"/, route);
+        assert.match(res.body, /class="agenda-card"/, route);
+        assert.match(res.body, /"@type": "FAQPage"/, route);
+        assert.doesNotMatch(res.body, /__FAQ_JSON_LD|__ALT_/, route);
+        const words = res.body.replace(/<[^>]+>/g, " ").split(/\s+/).length;
+        assert.ok(words > 550, `${route} has ${words} words`);
+      }
+    });
+
     test("serves legal pages in both languages", () => {
       const routes = getWebCustomRoutes();
       const es = new MockResponse();

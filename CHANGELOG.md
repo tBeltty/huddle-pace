@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-10-06
+
+### Changed
+- **All Content Pages Redesigned**: The Slack Huddle timer, daily standup, engineering managers and agencies pages (EN and ES) now use the same landing layout as the retrospective page: hero with an example agenda card, segmented time split, module cards, flat problem list, setup steps with a mock of the Huddle thread, FAQ with its own `FAQPage` markup and a closing call to action. Each page has its own content and example (15 / 60 / 25 team sync, 15-minute standup, RFC and post-mortem splits, 40 / 40 / 20 client sync) and runs 570 to 680 words per language, up from about 150.
+- **Brand Rules Applied From the Start**: single-hue Telemetry Cyan ramp for splits, `tabular-nums` for timers and minutes, no reuse of semantic accent colors.
+
+### Added
+- **Commands List and Prose Blocks**: `.cmd-list` for the `/pace` commands and `.lp-prose` for short statements, used by the Huddle timer and the agencies page.
+- **Test Coverage**: One test now checks all eight content URLs for the split bar, agenda card, `FAQPage` markup, resolved placeholders and a minimum word count.
+
 ## [1.8.2] - 2026-10-06
 
 ### Changed
@@ -165,7 +175,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.8.2...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/tBeltty/huddle-pace/compare/v1.8.2...v1.9.0
 [1.8.2]: https://github.com/tBeltty/huddle-pace/compare/v1.8.1...v1.8.2
 [1.8.1]: https://github.com/tBeltty/huddle-pace/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/tBeltty/huddle-pace/compare/v1.7.1...v1.8.0

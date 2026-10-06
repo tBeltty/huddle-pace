@@ -61,6 +61,8 @@
   }
   </script>
 
+  __FAQ_JSON_LD:ht__
+
   <link rel="stylesheet" href="/assets/site.css?v=__APP_VERSION__">
 </head>
 <body>
@@ -94,65 +96,144 @@
       </nav>
     </header>
 
-    <section class="legal-hero">
-      <div class="badge-pilot">
-        <span data-i18n="htBadge">⏱️ Slack Huddle Timer</span>
+    <main id="main">
+    <section class="lp-hero">
+      <div class="lp-hero-text">
+        <div class="badge-pilot"><span data-i18n="htBadge">⏱️ Slack Huddle timer</span></div>
+        <h1 class="lp-title" data-i18n="htTitle">A timer for your <span>Slack Huddles</span></h1>
+        <p class="lp-lead" data-i18n="htLead">HuddlePace posts a live progress bar in the Huddle thread, splits the call into timed agenda modules and tells speakers when they are halfway through. It listens to nothing: 0% audio recorded.</p>
+        <div class="hero-actions">
+          <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+          <a class="btn-secondary" href="#split" data-i18n="htSeeMore">See how it splits</a>
+        </div>
+        <ul class="lp-chips"><li class="lp-chip" data-i18n="htChip1">Live progress bar</li><li class="lp-chip" data-i18n="htChip2">Private speaker alerts</li><li class="lp-chip" data-i18n="htChip3">0% audio recorded</li></ul>
       </div>
-      <h1 data-i18n="htTitle">A timer for your <span>Slack Huddles</span></h1>
-      <p data-i18n="htLead">HuddlePace adds a live progress bar to the Huddle thread, splits the call into timed agenda modules and tells speakers when they are halfway through. It listens to nothing: 0% audio recorded.</p>
-      <div class="hero-actions" style="margin-top:28px;">
-        <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+      <aside class="agenda-card" aria-label="Example agenda">
+        <div class="agenda-head">
+          <span class="agenda-kicker" data-i18n="lpCardKicker">Example agenda</span>
+          <strong class="agenda-title" data-i18n="htCardTitle">Team sync · 15 min</strong>
+        </div>
+        <div class="split-bar" role="img" aria-label="15% / 60% / 25%"><span class="split-seg" style="--w:15;--c:#67e8f9;--t:#06101a"><span class="split-seg-label">15%</span></span><span class="split-seg" style="--w:60;--c:#06b6d4;--t:#06101a"><span class="split-seg-label">60%</span></span><span class="split-seg" style="--w:25;--c:#0e7490;--t:#f8fafc"><span class="split-seg-label">25%</span></span></div>
+        <ul class="agenda-rows">
+          <li class="agenda-row"><span class="agenda-dot" style="--c:#67e8f9"></span><span class="agenda-name" data-i18n="htCardM1">Context and introduction</span><span class="agenda-min">2 min 15 s</span></li>
+          <li class="agenda-row"><span class="agenda-dot" style="--c:#06b6d4"></span><span class="agenda-name" data-i18n="htCardM2">Core topic</span><span class="agenda-min">9 min</span></li>
+          <li class="agenda-row"><span class="agenda-dot" style="--c:#0e7490"></span><span class="agenda-name" data-i18n="htCardM3">Open Q&A and wrap-up</span><span class="agenda-min">3 min 45 s</span></li>
+        </ul>
+        <div class="agenda-foot"><span class="agenda-live"></span>
+          <span><span data-i18n="lpNowRunning">Now running:</span> <span data-i18n="htCardM2">Core topic</span></span>
+        </div>
+      </aside>
+    </section>
+    <section class="lp-section" id="split">
+      <div class="lp-section-head">
+        <h2 data-i18n="htSp1H">Split any call by percentage</h2>
+        <p data-i18n="htSp1P">Choose a duration and divide it into up to 10 modules. The percentages must add up to 100, and HuddlePace turns them into minutes.</p>
+      </div>
+      <div class="split-bar" role="img" aria-label="15% / 60% / 25%"><span class="split-seg" style="--w:15;--c:#67e8f9;--t:#06101a"><span class="split-seg-label">15%</span></span><span class="split-seg" style="--w:60;--c:#06b6d4;--t:#06101a"><span class="split-seg-label">60%</span></span><span class="split-seg" style="--w:25;--c:#0e7490;--t:#f8fafc"><span class="split-seg-label">25%</span></span></div>
+      <div class="lp-cards">
+        <article class="mod-card reveal" style="--c:#67e8f9">
+          <div class="mod-figure"><span class="mod-pct">15%</span><span class="mod-min">2 min 15 s</span></div>
+          <div class="mod-body"><h3 data-i18n="htSp1M1">Context and introduction</h3><p data-i18n="htSp1M1D">Set the scene in a couple of minutes so everyone starts from the same place.</p></div>
+        </article>
+        <article class="mod-card reveal" style="--c:#06b6d4">
+          <div class="mod-figure"><span class="mod-pct">60%</span><span class="mod-min">9 min</span></div>
+          <div class="mod-body"><h3 data-i18n="htSp1M2">Core topic</h3><p data-i18n="htSp1M2D">The part of the call that needs the most time and the most attention.</p></div>
+        </article>
+        <article class="mod-card reveal" style="--c:#0e7490">
+          <div class="mod-figure"><span class="mod-pct">25%</span><span class="mod-min">3 min 45 s</span></div>
+          <div class="mod-body"><h3 data-i18n="htSp1M3">Open Q&A and wrap-up</h3><p data-i18n="htSp1M3D">Questions, decisions and the next step, with time reserved so they do not get squeezed out.</p></div>
+        </article>
       </div>
     </section>
-
-    <main id="main">
-    <section class="legal-content">
-      <section>
-        <h2 data-i18n="htS1Title">How it works</h2>
-        <p data-i18n="htS1P1">Setup takes three steps and no change to how your team already joins Huddles.</p>
-        <ol>
-          <li data-i18n="htS1P2I1">Install HuddlePace from the Add to Slack button.</li>
-          <li data-i18n="htS1P2I2">Run <code>/pace</code> in a channel, choose a duration and split it into agenda modules by percentage. The modules must add up to 100%.</li>
-          <li data-i18n="htS1P2I3">Start the session from App Home. The progress bar appears in the Huddle thread and updates every 30 seconds.</li>
-        </ol>
-      </section>
-      <section>
-        <h2 data-i18n="htS2Title">What your team sees during the call</h2>
-        <ul>
-          <li data-i18n="htS2P1I1">A monospace progress bar with the current topic and the time remaining.</li>
-          <li data-i18n="htS2P1I2">A private Slack DM to the active speaker at the midpoint and again with one minute left.</li>
-          <li data-i18n="htS2P1I3">A <strong>Next Module</strong> button so a speaker who finishes early hands the leftover time to the next topic.</li>
-          <li data-i18n="htS2P1I4">A <strong>Just Chatting</strong> mode that freezes the formal metrics when the meeting turns into open conversation.</li>
-          <li data-i18n="htS2P1I5">A final summary comparing scheduled and actual duration once everyone leaves the Huddle.</li>
+    <section class="lp-section">
+      <div class="lp-section-head"><h2 data-i18n="htDerH">What a Huddle without a clock looks like</h2></div>
+      <div class="lp-cards lp-cards-2">
+        <article class="derail"><span class="derail-n">1</span><div>
+          <h3 data-i18n="htDer1H">Nobody knows how long is left</h3>
+          <p data-i18n="htDer1P">A shared bar in the thread answers the question before anyone asks it.</p>
+        </div></article>
+        <article class="derail"><span class="derail-n">2</span><div>
+          <h3 data-i18n="htDer2H">The last topic gets the leftovers</h3>
+          <p data-i18n="htDer2P">Reserved time per module protects the part of the agenda that comes last.</p>
+        </div></article>
+        <article class="derail"><span class="derail-n">3</span><div>
+          <h3 data-i18n="htDer3H">Speakers learn they ran over afterwards</h3>
+          <p data-i18n="htDer3P">A private DM at the midpoint and with one minute left gives them a chance to adjust.</p>
+        </div></article>
+        <article class="derail"><span class="derail-n">4</span><div>
+          <h3 data-i18n="htDer4H">Nobody can tell how the week went</h3>
+          <p data-i18n="htDer4P">A final summary compares scheduled and actual duration, and the report shows the trend.</p>
+        </div></article>
+      </div>
+    </section>
+    <section class="lp-section">
+      <div class="lp-section-head"><h2 data-i18n="htStepsH">Run it in three steps</h2></div>
+      <ol class="steps">
+        <li class="step reveal"><span class="step-n">1</span>
+          <h3 data-i18n="htSt1H">Open the modal</h3>
+          <p data-i18n="htSt1P">Type <code>/pace</code> in any channel to open the scheduling modal.</p>
+        </li>
+        <li class="step reveal"><span class="step-n">2</span>
+          <h3 data-i18n="htSt2H">Build the agenda</h3>
+          <p data-i18n="htSt2P">Set the duration, add up to 10 modules and give each one a percentage.</p>
+        </li>
+        <li class="step reveal"><span class="step-n">3</span>
+          <h3 data-i18n="htSt3H">Start it in the Huddle</h3>
+          <p data-i18n="htSt3P">Start the session from App Home. The progress bar appears in the Huddle thread.</p>
+        </li>
+      </ol>
+      <div class="thread-layout">
+        <div class="thread-wrap">
+          <p class="thread-cap" data-i18n="lpThreadCap">What the team sees in the Huddle thread</p>
+          <div class="thread" role="img" aria-label="Example HuddlePace message in a Slack Huddle thread">
+            <div class="thread-head"><img src="/assets/avatar-96.png" alt="" width="36" height="36" decoding="async" loading="lazy"><strong>HuddlePace</strong><span class="bot-pill">APP</span></div>
+            <div class="thread-title"><span data-i18n="htThName">Team sync</span></div>
+            <div class="thread-bar"><span class="progress-ascii">██████████░░░░░░░░░░</span> <strong>50%</strong></div>
+            <div class="thread-meta"><span data-i18n="lpElapsed">Elapsed</span> <strong>7m 30s</strong> / 15m · <span data-i18n="lpRemaining">Remaining</span> <strong>7m 30s</strong></div>
+            <div class="thread-mod"><strong><span data-i18n="lpActive">Active module:</span></strong> <span data-i18n="htThActive">Core topic</span></div>
+            <div class="thread-mod">⏭️ <strong><span data-i18n="lpNext">Next up:</span></strong> <span data-i18n="htThNext">Open Q&A and wrap-up</span></div>
+          </div>
+        </div>
+        <ul class="thread-notes">
+          <li class="thread-note"><strong data-i18n="htNote1H">Live progress</strong><span data-i18n="htNote1P">The bar updates every 30 seconds with the current topic and the time left.</span></li>
+          <li class="thread-note"><strong data-i18n="htNote2H">Private nudges</strong><span data-i18n="htNote2P">The active speaker gets a Slack DM at the midpoint and with one minute left.</span></li>
+          <li class="thread-note"><strong data-i18n="htNote3H">Just Chatting mode</strong><span data-i18n="htNote3P">When the agenda ends and the talk turns casual, switch modes. The formal metrics freeze and the Huddle stays open.</span></li>
         </ul>
-      </section>
-      <section>
-        <h2 data-i18n="htS3Title">Commands</h2>
-        <ul>
-          <li data-i18n="htS3P1I1"><code>/pace</code> opens the scheduling modal.</li>
-          <li data-i18n="htS3P1I2"><code>/pace status</code> shows the pacing sessions running in the channel.</li>
-          <li data-i18n="htS3P1I3"><code>/pace report 30</code> shows timebox adherence for the last 30 days.</li>
-          <li data-i18n="htS3P1I4"><code>/pace clear</code> deletes past bot DMs sent to you.</li>
-          <li data-i18n="htS3P1I5"><code>/pace help</code> lists the syntax.</li>
-        </ul>
-      </section>
-      <section>
-        <h2 data-i18n="htS4Title">Zero audio, by design</h2>
-        <p data-i18n="htS4P1">HuddlePace never records or transcribes a call. It keeps only timestamps and the agenda modules it needs to run the timer. Read the <a href="/privacy">privacy policy</a> for the details.</p>
-      </section>
-      <section>
-        <h2 data-i18n="htS5Title">Pricing</h2>
-        <p data-i18n="htS5P1">HuddlePace is in early access and free today. Pricing will be per workspace, never per user, and the features available today stay free.</p>
-      </section>
-      <section>
-        <h2 data-i18n="relHeading">More guides</h2>
-        <ul>
-          <li data-i18n="relStandup"><a href="/daily-standup-timer-slack">Daily standup timer for Slack</a></li>
-          <li data-i18n="relEm"><a href="/engineering-managers-meeting-timer">Meeting timer for engineering managers</a></li>
-          <li data-i18n="relAgency"><a href="/client-call-timer-slack">Client call timer for agencies</a></li>
-          <li data-i18n="relRetro"><a href="/sprint-retrospective-agenda">Sprint retrospective agenda</a></li>
-        </ul>
-      </section>
+      </div>
+    </section>
+    <section class="lp-section">
+      <div class="lp-section-head"><h2 data-i18n="htX1H">Commands</h2></div>
+      <div class="cmd-list">
+        <div class="cmd"><code>/pace</code><span data-i18n="htCmd1">Opens the scheduling modal.</span></div>
+        <div class="cmd"><code>/pace status</code><span data-i18n="htCmd2">Shows the pacing sessions running in the channel.</span></div>
+        <div class="cmd"><code>/pace report 30</code><span data-i18n="htCmd3">Shows timebox adherence for the last 30 days.</span></div>
+        <div class="cmd"><code>/pace clear</code><span data-i18n="htCmd4">Deletes past bot DMs sent to you.</span></div>
+        <div class="cmd"><code>/pace help</code><span data-i18n="htCmd5">Lists the syntax.</span></div>
+      </div>
+    </section>
+    <section class="lp-section lp-prose">
+      <div class="lp-section-head"><h2 data-i18n="htX2H">Zero audio, by design</h2>
+        <p data-i18n="htX2P">HuddlePace never records or transcribes a call. It keeps only timestamps and the agenda modules it needs to run the timer. Read the <a href="/privacy">privacy policy</a> for the details.</p>
+      </div>
+    </section>
+    <section class="lp-section">
+      <div class="lp-section-head"><h2 data-i18n="htFaqH">Huddle timer questions</h2></div>
+      <div class="faq-list">
+        <details class="faq-item" name="ht-faq"><summary data-i18n="htFaq1Q">What is a Slack Huddle timer?</summary><p data-i18n="htFaq1A">A tool that tracks how long a Huddle has run against a planned duration. HuddlePace does it with a progress bar in the Huddle thread and private alerts for the speaker.</p></details>
+        <details class="faq-item" name="ht-faq"><summary data-i18n="htFaq2Q">Does HuddlePace record audio?</summary><p data-i18n="htFaq2A">No. It records 0% audio and stores no transcripts. It keeps only the timestamps and the agenda modules it needs to run the timer.</p></details>
+        <details class="faq-item" name="ht-faq"><summary data-i18n="htFaq3Q">How many modules can an agenda have?</summary><p data-i18n="htFaq3A">Up to 10. The percentages must add up to 100 before the session can be saved.</p></details>
+        <details class="faq-item" name="ht-faq"><summary data-i18n="htFaq4Q">What happens when everyone leaves the Huddle?</summary><p data-i18n="htFaq4A">The session ends on its own and HuddlePace posts a summary comparing the scheduled and the actual duration.</p></details>
+      </div>
+    </section>
+    <section class="lp-cta">
+      <h2 data-i18n="htCtaH">Put a clock on your next Huddle</h2>
+      <p data-i18n="htCtaP">Install HuddlePace, run <code>/pace</code> and start your first timed session.</p>
+      <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+      <p class="lp-price" data-i18n="lpPrice">Early access, free today. Pricing will be per workspace, never per user, and the features available today stay free.</p>
+    </section>
+    <section class="lp-section lp-related">
+      <h2 data-i18n="relHeading">More guides</h2>
+      <ul class="related-list"><li data-i18n="relStandup"><a href="/daily-standup-timer-slack">Daily standup timer for Slack</a></li><li data-i18n="relEm"><a href="/engineering-managers-meeting-timer">Meeting timer for engineering managers</a></li><li data-i18n="relAgency"><a href="/client-call-timer-slack">Client call timer for agencies</a></li><li data-i18n="relRetro"><a href="/sprint-retrospective-agenda">Sprint retrospective agenda</a></li></ul>
     </section>
     </main>
 
