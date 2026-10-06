@@ -8,6 +8,31 @@ export interface ModalSubtopicState {
   pct: string;
 }
 
+export interface ModalTemplateOption {
+  id: string;
+  name: string;
+}
+
+/**
+ * Slack keeps user-typed values for inputs whose block_id is unchanged across views.update,
+ * ignoring the new initial_value. Suffixing block_ids with a revision forces a fresh prefill.
+ */
+export function modalBlockId(base: string, rev?: string): string {
+  return rev ? `${base}_${rev}` : base;
+}
+
+/**
+ * Finds a submitted/current value by action_id regardless of the block_id revision suffix.
+ */
+export function findModalBlockId(values: Record<string, any>, actionId: string): string | undefined {
+  return Object.keys(values).find((blockId) => values[blockId]?.[actionId] !== undefined);
+}
+
+export function getModalAction(values: Record<string, any>, actionId: string): any {
+  const blockId = findModalBlockId(values, actionId);
+  return blockId ? values[blockId][actionId] : undefined;
+}
+
 export interface ModalStateData {
   title?: string;
   duration?: number;
@@ -22,10 +47,16 @@ export interface ModalStateData {
   customDuration?: string;
   reminderTextEnabled?: boolean;
   reminderImageEnabled?: boolean;
+  templates?: ModalTemplateOption[];
+  selectedTemplateId?: string;
+  saveAsTemplate?: boolean;
+  rev?: string;
 }
 
 export function buildScheduleModal(initialState?: Partial<ModalStateData>): ModalView {
   const count = initialState?.subtopicCount ?? 3;
+  const rev = initialState?.rev;
+  const bid = (base: string) => modalBlockId(base, rev);
 
   // Default suggested distribution presets for 3 rows
   const defaultPresets = [
@@ -142,10 +173,49 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     });
   }
 
-  const blocks: any[] = [
+  const blocks: any[] = [];
+
+  const templates = (initialState?.templates || []).slice(0, 100);
+  if (templates.length > 0) {
+    const templateOptions = templates.map((t) => ({
+      text: { type: "plain_text" as const, text: t.name.slice(0, 75), emoji: true },
+      value: t.id,
+    }));
+    const selectedTemplateOption = templateOptions.find((o) => o.value === initialState?.selectedTemplateId);
+    const templateElements: any[] = [
+      {
+        type: "static_select",
+        action_id: "template_select",
+        placeholder: { type: "plain_text", text: "📋 Start from a template" },
+        options: templateOptions,
+        ...(selectedTemplateOption ? { initial_option: selectedTemplateOption } : {}),
+      },
+    ];
+    if (selectedTemplateOption) {
+      templateElements.push({
+        type: "button",
+        text: { type: "plain_text", text: "🗑 Delete template", emoji: true },
+        action_id: "delete_template_action",
+        value: selectedTemplateOption.value,
+        confirm: {
+          title: { type: "plain_text", text: "Delete template?" },
+          text: { type: "mrkdwn", text: `*${selectedTemplateOption.text.text}* will be removed. Sessions already scheduled are not affected.` },
+          confirm: { type: "plain_text", text: "Delete" },
+          deny: { type: "plain_text", text: "Keep" },
+          style: "danger",
+        },
+      });
+    }
+    blocks.push(
+      { type: "actions", block_id: "template_picker_block", elements: templateElements },
+      { type: "divider" }
+    );
+  }
+
+  blocks.push(
     {
       type: "input",
-      block_id: "title_block",
+      block_id: bid("title_block"),
       element: {
         type: "plain_text_input",
         action_id: "title_input",
@@ -162,7 +232,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     },
     {
       type: "input",
-      block_id: "speaker_block",
+      block_id: bid("speaker_block"),
       element: speakerElement,
       label: {
         type: "plain_text",
@@ -171,7 +241,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     },
     {
       type: "input",
-      block_id: "channel_block",
+      block_id: bid("channel_block"),
       element: {
         type: "conversations_select",
         action_id: "channel_select",
@@ -194,7 +264,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     },
     {
       type: "input",
-      block_id: "huddle_select_block",
+      block_id: bid("huddle_select_block"),
       element: {
         type: "static_select",
         action_id: "huddle_select",
@@ -218,7 +288,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     },
     {
       type: "input",
-      block_id: "custom_thread_block",
+      block_id: bid("custom_thread_block"),
       optional: true,
       element: {
         type: "plain_text_input",
@@ -236,7 +306,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     },
     {
       type: "input",
-      block_id: "duration_block",
+      block_id: bid("duration_block"),
       element: {
         type: "static_select",
         action_id: "duration_select",
@@ -254,7 +324,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     },
     {
       type: "input",
-      block_id: "reminder_options_block",
+      block_id: bid("reminder_options_block"),
       optional: true,
       label: {
         type: "plain_text",
@@ -295,8 +365,8 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         type: "mrkdwn",
         text: "*📌 Agenda Modules & Time Budget (%) Allocation*\nAllocate percentage for each module. *Total must equal 100%*.",
       },
-    },
-  ];
+    }
+  );
 
   // Dynamically render subtopic rows
   for (let i = 0; i < count; i++) {
@@ -333,7 +403,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     blocks.push(
       {
         type: "input",
-        block_id: `subtopic_title_${i}`,
+        block_id: bid(`subtopic_title_${i}`),
         element: titleElement,
         label: {
           type: "plain_text",
@@ -342,7 +412,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       },
       {
         type: "input",
-        block_id: `subtopic_pct_${i}`,
+        block_id: bid(`subtopic_pct_${i}`),
         element: pctElement,
         label: {
           type: "plain_text",
@@ -392,6 +462,35 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     ],
   });
 
+  blocks.push({
+    type: "input",
+    block_id: "save_template_block",
+    optional: true,
+    label: { type: "plain_text", text: "Template" },
+    element: {
+      type: "checkboxes",
+      action_id: "save_template_checkbox",
+      options: [
+        {
+          text: { type: "mrkdwn", text: "*Save as template* (reuse this setup for recurring calls)" },
+          description: { type: "plain_text", text: "Named after the session title. Saving the same title again updates it." },
+          value: "save_template",
+        },
+      ],
+      ...(initialState?.saveAsTemplate
+        ? {
+            initial_options: [
+              {
+                text: { type: "mrkdwn", text: "*Save as template* (reuse this setup for recurring calls)" },
+                description: { type: "plain_text", text: "Named after the session title. Saving the same title again updates it." },
+                value: "save_template",
+              },
+            ],
+          }
+        : {}),
+    },
+  });
+
   return {
     type: "modal",
     callback_id: "submit_schedule_modal",
@@ -410,6 +509,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     private_metadata: JSON.stringify({
       subtopicCount: count,
       channelId: initialState?.channelId,
+      rev,
     }),
     blocks,
   };

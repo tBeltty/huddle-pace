@@ -239,10 +239,12 @@ export function registerCommandHandlers(app: App) {
       const explicitThreadTs = (command as any).thread_ts || (command as any).threadTs;
       await ensureBotInChannel(client, command.channel_id, command.user_id);
       const huddles = await findChannelHuddles(client, command.channel_id);
+      const templates = await MeetupService.listTemplates(command.team_id || "default", command.user_id).catch(() => []);
 
       await client.views.open({
         trigger_id: command.trigger_id,
         view: buildScheduleModal({
+          templates: templates.map((t) => ({ id: t.id, name: t.name })),
           channelId: command.channel_id,
           currentUserId: command.user_id,
           subtopicCount: 3,
@@ -260,9 +262,17 @@ export function registerCommandHandlers(app: App) {
   app.shortcut("schedule_meetup_shortcut", async ({ shortcut, ack, client, logger }) => {
     await ack();
     try {
+      const templates = await MeetupService.listTemplates(
+        (shortcut as any).team?.id || "default",
+        shortcut.user.id
+      ).catch(() => []);
       await client.views.open({
         trigger_id: shortcut.trigger_id,
-        view: buildScheduleModal({ subtopicCount: 3 }),
+        view: buildScheduleModal({
+          subtopicCount: 3,
+          currentUserId: shortcut.user.id,
+          templates: templates.map((t) => ({ id: t.id, name: t.name })),
+        }),
       });
     } catch (error) {
       logger.error("Error opening schedule modal from shortcut:", error);

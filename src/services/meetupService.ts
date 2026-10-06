@@ -18,6 +18,31 @@ export interface CreateMeetupDTO {
   modules: SubtopicInput[];
 }
 
+export interface SaveTemplateDTO {
+  teamId: string;
+  ownerUserId: string;
+  name: string;
+  channelId: string;
+  speakerUserId: string;
+  totalMinutes: number;
+  threadTs?: string | null;
+  reminderTextEnabled: boolean;
+  reminderImageEnabled: boolean;
+  modules: SubtopicInput[];
+}
+
+export interface MeetupTemplateData {
+  id: string;
+  name: string;
+  channelId: string;
+  speakerUserId: string;
+  totalMinutes: number;
+  destination: "auto" | "main";
+  reminderTextEnabled: boolean;
+  reminderImageEnabled: boolean;
+  modules: SubtopicInput[];
+}
+
 export interface PacingReportStats {
   totalSessions: number;
   completedOnTime: number;
@@ -297,6 +322,95 @@ export class MeetupService {
         },
       },
     });
+  }
+
+  /**
+   * Maps a stored thread destination to a reusable one. Specific Huddle threads
+   * expire with the call, so only "main" survives; everything else re-detects.
+   */
+  static templateDestination(threadTs?: string | null): "auto" | "main" {
+    return threadTs === "main" ? "main" : "auto";
+  }
+
+  private static toTemplateData(row: {
+    id: string;
+    name: string;
+    channelId: string;
+    speakerUserId: string;
+    totalMinutes: number;
+    destination: string;
+    reminderTextEnabled: boolean;
+    reminderImageEnabled: boolean;
+    modulesJson: string;
+  }): MeetupTemplateData {
+    let modules: SubtopicInput[] = [];
+    try {
+      const parsed = JSON.parse(row.modulesJson);
+      if (Array.isArray(parsed)) {
+        modules = parsed.map((m: any) => ({
+          title: String(m?.title ?? ""),
+          percentage: Number(m?.percentage) || 0,
+        }));
+      }
+    } catch {
+      // Corrupt payload: fall through with an empty agenda so the modal still opens.
+    }
+    return {
+      id: row.id,
+      name: row.name,
+      channelId: row.channelId,
+      speakerUserId: row.speakerUserId,
+      totalMinutes: row.totalMinutes,
+      destination: row.destination === "main" ? "main" : "auto",
+      reminderTextEnabled: row.reminderTextEnabled,
+      reminderImageEnabled: row.reminderImageEnabled,
+      modules,
+    };
+  }
+
+  /**
+   * Saves a template for a user, overwriting their existing template of the same name.
+   */
+  static async saveTemplate(data: SaveTemplateDTO): Promise<MeetupTemplateData> {
+    const name = data.name.trim();
+    const fields = {
+      channelId: data.channelId,
+      speakerUserId: data.speakerUserId,
+      totalMinutes: data.totalMinutes,
+      destination: this.templateDestination(data.threadTs),
+      reminderTextEnabled: data.reminderTextEnabled,
+      reminderImageEnabled: data.reminderImageEnabled,
+      modulesJson: JSON.stringify(data.modules.map((m) => ({ title: m.title.trim(), percentage: m.percentage }))),
+    };
+    const row = await prisma.meetupTemplate.upsert({
+      where: {
+        teamId_ownerUserId_name: { teamId: data.teamId, ownerUserId: data.ownerUserId, name },
+      },
+      create: { teamId: data.teamId, ownerUserId: data.ownerUserId, name, ...fields },
+      update: fields,
+    });
+    return this.toTemplateData(row);
+  }
+
+  /**
+   * Lists a user's templates, most recently updated first.
+   */
+  static async listTemplates(teamId: string, ownerUserId: string): Promise<MeetupTemplateData[]> {
+    const rows = await prisma.meetupTemplate.findMany({
+      where: { teamId, ownerUserId },
+      orderBy: { updatedAt: "desc" },
+    });
+    return rows.map((r) => this.toTemplateData(r));
+  }
+
+  static async getTemplate(id: string, teamId: string, ownerUserId: string): Promise<MeetupTemplateData | null> {
+    const row = await prisma.meetupTemplate.findFirst({ where: { id, teamId, ownerUserId } });
+    return row ? this.toTemplateData(row) : null;
+  }
+
+  static async deleteTemplate(id: string, teamId: string, ownerUserId: string): Promise<boolean> {
+    const result = await prisma.meetupTemplate.deleteMany({ where: { id, teamId, ownerUserId } });
+    return result.count > 0;
   }
 
   /**
