@@ -4,6 +4,16 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] SEO de Contenido: Páginas por Keyword y FAQ con Schema
+* **Dos páginas nuevas en inglés y español**:
+  * **`/slack-huddle-timer`** y **`/es/temporizador-huddle-slack`**: cómo funciona, qué ve el equipo durante la llamada, comandos reales (`/pace`, `status`, `report`, `clear`, `help`), diseño sin audio y precio.
+  * **`/daily-standup-timer-slack`** y **`/es/temporizador-daily-standup-slack`**: daily de 15 minutos con reparto 15 / 60 / 25, avisos privados al speaker, templates y `/pace report 30`.
+  * Cada una tiene su título, descripción, canonical, `hreflang`, `WebPage` y `BreadcrumbList`, y entra al sitemap (ahora 10 URLs).
+* **FAQ en la home (`index.html`, `landingPage.ts`)**: seis preguntas visibles en ambos idiomas. El JSON-LD `FAQPage` se genera desde las mismas cadenas de `src/locales/*.json`, así el marcado nunca difiere del texto visible.
+* **Precio público**: acceso temprano, gratis hoy, cobro futuro por workspace (nunca por usuario) y las funciones actuales siguen gratis. No se publica el cupo de los primeros workspaces para evitar un texto que quede falso.
+* **Reescritura de enlaces**: `landingPage.ts` define cada página como un par EN/ES (`PAGE_PAIRS`) y de ahí salen las rutas, el sitemap, los `hreflang` y los enlaces internos de `/es/*`.
+* **Nota de proceso**: el informe de keywords proponía comandos que no existen (`/pace 15m`, `start`, `next`, `wrap`, `cancel`). Se descartaron y el copy usa solo los comandos del README.
+
 ## [2026-10-06] SEO Técnico: Sitio en Español con URL Propia, Sitemap y Datos Estructurados
 * **Idioma por URL (`landingPage.ts`)**:
   * **Rutas:** `/`, `/privacy` y `/terms` sirven inglés. `/es/`, `/es/privacy` y `/es/terms` sirven español. `Accept-Language`, la cookie `huddlepace_lang` y el cambio automático por idioma del navegador ya no alteran el contenido, así que Google puede indexar las dos versiones.

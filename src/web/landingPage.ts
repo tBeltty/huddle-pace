@@ -30,14 +30,29 @@ type Lang = "en" | "es";
 // `metaKey` is the top-level key in the locale JSON holding that page's SEO meta block.
 // Language is decided by the URL alone (`/es/...` is Spanish) so every language
 // version is a distinct, crawlable, cacheable URL.
-const PAGES: Record<string, { file: string; metaKey: string; lang: Lang; enPath: string; esPath: string }> = {
-  "/": { file: "index.html", metaKey: "meta", lang: "en", enPath: "/", esPath: "/es/" },
-  "/privacy": { file: "privacy.html", metaKey: "privacyMeta", lang: "en", enPath: "/privacy", esPath: "/es/privacy" },
-  "/terms": { file: "terms.html", metaKey: "termsMeta", lang: "en", enPath: "/terms", esPath: "/es/terms" },
-  "/es/": { file: "index.html", metaKey: "meta", lang: "es", enPath: "/", esPath: "/es/" },
-  "/es/privacy": { file: "privacy.html", metaKey: "privacyMeta", lang: "es", enPath: "/privacy", esPath: "/es/privacy" },
-  "/es/terms": { file: "terms.html", metaKey: "termsMeta", lang: "es", enPath: "/terms", esPath: "/es/terms" },
-};
+interface PageDef {
+  file: string;
+  metaKey: string;
+  lang: Lang;
+  enPath: string;
+  esPath: string;
+}
+
+// One entry per (page, language). The English and Spanish URLs of a page are listed
+// together so hreflang pairs, the sitemap and internal-link rewriting stay in sync.
+const PAGE_PAIRS: Array<{ file: string; metaKey: string; enPath: string; esPath: string }> = [
+  { file: "index.html", metaKey: "meta", enPath: "/", esPath: "/es/" },
+  { file: "slack-huddle-timer.html", metaKey: "huddleTimerMeta", enPath: "/slack-huddle-timer", esPath: "/es/temporizador-huddle-slack" },
+  { file: "daily-standup-timer-slack.html", metaKey: "standupMeta", enPath: "/daily-standup-timer-slack", esPath: "/es/temporizador-daily-standup-slack" },
+  { file: "privacy.html", metaKey: "privacyMeta", enPath: "/privacy", esPath: "/es/privacy" },
+  { file: "terms.html", metaKey: "termsMeta", enPath: "/terms", esPath: "/es/terms" },
+];
+
+const PAGES: Record<string, PageDef> = {};
+for (const pair of PAGE_PAIRS) {
+  PAGES[pair.enPath] = { ...pair, lang: "en" };
+  PAGES[pair.esPath] = { ...pair, lang: "es" };
+}
 
 const cachedHtml: Record<string, string> = {};
 const cachedRendered: Record<string, { html: string }> = {};
@@ -96,6 +111,21 @@ export function getLocaleDictionary(lang: string): any {
   return null;
 }
 
+function buildFaqJsonLd(locale: any): string {
+  const strip = (v: string) => v.replace(/<[^>]*>/g, "").trim();
+  const mainEntity: any[] = [];
+  for (let i = 1; locale?.[`faq${i}Q`]; i++) {
+    mainEntity.push({
+      "@type": "Question",
+      name: strip(locale[`faq${i}Q`]),
+      acceptedAnswer: { "@type": "Answer", text: strip(locale[`faq${i}A`]) },
+    });
+  }
+  if (mainEntity.length === 0) return "";
+  const json = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity }, null, 2).replaceAll("</", "<\\/");
+  return `<script type="application/ld+json">\n${json}\n  </script>`;
+}
+
 export function renderLocalizedHtml(
   baseHtml: string,
   lang: Lang,
@@ -126,11 +156,17 @@ export function renderLocalizedHtml(
     `<meta property="og:site_name" content="HuddlePace">\n  <meta property="og:locale" content="${lang === "es" ? "es_ES" : "en_US"}">\n  <meta property="og:locale:alternate" content="${lang === "es" ? "en_US" : "es_ES"}">`
   );
 
+  // FAQPage structured data is generated from the same locale strings as the visible FAQ.
+  const faqLocale = getLocaleDictionary(lang);
+  if (html.includes("__FAQ_JSON_LD__")) {
+    html = html.replace("__FAQ_JSON_LD__", buildFaqJsonLd(faqLocale));
+  }
+
   if (lang === "en") {
     return html;
   }
 
-  const locale = getLocaleDictionary("es");
+  const locale = faqLocale;
   if (!locale) return html;
 
   // 1. Document Lang Attribute
@@ -159,6 +195,16 @@ export function renderLocalizedHtml(
     }
   }
 
+  // Page-level structured data follows the page language.
+  if (html.includes('"@type": "WebPage"')) {
+    html = html.replaceAll('"inLanguage": "en"', '"inLanguage": "es"');
+    html = html.replaceAll('"name": "Home"', '"name": "Inicio"');
+    const enTitle = getLocaleDictionary("en")?.[metaKey]?.title;
+    if (enTitle && meta?.title) {
+      html = html.replaceAll(`"name": "${enTitle.split(" | ")[0]}"`, `"name": "${meta.title.split(" | ")[0]}"`);
+    }
+  }
+
   // 3. Language switcher active state
   html = html.replace('id="btn-en" class="lang-btn active"', 'id="btn-en" class="lang-btn"');
   html = html.replace('class="lang-btn active" id="btn-en"', 'class="lang-btn" id="btn-en"');
@@ -175,9 +221,12 @@ export function renderLocalizedHtml(
   });
 
   // 5. Internal links stay inside the Spanish version of the site.
-  html = html
-    .replace(/href="\/(#[^"]*)?"/g, (_m, hash) => `href="/es/${hash ?? ""}"`)
-    .replace(/href="\/(privacy|terms)(#[^"]*)?"/g, (_m, page, hash) => `href="/es/${page}${hash ?? ""}"`);
+  html = html.replace(/href="\/(#[^"]*)?"/g, (_m, hash) => `href="/es/${hash ?? ""}"`);
+  for (const pair of PAGE_PAIRS) {
+    if (pair.enPath === "/") continue;
+    html = html.replaceAll(`href="${pair.enPath}"`, `href="${pair.esPath}"`);
+    html = html.replaceAll(`href="${pair.enPath}#`, `href="${pair.esPath}#`);
+  }
 
   return html;
 }
@@ -330,10 +379,14 @@ export function handleStaticAsset(
 }
 
 export function getWebCustomRoutes() {
-  const pageRoutes = [...Object.keys(PAGES), "/es", "/privacy/", "/terms/", "/es/privacy/", "/es/terms/"].map((routePath) => {
-    // Non-canonical variants map to their canonical page and 301 there.
-    const pagePath = routePath === "/es" ? "/es/" : routePath.length > 1 && routePath.endsWith("/") && !(routePath in PAGES) ? routePath.slice(0, -1) : routePath;
-    return { path: routePath, method: ["GET", "HEAD"], handler: handleStaticPage(pagePath) };
+  const pageRoutes = Object.keys(PAGES).flatMap((canonicalPath) => {
+    const routes = [{ path: canonicalPath, method: ["GET", "HEAD"], handler: handleStaticPage(canonicalPath) }];
+    // Non-canonical variants (trailing slash, bare /es) 301 to the canonical path.
+    const variant = canonicalPath.endsWith("/") ? canonicalPath.slice(0, -1) : `${canonicalPath}/`;
+    if (variant && variant !== canonicalPath && !(variant in PAGES)) {
+      routes.push({ path: variant, method: ["GET", "HEAD"], handler: handleStaticPage(canonicalPath) });
+    }
+    return routes;
   });
   return [
     ...pageRoutes,

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-06
+
+### Added
+- **Slack Huddle Timer Page**: `/slack-huddle-timer` and `/es/temporizador-huddle-slack` explain setup, what the team sees during a call, the real `/pace` commands, the zero-audio design and pricing.
+- **Daily Standup Timer Page**: `/daily-standup-timer-slack` and `/es/temporizador-daily-standup-slack` cover a 15 / 60 / 25 module split, private speaker nudges, templates and `/pace report`.
+- **FAQ on the Home Page**: Six visible questions in both languages, with `FAQPage` structured data generated from the same strings so the markup always matches the visible text.
+- **Page Structured Data**: Content pages carry `WebPage` and `BreadcrumbList` JSON-LD.
+
+### Changed
+- **Sitemap and Footer**: The sitemap now lists 10 URLs. The Product footer column links to both new pages. Internal links on Spanish pages resolve to the matching Spanish URL.
+- **Pricing Copy**: Pages state that HuddlePace is in early access and free today, that pricing will be per workspace, and that today's features stay free.
+
 ## [1.5.0] - 2026-10-06
 
 ### Added
@@ -107,7 +119,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/tBeltty/huddle-pace/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/tBeltty/huddle-pace/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/tBeltty/huddle-pace/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/tBeltty/huddle-pace/compare/v1.3.0...v1.3.1

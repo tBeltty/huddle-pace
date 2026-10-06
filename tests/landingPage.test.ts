@@ -103,6 +103,40 @@ describe("Web Landing Page & Asset Delivery", () => {
       }
     });
 
+    test("home page carries a visible FAQ and matching FAQPage JSON-LD in each language", () => {
+      const routes = getWebCustomRoutes();
+      for (const [route, lang, question] of [["/", "en", "How much does HuddlePace cost?"], ["/es/", "es", "¿Cuánto cuesta HuddlePace?"]]) {
+        const res = new MockResponse();
+        routes.find((r) => r.path === route)!.handler({ url: route } as any, res as any);
+        assert.match(res.body, /"@type": "FAQPage"/, lang);
+        assert.ok(res.body.includes(`"name": "${question}"`), lang);
+        assert.ok(res.body.includes(`>${question}</summary>`), lang);
+        assert.doesNotMatch(res.body, /__FAQ_JSON_LD__/);
+      }
+    });
+
+    test("content pages render in both languages with their own canonical and localized links", () => {
+      const routes = getWebCustomRoutes();
+      const cases: Array<[string, string, RegExp, RegExp]> = [
+        ["/slack-huddle-timer", "en", /<h1[^>]*>A timer for your/, /canonical" href="https:\/\/huddlepace\.com\/slack-huddle-timer"/],
+        ["/es/temporizador-huddle-slack", "es", /<h1[^>]*>Un temporizador para tus/, /canonical" href="https:\/\/huddlepace\.com\/es\/temporizador-huddle-slack"/],
+        ["/daily-standup-timer-slack", "en", /<h1[^>]*>Daily standup timer/, /hreflang="es" href="https:\/\/huddlepace\.com\/es\/temporizador-daily-standup-slack"/],
+        ["/es/temporizador-daily-standup-slack", "es", /<h1[^>]*>Temporizador de daily standup/, /"inLanguage": "es"/],
+      ];
+      for (const [route, lang, h1, extra] of cases) {
+        const res = new MockResponse();
+        routes.find((r) => r.path === route)!.handler({ url: route } as any, res as any);
+        assert.strictEqual(res.statusCode, 200, route);
+        assert.strictEqual(res.headers["Content-Language"], lang, route);
+        assert.match(res.body, h1, route);
+        assert.match(res.body, extra, route);
+      }
+      const es = new MockResponse();
+      routes.find((r) => r.path === "/es/temporizador-huddle-slack")!.handler({ url: "/es/temporizador-huddle-slack" } as any, es as any);
+      assert.match(es.body, /href="\/es\/privacy"/);
+      assert.match(es.body, /href="\/es\/temporizador-daily-standup-slack"/);
+    });
+
     test("serves legal pages in both languages", () => {
       const routes = getWebCustomRoutes();
       const es = new MockResponse();
@@ -221,7 +255,7 @@ describe("Web Landing Page & Asset Delivery", () => {
   describe("sitemap.xml and robots.txt", () => {
     test("sitemap lists every page in both languages with hreflang alternates", () => {
       const xml = buildSitemapXml();
-      for (const loc of ["/", "/es/", "/privacy", "/es/privacy", "/terms", "/es/terms"]) {
+      for (const loc of ["/", "/es/", "/privacy", "/es/privacy", "/terms", "/es/terms", "/slack-huddle-timer", "/es/temporizador-huddle-slack", "/daily-standup-timer-slack", "/es/temporizador-daily-standup-slack"]) {
         assert.match(xml, new RegExp(`<loc>https://huddlepace\\.com${loc}</loc>`));
       }
       assert.match(xml, /hreflang="x-default"/);
