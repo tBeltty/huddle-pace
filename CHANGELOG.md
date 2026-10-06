@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.3] - 2026-10-06
+
+### Changed
+- **Hero Tag Copy**: The floating tag on the home hero now reads "Flight Pacer · Efficiency Crew" instead of "Flight Pacer · Vibecoder Crew". `docs/BRAND.md` notes that "Vibecoder Crew" stays as internal lore only.
+
 ## [1.9.2] - 2026-10-06
 
 ### Changed
@@ -193,7 +198,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.2...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.3...HEAD
+[1.9.3]: https://github.com/tBeltty/huddle-pace/compare/v1.9.2...v1.9.3
 [1.9.2]: https://github.com/tBeltty/huddle-pace/compare/v1.9.1...v1.9.2
 [1.9.1]: https://github.com/tBeltty/huddle-pace/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/tBeltty/huddle-pace/compare/v1.8.2...v1.9.0
