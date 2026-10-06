@@ -1517,3 +1517,11 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-cyan); o
 @media (max-width: 720px) { .lp-tips { grid-template-columns: 1fr; } }
 .thread-bar, .thread-meta { font-variant-numeric: tabular-nums; }
 .thread-meta strong { font-family: var(--font-mono); font-weight: 600; }
+
+.cmd-list { display: grid; max-width: 760px; }
+.cmd { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 16px; align-items: baseline; padding: 14px 0; border-top: 1px solid var(--border-subtle); }
+.cmd code { font-family: var(--font-mono); color: var(--accent-cyan); font-variant-numeric: tabular-nums; }
+.cmd span { color: var(--text-secondary); }
+@media (max-width: 560px) { .cmd { grid-template-columns: 1fr; gap: 4px; } }
+.lp-prose .lp-section-head { max-width: 70ch; }
+.lp-prose p a, .lp-section-head p a { color: var(--accent-cyan); }

@@ -61,6 +61,8 @@
   }
   </script>
 
+  __FAQ_JSON_LD:ag__
+
   <link rel="stylesheet" href="/assets/site.css?v=__APP_VERSION__">
 </head>
 <body>
@@ -94,49 +96,134 @@
       </nav>
     </header>
 
-    <section class="legal-hero">
-      <div class="badge-pilot">
-        <span data-i18n="agBadge">🤝 Agencies</span>
+    <main id="main">
+    <section class="lp-hero">
+      <div class="lp-hero-text">
+        <div class="badge-pilot"><span data-i18n="agBadge">🤝 Agencies</span></div>
+        <h1 class="lp-title" data-i18n="agTitle">Client calls that respect <span>billable hours</span></h1>
+        <p class="lp-lead" data-i18n="agLead">A client call that runs long comes out of your margin. HuddlePace splits the call into timed modules and shows the pacing in the Huddle thread.</p>
+        <div class="hero-actions">
+          <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+          <a class="btn-secondary" href="#split" data-i18n="agSeeMore">See the split</a>
+        </div>
+        <ul class="lp-chips"><li class="lp-chip" data-i18n="agChip1">Weekly sync template</li><li class="lp-chip" data-i18n="agChip2">Just Chatting mode</li><li class="lp-chip" data-i18n="agChip3">0% audio recorded</li></ul>
       </div>
-      <h1 data-i18n="agTitle">Client calls that respect <span>billable hours</span></h1>
-      <p data-i18n="agLead">A client call that runs long comes out of your margin. HuddlePace splits the call into timed modules and shows the pacing in the Huddle thread.</p>
-      <div class="hero-actions" style="margin-top:28px;">
-        <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+      <aside class="agenda-card" aria-label="Example agenda">
+        <div class="agenda-head">
+          <span class="agenda-kicker" data-i18n="lpCardKicker">Example agenda</span>
+          <strong class="agenda-title" data-i18n="agCardTitle">Weekly client sync · 30 min</strong>
+        </div>
+        <div class="split-bar" role="img" aria-label="40% / 40% / 20%"><span class="split-seg" style="--w:40;--c:#67e8f9;--t:#06101a"><span class="split-seg-label">40%</span></span><span class="split-seg" style="--w:40;--c:#06b6d4;--t:#06101a"><span class="split-seg-label">40%</span></span><span class="split-seg" style="--w:20;--c:#0e7490;--t:#f8fafc"><span class="split-seg-label">20%</span></span></div>
+        <ul class="agenda-rows">
+          <li class="agenda-row"><span class="agenda-dot" style="--c:#67e8f9"></span><span class="agenda-name" data-i18n="agCardM1">Sprint progress</span><span class="agenda-min">12 min</span></li>
+          <li class="agenda-row"><span class="agenda-dot" style="--c:#06b6d4"></span><span class="agenda-name" data-i18n="agCardM2">Deliverable demos</span><span class="agenda-min">12 min</span></li>
+          <li class="agenda-row"><span class="agenda-dot" style="--c:#0e7490"></span><span class="agenda-name" data-i18n="agCardM3">Client approvals</span><span class="agenda-min">6 min</span></li>
+        </ul>
+        <div class="agenda-foot"><span class="agenda-live"></span>
+          <span><span data-i18n="lpNowRunning">Now running:</span> <span data-i18n="agCardM2">Deliverable demos</span></span>
+        </div>
+      </aside>
+    </section>
+    <section class="lp-section" id="split">
+      <div class="lp-section-head">
+        <h2 data-i18n="agSp1H">A weekly client sync, split</h2>
+        <p data-i18n="agSp1P">For a 30-minute call, run <code>/pace</code> and set three modules.</p>
+      </div>
+      <div class="split-bar" role="img" aria-label="40% / 40% / 20%"><span class="split-seg" style="--w:40;--c:#67e8f9;--t:#06101a"><span class="split-seg-label">40%</span></span><span class="split-seg" style="--w:40;--c:#06b6d4;--t:#06101a"><span class="split-seg-label">40%</span></span><span class="split-seg" style="--w:20;--c:#0e7490;--t:#f8fafc"><span class="split-seg-label">20%</span></span></div>
+      <div class="lp-cards">
+        <article class="mod-card reveal" style="--c:#67e8f9">
+          <div class="mod-figure"><span class="mod-pct">40%</span><span class="mod-min">12 min</span></div>
+          <div class="mod-body"><h3 data-i18n="agSp1M1">Sprint progress</h3><p data-i18n="agSp1M1D">Show what moved since last week so the client sees the work.</p></div>
+        </article>
+        <article class="mod-card reveal" style="--c:#06b6d4">
+          <div class="mod-figure"><span class="mod-pct">40%</span><span class="mod-min">12 min</span></div>
+          <div class="mod-body"><h3 data-i18n="agSp1M2">Deliverable demos</h3><p data-i18n="agSp1M2D">Demonstrate finished pieces. Twelve minutes keeps the demo focused.</p></div>
+        </article>
+        <article class="mod-card reveal" style="--c:#0e7490">
+          <div class="mod-figure"><span class="mod-pct">20%</span><span class="mod-min">6 min</span></div>
+          <div class="mod-body"><h3 data-i18n="agSp1M3">Client approvals</h3><p data-i18n="agSp1M3D">Collect decisions and sign-offs while everyone is still on the call.</p></div>
+        </article>
       </div>
     </section>
-
-    <main id="main">
-    <section class="legal-content">
-      <section>
-        <h2 data-i18n="agS1Title">Time is margin</h2>
-        <p data-i18n="agS1P1">On a fixed-fee project every extra ten minutes of a weekly sync is unpaid work. A clock that everyone in the thread can see keeps the call on its agenda.</p>
-      </section>
-      <section>
-        <h2 data-i18n="agS2Title">A weekly sync split</h2>
-        <p data-i18n="agS2P1">For a 30-minute client sync, run <code>/pace</code> and set:</p>
-        <ul>
-          <li data-i18n="agS2P2I1">Sprint progress, 40% (12 min)</li>
-          <li data-i18n="agS2P2I2">Deliverable demos, 40% (12 min)</li>
-          <li data-i18n="agS2P2I3">Client approvals, 20% (6 min)</li>
+    <section class="lp-section">
+      <div class="lp-section-head"><h2 data-i18n="agDerH">Where the margin leaks</h2></div>
+      <div class="lp-cards lp-cards-2">
+        <article class="derail"><span class="derail-n">1</span><div>
+          <h3 data-i18n="agDer1H">The sync stretches by ten minutes</h3>
+          <p data-i18n="agDer1P">On a fixed fee, unplanned minutes come out of your margin.</p>
+        </div></article>
+        <article class="derail"><span class="derail-n">2</span><div>
+          <h3 data-i18n="agDer2H">Demos crowd out approvals</h3>
+          <p data-i18n="agDer2P">A reserved approvals block makes sure decisions get made.</p>
+        </div></article>
+        <article class="derail"><span class="derail-n">3</span><div>
+          <h3 data-i18n="agDer3H">Small talk blurs the numbers</h3>
+          <p data-i18n="agDer3P">Just Chatting keeps casual conversation out of the pacing report.</p>
+        </div></article>
+        <article class="derail"><span class="derail-n">4</span><div>
+          <h3 data-i18n="agDer4H">The client cannot see the plan</h3>
+          <p data-i18n="agDer4P">The progress bar shows everyone in the thread how much time is left.</p>
+        </div></article>
+      </div>
+    </section>
+    <section class="lp-section">
+      <div class="lp-section-head"><h2 data-i18n="agStepsH">Run it in three steps</h2></div>
+      <ol class="steps">
+        <li class="step reveal"><span class="step-n">1</span>
+          <h3 data-i18n="agSt1H">Open the modal</h3>
+          <p data-i18n="agSt1P">Type <code>/pace</code> in the channel you share with the client team.</p>
+        </li>
+        <li class="step reveal"><span class="step-n">2</span>
+          <h3 data-i18n="agSt2H">Set the three modules</h3>
+          <p data-i18n="agSt2P">Choose 30 minutes and enter 40, 40 and 20 percent for progress, demos and approvals.</p>
+        </li>
+        <li class="step reveal"><span class="step-n">3</span>
+          <h3 data-i18n="agSt3H">Save it as a template</h3>
+          <p data-i18n="agSt3P">Tick <strong>Save as template</strong>. Next week the sync starts from the saved agenda in one click.</p>
+        </li>
+      </ol>
+      <div class="thread-layout">
+        <div class="thread-wrap">
+          <p class="thread-cap" data-i18n="lpThreadCap">What the team sees in the Huddle thread</p>
+          <div class="thread" role="img" aria-label="Example HuddlePace message in a Slack Huddle thread">
+            <div class="thread-head"><img src="/assets/avatar-96.png" alt="" width="36" height="36" decoding="async" loading="lazy"><strong>HuddlePace</strong><span class="bot-pill">APP</span></div>
+            <div class="thread-title"><span data-i18n="agThName">Weekly client sync</span></div>
+            <div class="thread-bar"><span class="progress-ascii">██████████░░░░░░░░░░</span> <strong>50%</strong></div>
+            <div class="thread-meta"><span data-i18n="lpElapsed">Elapsed</span> <strong>15m 0s</strong> / 30m · <span data-i18n="lpRemaining">Remaining</span> <strong>15m 0s</strong></div>
+            <div class="thread-mod"><strong><span data-i18n="lpActive">Active module:</span></strong> <span data-i18n="agThActive">Deliverable demos</span></div>
+            <div class="thread-mod">⏭️ <strong><span data-i18n="lpNext">Next up:</span></strong> <span data-i18n="agThNext">Client approvals</span></div>
+          </div>
+        </div>
+        <ul class="thread-notes">
+          <li class="thread-note"><strong data-i18n="agNote1H">Live progress</strong><span data-i18n="agNote1P">The bar updates every 30 seconds with the current block and the time left.</span></li>
+          <li class="thread-note"><strong data-i18n="agNote2H">Private nudges</strong><span data-i18n="agNote2P">Whoever is presenting gets a Slack DM at the midpoint and with one minute left.</span></li>
+          <li class="thread-note"><strong data-i18n="agNote3H">Just Chatting mode</strong><span data-i18n="agNote3P">Switch when the formal agenda ends. The metrics freeze and the Huddle stays open.</span></li>
         </ul>
-      </section>
-      <section>
-        <h2 data-i18n="agS3Title">Just Chatting mode</h2>
-        <p data-i18n="agS3P1">When the formal agenda is done and the conversation turns social, switch to <strong>Just Chatting</strong>. It freezes the formal metrics and keeps the Huddle open, so friendly time does not distort your pacing report.</p>
-      </section>
-      <section>
-        <h2 data-i18n="agS4Title">Pricing</h2>
-        <p data-i18n="agS4P1">HuddlePace is in early access and free today. Pricing will be per workspace, never per user, and the features available today stay free.</p>
-      </section>
-      <section>
-        <h2 data-i18n="relHeading">More guides</h2>
-        <ul>
-          <li data-i18n="relHuddle"><a href="/slack-huddle-timer">Slack Huddle timer</a></li>
-          <li data-i18n="relStandup"><a href="/daily-standup-timer-slack">Daily standup timer for Slack</a></li>
-          <li data-i18n="relEm"><a href="/engineering-managers-meeting-timer">Meeting timer for engineering managers</a></li>
-          <li data-i18n="relRetro"><a href="/sprint-retrospective-agenda">Sprint retrospective agenda</a></li>
-        </ul>
-      </section>
+      </div>
+    </section>
+    <section class="lp-section lp-prose">
+      <div class="lp-section-head"><h2 data-i18n="agX1H">Keep friendly time off the clock</h2>
+        <p data-i18n="agX1P">When the formal agenda ends and the conversation turns social, switch to <strong>Just Chatting</strong>. It freezes the formal metrics and keeps the Huddle open, so friendly time does not distort your pacing report.</p>
+      </div>
+    </section>
+    <section class="lp-section">
+      <div class="lp-section-head"><h2 data-i18n="agFaqH">Questions from agencies</h2></div>
+      <div class="faq-list">
+        <details class="faq-item" name="ag-faq"><summary data-i18n="agFaq1Q">How do I keep a client call inside its time budget?</summary><p data-i18n="agFaq1A">Split the call into modules with fixed percentages and start a session. The progress bar shows everyone how much of each block is left.</p></details>
+        <details class="faq-item" name="ag-faq"><summary data-i18n="agFaq2Q">What is Just Chatting mode?</summary><p data-i18n="agFaq2A">A mode for the casual part of a call. It freezes the formal metrics while the Huddle stays open.</p></details>
+        <details class="faq-item" name="ag-faq"><summary data-i18n="agFaq3Q">Can I reuse the same agenda every week?</summary><p data-i18n="agFaq3A">Yes. Save it as a template and start the next sync from it in one click.</p></details>
+        <details class="faq-item" name="ag-faq"><summary data-i18n="agFaq4Q">Does HuddlePace record audio?</summary><p data-i18n="agFaq4A">No. It records 0% audio and stores no transcripts. It keeps only the timestamps and the agenda modules it needs to run the timer.</p></details>
+      </div>
+    </section>
+    <section class="lp-cta">
+      <h2 data-i18n="agCtaH">Keep your next client call on budget</h2>
+      <p data-i18n="agCtaP">Install HuddlePace, run <code>/pace</code> and save the weekly sync as a template.</p>
+      <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+      <p class="lp-price" data-i18n="lpPrice">Early access, free today. Pricing will be per workspace, never per user, and the features available today stay free.</p>
+    </section>
+    <section class="lp-section lp-related">
+      <h2 data-i18n="relHeading">More guides</h2>
+      <ul class="related-list"><li data-i18n="relHuddle"><a href="/slack-huddle-timer">Slack Huddle timer</a></li><li data-i18n="relStandup"><a href="/daily-standup-timer-slack">Daily standup timer for Slack</a></li><li data-i18n="relEm"><a href="/engineering-managers-meeting-timer">Meeting timer for engineering managers</a></li><li data-i18n="relRetro"><a href="/sprint-retrospective-agenda">Sprint retrospective agenda</a></li></ul>
     </section>
     </main>
 
