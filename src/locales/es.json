@@ -341,5 +341,11 @@
   "rtPrice": "Acceso temprano, gratis hoy. El precio será por workspace, nunca por usuario, y las funciones disponibles hoy siguen siendo gratis.",
   "rtBadge": "🔁 Retrospectivas",
   "rtTitle": "Agenda de retrospectiva de sprint <span>con bloques de tiempo</span>",
-  "rtLead": "Una retro sin bloques de tiempo gasta la hora entera en la primera queja. Este reparto 20/50/30 le da su propio temporizador a las métricas, las mejoras y los action items, y HuddlePace lleva el reloj dentro de tu Huddle de Slack."
+  "rtLead": "Una retro sin bloques de tiempo gasta la hora entera en la primera queja. Este reparto 20/50/30 le da su propio temporizador a las métricas, las mejoras y los action items, y HuddlePace lleva el reloj dentro de tu Huddle de Slack.",
+  "rtNote1H": "Progreso en vivo",
+  "rtNote1P": "La barra se actualiza cada 30 segundos con el tema actual y el tiempo restante.",
+  "rtNote2H": "Avisos privados",
+  "rtNote2P": "Quien tiene la palabra recibe un DM de Slack a mitad de bloque y cuando queda un minuto.",
+  "rtNote3H": "Tiempo que se traslada",
+  "rtNote3P": "Si terminas antes, pulsa Next Module y los minutos sobrantes pasan al siguiente bloque."
 }

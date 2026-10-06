@@ -1501,8 +1501,13 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-cyan); o
   }
 }
 .lp-section .faq-list { margin-left: 0; margin-right: 0; max-width: 760px; }
-.thread { width: min(100%, 720px); }
+.thread { width: min(100%, 560px); }
 .thread .progress-ascii { color: var(--accent-cyan); background: rgba(6, 182, 212, 0.08); font-size: 0.95rem; letter-spacing: 0; }
-@media (min-width: 901px) {
-  .thread-wrap { grid-template-columns: minmax(0, 720px); }
-}
+.thread-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 48px; align-items: center; margin-top: 40px; }
+.thread-layout .thread-wrap { margin-top: 0; }
+.thread-layout .thread { width: 100%; }
+.thread-notes { list-style: none; display: grid; gap: 14px; }
+.thread-note { display: grid; gap: 4px; padding: 16px 18px; border-left: 3px solid var(--accent-cyan); background: var(--bg-surface); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+.thread-note strong { color: var(--text-primary); }
+.thread-note span { color: var(--text-secondary); font-size: 0.95rem; }
+@media (max-width: 900px) { .thread-layout { grid-template-columns: 1fr; gap: 28px; } }

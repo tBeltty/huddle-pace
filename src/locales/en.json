@@ -340,5 +340,11 @@
   "rtPrice": "Early access, free today. Pricing will be per workspace, never per user, and the features available today stay free.",
   "rtBadge": "🔁 Retrospectives",
   "rtTitle": "Sprint retrospective agenda <span>with time blocks</span>",
-  "rtLead": "A retro without time blocks spends the whole hour on the first complaint. This 20/50/30 split gives metrics, improvements and action items their own timer, and HuddlePace runs the clock inside your Slack Huddle."
+  "rtLead": "A retro without time blocks spends the whole hour on the first complaint. This 20/50/30 split gives metrics, improvements and action items their own timer, and HuddlePace runs the clock inside your Slack Huddle.",
+  "rtNote1H": "Live progress",
+  "rtNote1P": "The bar updates every 30 seconds with the current topic and the time left.",
+  "rtNote2H": "Private nudges",
+  "rtNote2P": "The active speaker gets a Slack DM at the midpoint and with one minute left.",
+  "rtNote3H": "Time that moves",
+  "rtNote3P": "Finish early, tap Next Module and the spare minutes go to the next block."
 }
