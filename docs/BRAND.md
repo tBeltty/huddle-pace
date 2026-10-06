@@ -113,6 +113,8 @@ When "HuddlePace" renders as text inside web headers, navigation, or branded com
 
 ## 6. Mascot Identity: Vector (The Pacer Falcon)
 
+> **Public tag (2026-10-06):** the floating tag on the landing hero reads "Flight Pacer · Efficiency Crew". The "Vibecoder Crew" name below is internal lore and does not appear on the public site.
+
 ### Character Lore & Vibecoder Universe Connection
 Vector is the flight navigator and cadence controller of the **Vibecoder Crew**. In the crew:
 - **Cluck-O** (The Vibecoder Chicken) operates in the engineering trenches: building fast, shipping code, and hacking solutions.
