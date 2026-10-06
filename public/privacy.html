@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy | HuddlePace</title>
+  <title>Privacy Policy | HuddlePace Slack App</title>
 
   <!-- Primary Meta Tags -->
   <meta name="description" content="How HuddlePace collects, uses, and protects data when you install the Slack app. Zero audio recording, zero transcripts, plain-language data practices.">
@@ -13,10 +13,42 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://huddlepace.com/privacy">
-  <meta property="og:title" content="Privacy Policy | HuddlePace">
+  <meta property="og:title" content="Privacy Policy | HuddlePace Slack App">
   <meta property="og:description" content="How HuddlePace collects, uses, and protects data when you install the Slack app.">
   <meta property="og:image" content="https://huddlepace.com/assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Vector, the HuddlePace falcon, next to a Slack Huddle progress bar">
   <meta property="og:site_name" content="HuddlePace">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Privacy Policy | HuddlePace Slack App">
+  <meta name="twitter:description" content="How HuddlePace collects, uses, and protects data when you install the Slack app.">
+  <meta name="twitter:image" content="https://huddlepace.com/assets/og-image.jpg">
+  <meta name="twitter:image:alt" content="Vector, the HuddlePace falcon, next to a Slack Huddle progress bar">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://huddlepace.com/privacy#page",
+        "url": "https://huddlepace.com/privacy",
+        "name": "Privacy Policy",
+        "inLanguage": "en",
+        "isPartOf": { "@id": "https://huddlepace.com/#website" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://huddlepace.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Privacy Policy", "item": "https://huddlepace.com/privacy" }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <!-- Favicon Suite -->
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
@@ -28,7 +60,8 @@
   <!-- Google Fonts Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
 
   <link rel="stylesheet" href="/assets/site.css?v=__APP_VERSION__">
 </head>
@@ -231,7 +264,7 @@
             window.Beacon.init({
               key: '__BEACON_WIDGET_KEY__',
               locale: document.documentElement.lang === 'es' ? 'es' : 'en',
-              color: '#06b6d4',
+              color: '#0e7490',
               position: 'right',
               theme: 'dark'
             });

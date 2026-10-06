@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-10-06
+
+### Fixed
+- **Legal Pages Metadata**: `/privacy` and `/terms` titles grew from 27 and 29 characters to 37 and 39 ("... | HuddlePace Slack App"), the Spanish privacy description dropped from 163 to 142 characters so Google stops truncating it, and both pages gained `og:image` size and alt text, the full Twitter card tags and `WebPage` plus `BreadcrumbList` structured data.
+- **Render-Blocking Fonts**: The Google Fonts stylesheet loads with `rel="preload"` and swaps to a stylesheet on load (with a `noscript` fallback). Lighthouse measured about 950 ms of render blocking from it and an LCP element render delay of 2.55 s on mobile.
+- **Support Widget Contrast**: The launcher button used white text on `#06b6d4` (2.42:1). It now uses `#0e7490` (5.12:1), which clears WCAG AA.
+
+### Changed
+- **Versioned Assets Cache for a Year**: Asset URLs that carry `?v=` (the stylesheet) are served with `max-age=31536000, immutable`. Unversioned assets keep `max-age=3600, stale-while-revalidate=86400`.
+
 ## [1.9.0] - 2026-10-06
 
 ### Changed
@@ -175,7 +185,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.1...HEAD
+[1.9.1]: https://github.com/tBeltty/huddle-pace/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/tBeltty/huddle-pace/compare/v1.8.2...v1.9.0
 [1.8.2]: https://github.com/tBeltty/huddle-pace/compare/v1.8.1...v1.8.2
 [1.8.1]: https://github.com/tBeltty/huddle-pace/compare/v1.8.0...v1.8.1

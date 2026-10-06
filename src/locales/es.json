@@ -73,9 +73,9 @@
   "footerPill": "🛡️ OAuth verificado por Slack · ⚡ Avance de cadencia en vivo · 🦅 Vector v__APP_VERSION__",
   "footerCopy": "© 2026 HuddlePace. Diseñado para equipos que cuidan su tiempo.",
   "privacyMeta": {
-    "title": "Política de Privacidad | HuddlePace",
-    "description": "Cómo HuddlePace recopila, usa y protege los datos al instalar la app de Slack. Cero grabación de audio, cero transcripciones, prácticas de datos en lenguaje claro.",
-    "ogTitle": "Política de Privacidad | HuddlePace",
+    "title": "Política de Privacidad | App de Slack HuddlePace",
+    "description": "Cómo HuddlePace recopila, usa y protege los datos al instalar la app de Slack. Cero grabación de audio, cero transcripciones y lenguaje claro.",
+    "ogTitle": "Política de Privacidad | App de Slack HuddlePace",
     "ogDescription": "Cómo HuddlePace recopila, usa y protege los datos al instalar la app de Slack."
   },
   "privacyBadge": "🔒 Política de Privacidad",
@@ -117,9 +117,9 @@
   "privacyS11Title": "11. Contáctanos",
   "privacyS11Body": "¿Preguntas sobre esta política o tus datos? Escríbenos a <a href=\"mailto:support@huddlepace.com\">support@huddlepace.com</a> o usa el widget de Ayuda en la esquina de esta página.",
   "termsMeta": {
-    "title": "Términos del Servicio | HuddlePace",
+    "title": "Términos del Servicio | App de Slack HuddlePace",
     "description": "Los términos que rigen el uso de la app de Slack HuddlePace: licencia, uso aceptable, disponibilidad, responsabilidad y terminación.",
-    "ogTitle": "Términos del Servicio | HuddlePace",
+    "ogTitle": "Términos del Servicio | App de Slack HuddlePace",
     "ogDescription": "Los términos que rigen el uso de la app de Slack HuddlePace."
   },
   "termsBadge": "📜 Términos del Servicio",

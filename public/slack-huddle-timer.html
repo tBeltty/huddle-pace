@@ -31,7 +31,8 @@
   <!-- Google Fonts Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Slack Huddle Timer with Progress Bar | HuddlePace">
@@ -323,7 +324,7 @@
             window.Beacon.init({
               key: '__BEACON_WIDGET_KEY__',
               locale: document.documentElement.lang === 'es' ? 'es' : 'en',
-              color: '#06b6d4',
+              color: '#0e7490',
               position: 'right',
               theme: 'dark'
             });
