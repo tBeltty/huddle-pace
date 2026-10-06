@@ -61,6 +61,8 @@
   }
   </script>
 
+  __FAQ_JSON_LD:rt__
+
   <link rel="stylesheet" href="/assets/site.css?v=__APP_VERSION__">
 </head>
 <body>
@@ -94,53 +96,161 @@
       </nav>
     </header>
 
-    <section class="legal-hero">
-      <div class="badge-pilot">
-        <span data-i18n="rtBadge">🔁 Retrospectives</span>
+    <main id="main">
+    <section class="lp-hero">
+      <div class="lp-hero-text">
+        <div class="badge-pilot"><span data-i18n="rtBadge">🔁 Retrospectives</span></div>
+        <h1 class="lp-title" data-i18n="rtTitle">Sprint retrospective agenda <span>with time blocks</span></h1>
+        <p class="lp-lead" data-i18n="rtLead">A retro without time blocks spends the whole hour on the first complaint. This 20/50/30 split gives metrics, improvements and action items their own timer, and HuddlePace runs the clock inside your Slack Huddle.</p>
+        <div class="hero-actions">
+          <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+          <a class="btn-secondary" href="#split" data-i18n="rtSeeSplit">See the split</a>
+        </div>
+        <ul class="lp-chips">
+          <li class="lp-chip" data-i18n="rtChip1">60-minute template</li>
+          <li class="lp-chip" data-i18n="rtChip2">Runs in a Slack Huddle</li>
+          <li class="lp-chip" data-i18n="rtChip3">0% audio recorded</li>
+        </ul>
       </div>
-      <h1 data-i18n="rtTitle">Sprint retrospective agenda <span>with time blocks</span></h1>
-      <p data-i18n="rtLead">A retro without time blocks spends the whole hour on the first complaint. This 20/50/30 split gives each part of the conversation its own timer.</p>
-      <div class="hero-actions" style="margin-top:28px;">
-        <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+      <aside class="agenda-card" aria-label="Example agenda">
+        <div class="agenda-head">
+          <span class="agenda-kicker" data-i18n="rtCardKicker">Example agenda</span>
+          <strong class="agenda-title" data-i18n="rtCardTitle">Sprint retro · 60 min</strong>
+        </div>
+        <div class="split-bar" role="img" aria-label="20% / 50% / 30%"><span class="split-seg" style="--w:20;--c:var(--accent-cyan)"><span class="split-seg-label">20%</span></span><span class="split-seg" style="--w:50;--c:var(--accent-amber)"><span class="split-seg-label">50%</span></span><span class="split-seg" style="--w:30;--c:var(--accent-orange)"><span class="split-seg-label">30%</span></span></div>
+        <ul class="agenda-rows">
+          <li class="agenda-row"><span class="agenda-dot" style="--c:var(--accent-cyan)"></span><span class="agenda-name" data-i18n="rtAgM1">Metrics review</span><span class="agenda-min">12 min</span></li>
+          <li class="agenda-row"><span class="agenda-dot" style="--c:var(--accent-amber)"></span><span class="agenda-name" data-i18n="rtAgM2">Improvement discussion</span><span class="agenda-min">30 min</span></li>
+          <li class="agenda-row"><span class="agenda-dot" style="--c:var(--accent-orange)"></span><span class="agenda-name" data-i18n="rtAgM3">Agreements and action items</span><span class="agenda-min">18 min</span></li>
+        </ul>
+        <div class="agenda-foot">
+          <span class="agenda-live"></span>
+          <span data-i18n="rtCardNow">Now running: Improvement discussion</span>
+        </div>
+      </aside>
+    </section>
+    <section class="lp-section" id="split">
+      <div class="lp-section-head">
+        <h2 data-i18n="rtSplitH">The 20/50/30 split</h2>
+        <p data-i18n="rtSplitP">Here is how 60 minutes divide. Change the total in the modal and the minutes follow the percentages.</p>
+      </div>
+      <div class="split-bar" role="img" aria-label="20% / 50% / 30%"><span class="split-seg" style="--w:20;--c:var(--accent-cyan)"><span class="split-seg-label">20%</span></span><span class="split-seg" style="--w:50;--c:var(--accent-amber)"><span class="split-seg-label">50%</span></span><span class="split-seg" style="--w:30;--c:var(--accent-orange)"><span class="split-seg-label">30%</span></span></div>
+      <div class="lp-cards">
+        <article class="mod-card reveal" style="--c:var(--accent-cyan)">
+          <div class="mod-figure"><span class="mod-pct">20%</span><span class="mod-min">12 min</span></div>
+          <div class="mod-body">
+            <h3 data-i18n="rtAgM1">Metrics review</h3>
+            <p data-i18n="rtMod1">Look at what the sprint produced: finished work, carry-over, cycle time and incidents. Facts come first, so the discussion starts from one shared picture.</p>
+          </div>
+        </article>
+        <article class="mod-card reveal" style="--c:var(--accent-amber)">
+          <div class="mod-figure"><span class="mod-pct">50%</span><span class="mod-min">30 min</span></div>
+          <div class="mod-body">
+            <h3 data-i18n="rtAgM2">Improvement discussion</h3>
+            <p data-i18n="rtMod2">Pick the two or three topics the team cares about most and work them properly. Thirty minutes covers a few topics well and ten topics badly.</p>
+          </div>
+        </article>
+        <article class="mod-card reveal" style="--c:var(--accent-orange)">
+          <div class="mod-figure"><span class="mod-pct">30%</span><span class="mod-min">18 min</span></div>
+          <div class="mod-body">
+            <h3 data-i18n="rtAgM3">Agreements and action items</h3>
+            <p data-i18n="rtMod3">Turn the discussion into commitments. Every item gets an owner and a date before this block ends.</p>
+          </div>
+        </article>
       </div>
     </section>
-
-    <main id="main">
-    <section class="legal-content">
-      <section>
-        <h2 data-i18n="rtS1Title">The time split</h2>
-        <p data-i18n="rtS1P1">For a 60-minute retrospective:</p>
-        <ul>
-          <li data-i18n="rtS1P2I1">Metrics review, 20% (12 min)</li>
-          <li data-i18n="rtS1P2I2">Improvement discussion, 50% (30 min)</li>
-          <li data-i18n="rtS1P2I3">Agreements and action items, 30% (18 min)</li>
-        </ul>
-      </section>
-      <section>
-        <h2 data-i18n="rtS2Title">Facilitator tips</h2>
-        <ul>
-          <li data-i18n="rtS2P1I1">Name an owner and a date for every action item before the last block ends.</li>
-          <li data-i18n="rtS2P1I2">If the metrics block finishes early, tap <strong>Next Module</strong> and give the spare minutes to the discussion.</li>
-          <li data-i18n="rtS2P1I3">Keep the last block protected. It is the one that turns the retro into change.</li>
-        </ul>
-      </section>
-      <section>
-        <h2 data-i18n="rtS3Title">Run it with HuddlePace</h2>
-        <p data-i18n="rtS3P1">Run <code>/pace</code>, enter the three modules and tick <strong>Save as template</strong>. Next sprint you start from the saved agenda in one click and the progress bar appears in the Huddle thread.</p>
-      </section>
-      <section>
-        <h2 data-i18n="rtS4Title">Pricing</h2>
-        <p data-i18n="rtS4P1">HuddlePace is in early access and free today. Pricing will be per workspace, never per user, and the features available today stay free.</p>
-      </section>
-      <section>
-        <h2 data-i18n="relHeading">More guides</h2>
-        <ul>
-          <li data-i18n="relHuddle"><a href="/slack-huddle-timer">Slack Huddle timer</a></li>
-          <li data-i18n="relStandup"><a href="/daily-standup-timer-slack">Daily standup timer for Slack</a></li>
-          <li data-i18n="relEm"><a href="/engineering-managers-meeting-timer">Meeting timer for engineering managers</a></li>
-          <li data-i18n="relAgency"><a href="/client-call-timer-slack">Client call timer for agencies</a></li>
-        </ul>
-      </section>
+    <section class="lp-section">
+      <div class="lp-section-head">
+        <h2 data-i18n="rtDerH">Four ways a retro goes off the rails</h2>
+      </div>
+      <div class="lp-cards lp-cards-2">
+        <article class="derail reveal"><span class="derail-n">1</span><div>
+          <h3 data-i18n="rtDer1H">The first topic eats the hour</h3>
+          <p data-i18n="rtDer1P">A visible bar tells the room how much of the block is left, so nobody has to be the person who interrupts.</p>
+        </div></article>
+        <article class="derail reveal"><span class="derail-n">2</span><div>
+          <h3 data-i18n="rtDer2H">Metrics turn into a debate</h3>
+          <p data-i18n="rtDer2P">Twelve minutes is enough to read the numbers. Arguments about causes belong to the discussion block.</p>
+        </div></article>
+        <article class="derail reveal"><span class="derail-n">3</span><div>
+          <h3 data-i18n="rtDer3H">Action items arrive in the last two minutes</h3>
+          <p data-i18n="rtDer3P">Giving them 30% of the time puts them on the clock instead of the leftovers.</p>
+        </div></article>
+        <article class="derail reveal"><span class="derail-n">4</span><div>
+          <h3 data-i18n="rtDer4H">Everyone leaves with a different list</h3>
+          <p data-i18n="rtDer4P">The Huddle thread stays open, so the team can write the action items where everyone sees them.</p>
+        </div></article>
+      </div>
+    </section>
+    <section class="lp-section">
+      <div class="lp-section-head">
+        <h2 data-i18n="rtStepsH">Run it in three steps</h2>
+      </div>
+      <ol class="steps">
+        <li class="step reveal"><span class="step-n">1</span>
+          <h3 data-i18n="rtSt1H">Open the modal</h3>
+          <p data-i18n="rtSt1P">Type <code>/pace</code> in the channel where your team holds the retro.</p>
+        </li>
+        <li class="step reveal"><span class="step-n">2</span>
+          <h3 data-i18n="rtSt2H">Enter the three modules</h3>
+          <p data-i18n="rtSt2P">Set 60 minutes and the percentages 20, 50 and 30. HuddlePace checks that they add up to 100.</p>
+        </li>
+        <li class="step reveal"><span class="step-n">3</span>
+          <h3 data-i18n="rtSt3H">Save it as a template</h3>
+          <p data-i18n="rtSt3P">Tick <strong>Save as template</strong>. Next sprint you start from the saved agenda in one click.</p>
+        </li>
+      </ol>
+      <div class="thread-wrap">
+        <p class="thread-cap" data-i18n="rtThreadCap">What the team sees in the Huddle thread</p>
+        <div class="thread" role="img" aria-label="Example HuddlePace message in a Slack Huddle thread">
+          <div class="thread-head"><img src="/assets/avatar-96.png" alt="" width="36" height="36" decoding="async" loading="lazy"><strong>HuddlePace</strong><span class="bot-pill">APP</span></div>
+          <div class="thread-title"><span data-i18n="rtThTitle">Sprint retro</span></div>
+          <div class="thread-bar"><span class="progress-ascii">██████████░░░░░░░░░░</span> <strong>52%</strong></div>
+          <div class="thread-meta"><span data-i18n="rtThElapsed">Elapsed</span> <strong>31m 12s</strong> / 60m · <span data-i18n="rtThLeft">Remaining</span> <strong>28m 48s</strong></div>
+          <div class="thread-mod"><strong><span data-i18n="rtThActive">Active module:</span></strong> <span data-i18n="rtAgM2">Improvement discussion</span></div>
+          <div class="thread-mod">⏭️ <strong><span data-i18n="rtThNext">Next up:</span></strong> <span data-i18n="rtAgM3">Agreements and action items</span></div>
+        </div>
+      </div>
+    </section>
+    <section class="lp-section">
+      <div class="lp-section-head">
+        <h2 data-i18n="rtTipsH">Facilitator tips</h2>
+      </div>
+      <div class="lp-cards">
+        <article class="tip reveal">
+          <h3 data-i18n="rtTip1H">Give time away</h3>
+          <p data-i18n="rtTip1P">If the metrics block ends early, tap <strong>Next Module</strong> and the spare minutes move to the discussion.</p>
+        </article>
+        <article class="tip reveal">
+          <h3 data-i18n="rtTip2H">Protect the last block</h3>
+          <p data-i18n="rtTip2P">It is the block that turns the retro into change. Cut the discussion before you cut this one.</p>
+        </article>
+        <article class="tip reveal">
+          <h3 data-i18n="rtTip3H">Compare sprint to sprint</h3>
+          <p data-i18n="rtTip3P">Run <code>/pace report 30</code> to see how closely your retros followed their timebox.</p>
+        </article>
+      </div>
+    </section>
+    <section class="lp-section">
+      <div class="lp-section-head">
+        <h2 data-i18n="rtFaqH">Retrospective questions</h2>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item" name="rt-faq"><summary data-i18n="rtFaq1Q">How long should a sprint retrospective be?</summary><p data-i18n="rtFaq1A">The Scrum Guide caps it at three hours for a one-month sprint and treats it as shorter for shorter sprints. Many two-week teams use 60 minutes. The percentages scale to any length.</p></details>
+        <details class="faq-item" name="rt-faq"><summary data-i18n="rtFaq2Q">Can I change the percentages?</summary><p data-i18n="rtFaq2A">Yes. Set any split in the schedule modal. The modules must add up to 100%, and when you edit one value HuddlePace rebalances the others.</p></details>
+        <details class="faq-item" name="rt-faq"><summary data-i18n="rtFaq3Q">What happens if a block finishes early?</summary><p data-i18n="rtFaq3A">The speaker taps Next Module and the leftover time moves to the next block.</p></details>
+        <details class="faq-item" name="rt-faq"><summary data-i18n="rtFaq4Q">Does HuddlePace record the retro?</summary><p data-i18n="rtFaq4A">No. It records 0% audio and keeps only the timestamps and the agenda modules it needs to run the timer.</p></details>
+      </div>
+    </section>
+    <section class="lp-cta">
+      <h2 data-i18n="rtCtaH">Run your next retro on the clock</h2>
+      <p data-i18n="rtCtaP">Install HuddlePace, run <code>/pace</code> and save the agenda as a template.</p>
+      <a href="https://huddlepace.com/slack/install" rel="nofollow" class="btn-primary"><span data-i18n="btnInstall">Install to Slack</span></a>
+      <p class="lp-price" data-i18n="rtPrice">Early access, free today. Pricing will be per workspace, never per user, and the features available today stay free.</p>
+    </section>
+    <section class="lp-section lp-related">
+      <h2 data-i18n="relHeading">More guides</h2>
+      <ul class="related-list"><li data-i18n="relHuddle"><a href="/slack-huddle-timer">Slack Huddle timer</a></li><li data-i18n="relStandup"><a href="/daily-standup-timer-slack">Daily standup timer for Slack</a></li><li data-i18n="relEm"><a href="/engineering-managers-meeting-timer">Meeting timer for engineering managers</a></li><li data-i18n="relAgency"><a href="/client-call-timer-slack">Client call timer for agencies</a></li></ul>
     </section>
     </main>
 
