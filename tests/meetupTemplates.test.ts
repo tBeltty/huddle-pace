@@ -120,3 +120,98 @@ describe("Schedule modal template UI", () => {
     assert.equal(demo.element.initial_value, "Demo");
   });
 });
+
+describe("Editing scheduled meetups", () => {
+  const EDIT_TEAM = `edit-team-${Date.now()}`;
+  const modules = [
+    { title: "Intro", percentage: 50 },
+    { title: "Demo", percentage: 50 },
+  ];
+
+  after(async () => {
+    await prisma.meetup.deleteMany({ where: { teamId: EDIT_TEAM } });
+  });
+
+  const create = () =>
+    MeetupService.createMeetup({
+      title: "Original",
+      totalMinutes: 60,
+      channelId: "C1",
+      speakerUserId: "U1",
+      teamId: EDIT_TEAM,
+      modules,
+    });
+
+  test("replaces fields and modules of a SCHEDULED meetup", async () => {
+    const m = await create();
+    const updated = await MeetupService.updateScheduledMeetup(m.id, {
+      title: "Renamed",
+      totalMinutes: 30,
+      channelId: "C2",
+      speakerUserId: "U1,U2",
+      threadTs: "main",
+      reminderTextEnabled: false,
+      reminderImageEnabled: true,
+      modules: [
+        { title: "A", percentage: 20 },
+        { title: "B", percentage: 30 },
+        { title: "C", percentage: 50 },
+      ],
+    });
+    assert.equal(updated?.title, "Renamed");
+    assert.equal(updated?.threadTs, "main");
+    assert.equal(updated?.reminderImageEnabled, true);
+    assert.deepEqual(updated?.modules.map((x) => [x.title, x.durationMinutes, x.orderIndex]), [
+      ["A", 6, 0],
+      ["B", 9, 1],
+      ["C", 15, 2],
+    ]);
+    const count = await prisma.meetupModule.count({ where: { meetupId: m.id } });
+    assert.equal(count, 3);
+  });
+
+  test("refuses to edit a meetup that already started", async () => {
+    const m = await create();
+    await prisma.meetup.update({ where: { id: m.id }, data: { status: "ACTIVE" } });
+    const result = await MeetupService.updateScheduledMeetup(m.id, {
+      title: "Too late",
+      totalMinutes: 60,
+      channelId: "C1",
+      speakerUserId: "U1",
+      modules,
+    });
+    assert.equal(result, null);
+    assert.equal((await MeetupService.getMeetupById(m.id))?.title, "Original");
+  });
+
+  test("invalid percentages leave the meetup untouched", async () => {
+    const m = await create();
+    await assert.rejects(
+      MeetupService.updateScheduledMeetup(m.id, {
+        title: "Bad",
+        totalMinutes: 60,
+        channelId: "C1",
+        speakerUserId: "U1",
+        modules: [{ title: "Only", percentage: 40 }],
+      })
+    );
+    const after = await MeetupService.getMeetupById(m.id);
+    assert.equal(after?.title, "Original");
+    assert.equal(after?.modules.length, 2);
+  });
+
+  test("edit modal changes title, hides templates, carries the meetup id, keeps odd durations", () => {
+    const view: any = buildScheduleModal({
+      editMeetupId: "m1",
+      duration: 25,
+      subtopicCount: 2,
+      templates: [{ id: "t1", name: "X" }],
+    });
+    assert.equal(view.title.text, "Edit Meetup");
+    assert.equal(view.submit.text, "Save Changes");
+    assert.equal(JSON.parse(view.private_metadata).meetupId, "m1");
+    assert.equal(view.blocks.some((b: any) => b.block_id === "template_picker_block"), false);
+    const duration = view.blocks.find((b: any) => b.element?.action_id === "duration_select");
+    assert.equal(duration.element.initial_option.value, "25");
+  });
+});

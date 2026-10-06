@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-06
+
+### Added
+- **Edit Scheduled Meetups**: Speakers get an `✏️ Edit` button on their upcoming meetups in App Home. It opens the schedule modal prefilled (title, channel, speakers, duration, destination, reminders, modules) with a `Save Changes` action.
+- **Edit Guardrails**: Only designated speakers can edit, and only while the meetup is still `SCHEDULED`. The update runs in a transaction that replaces the modules atomically, so a session that starts mid-edit is never altered.
+
+### Fixed
+- Meetups with a non-standard duration (for example 25 minutes from `/pace`) keep that value when reopened in the modal instead of falling back to 60.
+
 ## [1.3.1] - 2026-10-06
 
 ### Changed
@@ -83,7 +92,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/tBeltty/huddle-pace/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/tBeltty/huddle-pace/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/tBeltty/huddle-pace/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/tBeltty/huddle-pace/compare/v1.1.1...v1.2.0

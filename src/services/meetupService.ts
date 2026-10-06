@@ -414,6 +414,39 @@ export class MeetupService {
   }
 
   /**
+   * Edits a meetup that has not started yet. Replaces its modules and keeps its schedule slot.
+   * Returns null when the meetup is missing or no longer SCHEDULED.
+   */
+  static async updateScheduledMeetup(id: string, data: Omit<CreateMeetupDTO, "teamId" | "scheduledFor">) {
+    const computedModules = this.calculateModuleAllocations(data.totalMinutes, data.modules);
+
+    return await prisma.$transaction(async (tx) => {
+      const claimed = await tx.meetup.updateMany({
+        where: { id, status: "SCHEDULED" },
+        data: {
+          title: data.title.trim(),
+          totalMinutes: data.totalMinutes,
+          channelId: data.channelId,
+          threadTs: data.threadTs || null,
+          speakerUserId: data.speakerUserId,
+          reminderTextEnabled: data.reminderTextEnabled ?? true,
+          reminderImageEnabled: data.reminderImageEnabled ?? false,
+        },
+      });
+      if (claimed.count === 0) return null;
+
+      await tx.meetupModule.deleteMany({ where: { meetupId: id } });
+      await tx.meetupModule.createMany({
+        data: computedModules.map((m) => ({ ...m, meetupId: id })),
+      });
+      return await tx.meetup.findUnique({
+        where: { id },
+        include: { modules: { orderBy: { orderIndex: "asc" } } },
+      });
+    });
+  }
+
+  /**
    * Starts an active meetup tracking session.
    */
   static async startMeetup(id: string, trackerMessageTs: string, threadTs?: string) {

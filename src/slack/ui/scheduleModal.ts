@@ -51,6 +51,7 @@ export interface ModalStateData {
   selectedTemplateId?: string;
   saveAsTemplate?: boolean;
   rev?: string;
+  editMeetupId?: string;
 }
 
 export function buildScheduleModal(initialState?: Partial<ModalStateData>): ModalView {
@@ -145,6 +146,13 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     { text: { type: "plain_text" as const, text: "120 minutes (2 hours)" }, value: "120" },
   ];
 
+  // Meetups created via `/pace` can have any length; keep it selectable so editing never changes it silently.
+  const requestedDuration = initialState?.duration;
+  if (requestedDuration && !durationOptions.some((d) => d.value === String(requestedDuration))) {
+    durationOptions.push({ text: { type: "plain_text" as const, text: `${requestedDuration} minutes` }, value: String(requestedDuration) });
+    durationOptions.sort((a, b) => Number(a.value) - Number(b.value));
+  }
+
   const durationStr = (initialState?.duration || 60).toString();
   const initialDuration =
     durationOptions.find((d) => d.value === durationStr) ||
@@ -175,7 +183,8 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
 
   const blocks: any[] = [];
 
-  const templates = (initialState?.templates || []).slice(0, 100);
+  const isEdit = !!initialState?.editMeetupId;
+  const templates = isEdit ? [] : (initialState?.templates || []).slice(0, 100);
   if (templates.length > 0) {
     const templateOptions = templates.map((t) => ({
       text: { type: "plain_text" as const, text: t.name.slice(0, 75), emoji: true },
@@ -500,11 +509,11 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     callback_id: "submit_schedule_modal",
     title: {
       type: "plain_text",
-      text: "Schedule Meetup",
+      text: isEdit ? "Edit Meetup" : "Schedule Meetup",
     },
     submit: {
       type: "plain_text",
-      text: "Schedule & Ready",
+      text: isEdit ? "Save Changes" : "Schedule & Ready",
     },
     close: {
       type: "plain_text",
@@ -514,6 +523,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       subtopicCount: count,
       channelId: initialState?.channelId,
       rev,
+      meetupId: initialState?.editMeetupId,
     }),
     blocks,
   };

@@ -163,6 +163,9 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
       const myBlock = mySection.find((b: any) => b.text?.text?.includes("Sprint Planning"));
       assert.ok(myBlock);
       assert.strictEqual(myBlock.accessory?.action_id, "start_scheduled_meetup_action");
+      const editRow = mySection.find((b: any) => b.type === "actions" && b.elements?.[0]?.action_id === "edit_scheduled_meetup_action");
+      assert.ok(editRow, "Speaker's own upcoming meetups must offer an Edit button");
+      assert.strictEqual(editRow.elements[0].value, dummyMeetup1.id);
       assert.strictEqual(
         mySection.some((b: any) => b.text?.text?.includes("Engineering All-Hands")),
         false
@@ -172,6 +175,11 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
       const teamBlock = teamSection.find((b: any) => b.text?.text?.includes("Engineering All-Hands"));
       assert.ok(teamBlock);
       assert.strictEqual(teamBlock.accessory, undefined, "Workspace meetups for spectators must not have Start in Huddle button");
+      assert.strictEqual(
+        teamSection.some((b: any) => b.type === "actions"),
+        false,
+        "Workspace meetups for spectators must not have Edit button"
+      );
     });
   });
 
