@@ -1434,13 +1434,13 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-cyan); o
 .agenda-title { font-size: 1.1rem; }
 .split-bar { display: flex; gap: 3px; height: 28px; margin: 6px 0 18px; }
 .split-seg { flex: var(--w) 1 0; background: var(--c); border-radius: 8px; display: grid; place-items: center; min-width: 0; }
-.split-seg-label { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: #06101a; }
+.split-seg-label { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: var(--t, #06101a); font-variant-numeric: tabular-nums; }
 .agenda-rows { list-style: none; display: grid; gap: 10px; margin-bottom: 18px; }
 .agenda-row { display: grid; grid-template-columns: 12px 1fr auto; align-items: center; gap: 12px; font-size: 0.95rem; }
 .agenda-dot { width: 12px; height: 12px; border-radius: 4px; background: var(--c); }
-.agenda-min { font-family: var(--font-mono); color: var(--text-secondary); }
+.agenda-min { font-family: var(--font-mono); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .agenda-foot { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-secondary); border-top: 1px solid var(--border-subtle); padding-top: 14px; }
-.agenda-live { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.18); }
+.agenda-live { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-cyan); box-shadow: 0 0 0 4px var(--accent-cyan-glow); }
 
 .lp-section { padding: 56px 0; }
 .lp-section-head { max-width: 62ch; margin-bottom: 28px; }
@@ -1452,20 +1452,19 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-cyan); o
 .lp-cards-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 720px) { .lp-cards-2 { grid-template-columns: 1fr; } }
 .lp-cards > * { container-type: inline-size; }
-.mod-card, .derail, .tip { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 22px; transition: border-color 0.2s, transform 0.2s; }
-.mod-card:hover, .derail:hover, .tip:hover { border-color: var(--border-accent); transform: translateY(-2px); }
+.mod-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 22px; }
 .mod-card { border-top: 3px solid var(--c); display: flex; flex-direction: column; gap: 14px; }
 .mod-figure { display: flex; align-items: baseline; gap: 10px; }
-.mod-pct { font-size: 2.2rem; font-weight: 800; color: var(--c); line-height: 1; }
-.mod-min { font-family: var(--font-mono); color: var(--text-secondary); }
+.mod-pct { font-size: 2.2rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+.mod-min { font-family: var(--font-mono); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .mod-card h3, .derail h3, .tip h3, .step h3 { font-size: 1.05rem; margin-bottom: 6px; }
 .mod-card p, .derail p, .tip p, .step p { color: var(--text-secondary); font-size: 0.95rem; }
 @container (min-width: 380px) {
   .mod-card { flex-direction: row; align-items: flex-start; gap: 20px; }
   .mod-figure { flex-direction: column; align-items: flex-start; gap: 4px; min-width: 84px; }
 }
-.derail { display: flex; gap: 16px; align-items: flex-start; }
-.derail-n { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+.derail { display: flex; gap: 16px; align-items: flex-start; padding: 18px 0; border-top: 1px solid var(--border-subtle); }
+.derail-n { flex: none; font-family: var(--font-mono); font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; min-width: 2ch; }
 
 .steps { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
 .step { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 22px; }
@@ -1511,3 +1510,10 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-cyan); o
 .thread-note strong { color: var(--text-primary); }
 .thread-note span { color: var(--text-secondary); font-size: 0.95rem; }
 @media (max-width: 900px) { .thread-layout { grid-template-columns: 1fr; gap: 28px; } }
+
+.lp-cards-2 { gap: 0 48px; }
+.lp-tips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 48px; }
+.lp-tips .tip { padding: 18px 0; border-top: 1px solid var(--border-subtle); }
+@media (max-width: 720px) { .lp-tips { grid-template-columns: 1fr; } }
+.thread-bar, .thread-meta { font-variant-numeric: tabular-nums; }
+.thread-meta strong { font-family: var(--font-mono); font-weight: 600; }
