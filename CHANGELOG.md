@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-10-06
+
+### Fixed
+- **Stale Stylesheet at the Edge**: Pages link `/assets/site.css?v=<app version>`, so each release gets a fresh URL. Cloudflare had kept serving the previous `site.css` under its old `immutable` header, which left the skip link and FAQ unstyled.
+
 ## [1.6.0] - 2026-10-06
 
 ### Added
@@ -119,7 +124,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/tBeltty/huddle-pace/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/tBeltty/huddle-pace/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/tBeltty/huddle-pace/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/tBeltty/huddle-pace/compare/v1.3.1...v1.4.0

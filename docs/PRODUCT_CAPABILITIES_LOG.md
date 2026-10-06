@@ -4,6 +4,10 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-06] CSS Versionado por Release para Evitar Caché Obsoleta en Cloudflare
+* **Problema:** Cloudflare conservó el `site.css` anterior con la cabecera `immutable` que ya no enviamos, y las páginas nuevas quedaron sin estilos de skip link y FAQ.
+* **Solución:** todas las páginas enlazan `/assets/site.css?v=__APP_VERSION__`; el servidor sustituye el marcador por la versión de `package.json`, de modo que cada release usa una URL nueva.
+
 ## [2026-10-06] SEO de Contenido: Páginas por Keyword y FAQ con Schema
 * **Dos páginas nuevas en inglés y español**:
   * **`/slack-huddle-timer`** y **`/es/temporizador-huddle-slack`**: cómo funciona, qué ve el equipo durante la llamada, comandos reales (`/pace`, `status`, `report`, `clear`, `help`), diseño sin audio y precio.
