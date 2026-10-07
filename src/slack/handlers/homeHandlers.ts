@@ -96,11 +96,11 @@ export function registerHomeHandlers(app: App) {
     console.info(`🎯 open_schedule_modal clicked by user ${currentUserId} in team ${teamId}, trigger: ${triggerId?.slice(0, 15)}...`);
 
     try {
-      const templates = await MeetupService.listTemplates(teamId || "default", currentUserId).catch(() => []);
+      const templates = await MeetupService.listTemplateOptions(teamId || "default", currentUserId).catch(() => []);
       const modalView = buildScheduleModal({
         subtopicCount: 3,
         currentUserId,
-        templates: templates.map((t) => ({ id: t.id, name: t.name })),
+        templates: templates,
       });
 
       await Promise.all([

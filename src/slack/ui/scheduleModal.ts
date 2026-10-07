@@ -11,6 +11,8 @@ export interface ModalSubtopicState {
 export interface ModalTemplateOption {
   id: string;
   name: string;
+  isOwn: boolean;
+  isShared: boolean;
 }
 
 /**
@@ -51,6 +53,7 @@ export interface ModalStateData {
   templates?: ModalTemplateOption[];
   selectedTemplateId?: string;
   saveAsTemplate?: boolean;
+  shareTemplate?: boolean;
   rev?: string;
   editMeetupId?: string;
 }
@@ -190,23 +193,38 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
   const blocks: any[] = [];
 
   const isEdit = !!initialState?.editMeetupId;
-  const templates = isEdit ? [] : (initialState?.templates || []).slice(0, 100);
+  // Slack caps static_select at 100 options; own templates take priority over shared ones.
+  const templates = isEdit
+    ? []
+    : [...(initialState?.templates || [])].sort((a, b) => Number(b.isOwn) - Number(a.isOwn)).slice(0, 100);
   if (templates.length > 0) {
-    const templateOptions = templates.map((t) => ({
-      text: { type: "plain_text" as const, text: t.name.slice(0, 75), emoji: true },
+    const toOption = (t: ModalTemplateOption) => ({
+      text: {
+        type: "plain_text" as const,
+        text: (t.isOwn && t.isShared ? `${t.name.slice(0, 62)} · shared` : t.name).slice(0, 75),
+        emoji: true,
+      },
       value: t.id,
-    }));
+    });
+    const mine = templates.filter((t) => t.isOwn).map(toOption);
+    const shared = templates.filter((t) => !t.isOwn).map(toOption);
+    const templateOptions = [...mine, ...shared];
+    const selectedTemplate = templates.find((t) => t.id === initialState?.selectedTemplateId);
     const selectedTemplateOption = templateOptions.find((o) => o.value === initialState?.selectedTemplateId);
+    const optionGroups = [
+      ...(mine.length > 0 ? [{ label: { type: "plain_text" as const, text: "My templates" }, options: mine }] : []),
+      ...(shared.length > 0 ? [{ label: { type: "plain_text" as const, text: "Shared by teammates" }, options: shared }] : []),
+    ];
     const templateElements: any[] = [
       {
         type: "static_select",
         action_id: "template_select",
         placeholder: { type: "plain_text", text: "📋 Start from a template" },
-        options: templateOptions,
+        option_groups: optionGroups,
         ...(selectedTemplateOption ? { initial_option: selectedTemplateOption } : {}),
       },
     ];
-    if (selectedTemplateOption) {
+    if (selectedTemplateOption && selectedTemplate?.isOwn) {
       templateElements.push({
         type: "button",
         text: { type: "plain_text", text: "🗑 Delete template", emoji: true },
@@ -497,6 +515,21 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     ],
   });
 
+  const saveOption = {
+    text: { type: "mrkdwn" as const, text: "*Save as template* (reuse this setup for recurring calls)" },
+    description: { type: "plain_text" as const, text: "Named after the session title. Saving the same title again updates it." },
+    value: "save_template",
+  };
+  const shareOption = {
+    text: { type: "mrkdwn" as const, text: "*Share with workspace* (teammates can start from it)" },
+    description: { type: "plain_text" as const, text: "Only used when saving as a template. Without it the template stays in My templates." },
+    value: "share_template",
+  };
+  const initialTemplateOptions = [
+    ...(initialState?.saveAsTemplate ? [saveOption] : []),
+    ...(initialState?.shareTemplate ? [shareOption] : []),
+  ];
+
   blocks.push({
     type: "input",
     block_id: "save_template_block",
@@ -505,24 +538,8 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     element: {
       type: "checkboxes",
       action_id: "save_template_checkbox",
-      options: [
-        {
-          text: { type: "mrkdwn", text: "*Save as template* (reuse this setup for recurring calls)" },
-          description: { type: "plain_text", text: "Named after the session title. Saving the same title again updates it." },
-          value: "save_template",
-        },
-      ],
-      ...(initialState?.saveAsTemplate
-        ? {
-            initial_options: [
-              {
-                text: { type: "mrkdwn", text: "*Save as template* (reuse this setup for recurring calls)" },
-                description: { type: "plain_text", text: "Named after the session title. Saving the same title again updates it." },
-                value: "save_template",
-              },
-            ],
-          }
-        : {}),
+      options: [saveOption, shareOption],
+      ...(initialTemplateOptions.length > 0 ? { initial_options: initialTemplateOptions } : {}),
     },
   });
 

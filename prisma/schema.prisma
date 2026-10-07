@@ -93,6 +93,7 @@ model MeetupTemplate {
   reminderTextEnabled  Boolean  @default(true)
   reminderImageEnabled Boolean  @default(false)
   modulesJson          String // JSON array of {title, percentage}
+  isShared             Boolean  @default(false) // Visible to every member of the workspace; only the owner can edit or delete
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 

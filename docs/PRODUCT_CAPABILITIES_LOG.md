@@ -4,6 +4,12 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-07] Plantillas Privadas o Compartidas con el Workspace
+* **Esquema**: `MeetupTemplate.isShared Boolean @default(false)`, aditivo. Todas las plantillas existentes siguen privadas.
+* **Servicio**: `listTemplates` y `getTemplate` devuelven las propias más las compartidas del mismo `teamId`; `deleteTemplate` y el `upsert` de `saveTemplate` siguen acotados al dueño (clave única `teamId + ownerUserId + name`), así que un compañero nunca sobrescribe ni borra una plantilla ajena. `listTemplateOptions` arma las entradas del selector con `isOwn` e `isShared`.
+* **Modal**: el bloque "Template" tiene dos casillas, "Save as template" y "Share with workspace". Compartir solo aplica si se guarda. El selector usa `option_groups` ("My templates", "Shared by teammates"), pone primero las propias dentro del tope de 100 opciones de Slack y muestra el botón de borrar solo cuando la plantilla elegida es del usuario.
+* **Cobertura**: pruebas de visibilidad entre usuarios y workspaces, borrado solo por el dueño, descompartir, agrupación del selector y persistencia de ambas casillas entre actualizaciones de la vista (160 pruebas).
+
 ## [2026-10-07] Analíticas Privadas por Defecto y Huddles Privados
 * **Visibilidad (`getPacingReportStats(days, teamId, viewer)`)**: administradores, owners y bot managers (`isUserWorkspaceManager`) ven el reporte del workspace (`scope: "workspace"`), sin huddles privados. El resto ve `scope: "personal"`: solo los meetups donde figura como speaker o como creador, privados incluidos. Sin `viewer` el servicio devuelve la vista del workspace, que es lo que usan las pruebas existentes.
 * **Esquema**: `Meetup.createdByUserId String?` y `Meetup.isPrivate Boolean @default(false)`, ambos aditivos (`prisma db push`). Los meetups anteriores no tienen creador y no se reconstruye; siguen visibles para sus speakers y para managers. Queda anotado en `CHANGELOG.md` como no retroactivo.
