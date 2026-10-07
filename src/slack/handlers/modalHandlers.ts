@@ -45,6 +45,7 @@ function readScheduleModalState(values: Record<string, any>, metadata: any): Par
     customSubtopics,
     reminderTextEnabled: reminderValues.includes("reminder_text"),
     reminderImageEnabled: reminderValues.includes("reminder_image"),
+    isPrivate: (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0,
     saveAsTemplate: (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0,
     selectedTemplateId: getModalAction(values, "template_select")?.selected_option?.value,
     rev: metadata.rev,
@@ -202,6 +203,7 @@ export function registerModalHandlers(app: App) {
           customSubtopics: meetup.modules.map((m) => ({ title: m.title, pct: String(m.percentage) })),
           reminderTextEnabled: meetup.reminderTextEnabled,
           reminderImageEnabled: meetup.reminderImageEnabled,
+          isPrivate: meetup.isPrivate,
         }),
       });
     } catch (error) {
@@ -320,6 +322,7 @@ export function registerModalHandlers(app: App) {
     const reminderValues = reminderSelected.map((o: any) => o.value);
     const reminderTextEnabled = reminderValues.includes("reminder_text");
     const reminderImageEnabled = reminderValues.includes("reminder_image");
+    const isPrivate = (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0;
     const saveAsTemplate = (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0;
 
     const rawModules = [];
@@ -341,6 +344,7 @@ export function registerModalHandlers(app: App) {
       threadTs,
       reminderTextEnabled,
       reminderImageEnabled,
+      isPrivate,
       modules: rawModules,
     });
 
@@ -404,6 +408,7 @@ export function registerModalHandlers(app: App) {
           threadTs: validatedData.threadTs,
           reminderTextEnabled: validatedData.reminderTextEnabled,
           reminderImageEnabled: validatedData.reminderImageEnabled,
+          isPrivate: validatedData.isPrivate,
           modules: validatedData.modules,
         });
 
@@ -444,6 +449,8 @@ export function registerModalHandlers(app: App) {
         totalMinutes: validatedData.totalMinutes,
         channelId: validatedData.channelId,
         speakerUserId: validatedData.speakerUserId,
+        createdByUserId: body.user.id,
+        isPrivate: validatedData.isPrivate,
         threadTs: validatedData.threadTs,
         teamId,
         reminderTextEnabled: validatedData.reminderTextEnabled,

@@ -132,7 +132,8 @@ export function registerCommandHandlers(app: App) {
       if (subCommand === "report" || subCommand === "stats") {
         const daysArg = parseInt(parts[1], 10);
         const days = !isNaN(daysArg) && daysArg > 0 ? Math.min(daysArg, 365) : 30;
-        const stats = await MeetupService.getPacingReportStats(days, command.team_id);
+        const viewer = await MeetupService.getReportViewer(client, command.user_id, command.team_id);
+        const stats = await MeetupService.getPacingReportStats(days, command.team_id, viewer);
         const blocks = buildPacingReportBlocks(stats, days);
 
         blocks.push({
@@ -218,6 +219,7 @@ export function registerCommandHandlers(app: App) {
             totalMinutes: parsedMinutes,
             channelId: command.channel_id,
             speakerUserId: command.user_id,
+            createdByUserId: command.user_id,
             threadTs,
             teamId: command.team_id,
             modules,

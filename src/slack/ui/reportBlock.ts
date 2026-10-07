@@ -17,7 +17,10 @@ export function buildPacingReportBlocks(stats: PacingReportStats, days = 30): an
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `Timebox tracking and meeting duration log for the *last ${days} days*.`,
+        text:
+          stats.scope === "personal"
+            ? `Your timebox tracking and meeting duration log for the *last ${days} days*. Only meetups where you were a speaker or the creator appear here. Workspace-wide analytics are visible to admins and bot managers.`
+            : `Timebox tracking and meeting duration log for the *last ${days} days*. Private huddles are not included.`,
       },
     },
     {

@@ -10,6 +10,8 @@ export interface CreateMeetupDTO {
   totalMinutes: number;
   channelId: string;
   speakerUserId: string; // Can be a single ID or comma-separated IDs
+  createdByUserId?: string | null;
+  isPrivate?: boolean;
   teamId?: string;
   threadTs?: string | null;
   scheduledFor?: Date;
@@ -43,7 +45,14 @@ export interface MeetupTemplateData {
   modules: SubtopicInput[];
 }
 
+export interface ReportViewer {
+  userId: string;
+  isManager: boolean;
+}
+
 export interface PacingReportStats {
+  /** "workspace": all non-private meetups. "personal": only meetups the viewer spoke in or created. */
+  scope: "workspace" | "personal";
   totalSessions: number;
   completedOnTime: number;
   complianceRate: number;
@@ -286,6 +295,14 @@ export class MeetupService {
   }
 
   /**
+   * Resolves what a user may see in analytics: managers and admins get the workspace view,
+   * everyone else only their own meetups.
+   */
+  static async getReportViewer(client: any, userId: string, teamId = "default"): Promise<ReportViewer> {
+    return { userId, isManager: await this.isUserWorkspaceManager(client, userId, teamId) };
+  }
+
+  /**
    * Creates a new scheduled meetup with its modules.
    */
   static async createMeetup(data: CreateMeetupDTO) {
@@ -308,6 +325,8 @@ export class MeetupService {
         teamId: data.teamId || "default",
         threadTs: data.threadTs || null,
         speakerUserId: data.speakerUserId,
+        createdByUserId: data.createdByUserId || null,
+        isPrivate: data.isPrivate ?? false,
         scheduledFor: data.scheduledFor || new Date(),
         status: "SCHEDULED",
         reminderTextEnabled: textEnabled,
@@ -429,6 +448,7 @@ export class MeetupService {
           channelId: data.channelId,
           threadTs: data.threadTs || null,
           speakerUserId: data.speakerUserId,
+          ...(data.isPrivate !== undefined ? { isPrivate: data.isPrivate } : {}),
           reminderTextEnabled: data.reminderTextEnabled ?? true,
           reminderImageEnabled: data.reminderImageEnabled ?? false,
         },
@@ -768,18 +788,31 @@ export class MeetupService {
   /**
    * Calculates comprehensive time management analytics for a given timeframe.
    */
-  static async getPacingReportStats(days = 30, teamId?: string): Promise<PacingReportStats> {
+  static async getPacingReportStats(
+    days = 30,
+    teamId?: string,
+    viewer?: ReportViewer
+  ): Promise<PacingReportStats> {
+    const scope: PacingReportStats["scope"] = !viewer || viewer.isManager ? "workspace" : "personal";
     const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    const completed = await prisma.meetup.findMany({
+    const rows = await prisma.meetup.findMany({
       where: {
         status: "COMPLETED",
         createdAt: { gte: cutoffDate },
         ...(teamId ? { teamId } : {}),
+        ...(scope === "workspace" ? { isPrivate: false } : {}),
       },
       orderBy: { createdAt: "desc" },
       include: { modules: true },
     });
+
+    const completed =
+      scope === "personal" && viewer
+        ? rows.filter(
+            (m) => m.createdByUserId === viewer.userId || this.parseSpeakerIds(m.speakerUserId).includes(viewer.userId)
+          )
+        : rows;
 
     let completedOnTime = 0;
     let totalFormalMinutes = 0;
@@ -822,6 +855,7 @@ export class MeetupService {
     const totalMinutesSpent = totalFormalMinutes + totalChattingMinutes;
 
     return {
+      scope,
       totalSessions,
       completedOnTime,
       complianceRate,

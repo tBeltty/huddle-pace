@@ -159,6 +159,7 @@ export function registerHuddleHandlers(app: App) {
             totalMinutes: minutes,
             channelId,
             speakerUserId: event.user || "guest",
+            createdByUserId: event.user || null,
             threadTs,
             teamId,
             modules: [

@@ -395,5 +395,51 @@ describe("MeetupService calculations and parsing", () => {
       assert.strictEqual(session.graceMinutes, 0);
     });
   });
+  describe("analytics privacy", () => {
+    async function completed(teamId: string, speaker: string, creator: string | null, isPrivate: boolean) {
+      const { prisma } = await import("../src/db/client.js");
+      const m = await MeetupService.createMeetup({
+        title: `Sync ${speaker} ${isPrivate ? "private" : "public"}`,
+        totalMinutes: 30,
+        channelId: "C_PRIV",
+        speakerUserId: speaker,
+        createdByUserId: creator,
+        isPrivate,
+        teamId,
+        modules: [{ title: "Talk", percentage: 100 }],
+      });
+      const started = new Date(Date.now() - 20 * 60 * 1000);
+      const ended = new Date();
+      await prisma.meetup.update({
+        where: { id: m.id },
+        data: { status: "COMPLETED", startedAt: started, formalEndsAt: ended, endsAt: ended },
+      });
+      return m.id;
+    }
+
+    test("managers see workspace meetups without private ones", async () => {
+      const teamId = "T_PRIV_MGR_" + Date.now();
+      const pub = await completed(teamId, "U_A", "U_A", false);
+      await completed(teamId, "U_A", "U_A", true);
+      const stats = await MeetupService.getPacingReportStats(30, teamId, { userId: "U_ADMIN", isManager: true });
+      assert.strictEqual(stats.scope, "workspace");
+      assert.deepStrictEqual(stats.recentSessions.map((s) => s.id), [pub]);
+    });
+
+    test("members see only meetups they spoke in or created, private included", async () => {
+      const teamId = "T_PRIV_MEM_" + Date.now();
+      const own = await completed(teamId, "U_ME", "U_ME", false);
+      const ownPrivate = await completed(teamId, "U_ME", "U_ME", true);
+      const created = await completed(teamId, "U_OTHER", "U_ME", false);
+      const spokeOnly = await completed(teamId, "U_X, U_ME", null, false);
+      await completed(teamId, "U_OTHER", "U_OTHER", false);
+      const stats = await MeetupService.getPacingReportStats(30, teamId, { userId: "U_ME", isManager: false });
+      assert.strictEqual(stats.scope, "personal");
+      assert.deepStrictEqual(
+        stats.recentSessions.map((s) => s.id).sort(),
+        [own, ownPrivate, created, spokeOnly].sort()
+      );
+    });
+  });
 });
 
