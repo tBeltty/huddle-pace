@@ -1,7 +1,8 @@
 import { test, describe, after } from "node:test";
 import assert from "node:assert/strict";
 import { MeetupService } from "../src/services/meetupService.js";
-import { buildScheduleModal, getModalAction, findModalBlockId } from "../src/slack/ui/scheduleModal.js";
+import { buildScheduleModal, getModalAction, findModalBlockId, templateToModalState } from "../src/slack/ui/scheduleModal.js";
+import { buildTemplatesModal, TEMPLATES_PAGE_SIZE } from "../src/slack/ui/templatesModal.js";
 import { prisma } from "../src/db/client.js";
 
 const TEAM = `tpl-team-${Date.now()}`;
@@ -117,15 +118,9 @@ describe("Schedule modal template UI", () => {
     assert.equal(pick("theirs").elements.length, 1);
   });
 
-  test("offers sharing next to saving and keeps both choices across view updates", () => {
-    const find = (state: any) =>
-      blocksOf(buildScheduleModal({ subtopicCount: 3, ...state })).find((b) => b.block_id === "save_template_block");
-    assert.deepEqual(find({}).element.options.map((o: any) => o.value), ["save_template", "share_template"]);
-    assert.equal(find({}).element.initial_options, undefined);
-    assert.deepEqual(
-      find({ saveAsTemplate: true, shareTemplate: true }).element.initial_options.map((o: any) => o.value),
-      ["save_template", "share_template"]
-    );
+  test("the schedule modal only saves privately, sharing lives in Templates", () => {
+    const block = blocksOf(buildScheduleModal({ subtopicCount: 3 })).find((b) => b.block_id === "save_template_block");
+    assert.deepEqual(block.element.options.map((o: any) => o.value), ["save_template"]);
   });
 
   test("always offers the save-as-template checkbox", () => {
@@ -257,5 +252,174 @@ describe("Editing scheduled meetups", () => {
     assert.equal(view.blocks.some((b: any) => b.block_id === "template_picker_block"), false);
     const duration = view.blocks.find((b: any) => b.element?.action_id === "duration_select");
     assert.equal(duration.element.initial_option.value, "25");
+  });
+});
+
+describe("Template management (service)", () => {
+  const MGMT = `mgmt-team-${Date.now()}`;
+  const mk = (over: Partial<typeof baseTemplate> & { isShared?: boolean } = {}) =>
+    MeetupService.saveTemplate({ ...baseTemplate, teamId: MGMT, ...over });
+
+  after(async () => {
+    await prisma.meetupTemplate.deleteMany({ where: { teamId: MGMT } });
+  });
+
+  test("overwriting a shared template by name keeps it shared", async () => {
+    const first = await mk({ name: "Keep shared", isShared: true });
+    const again = await mk({ name: "Keep shared", totalMinutes: 50 });
+    assert.equal(again.id, first.id);
+    assert.equal(again.isShared, true);
+    assert.equal(again.totalMinutes, 50);
+  });
+
+  test("only the owner can share, unshare or edit", async () => {
+    const t = await mk({ name: "Owner only" });
+    assert.equal(await MeetupService.setTemplateShared(t.id, MGMT, "UOTHER", true), false);
+    assert.equal(await MeetupService.setTemplateShared(t.id, MGMT, OWNER, true), true);
+    assert.equal((await MeetupService.getTemplate(t.id, MGMT, "UOTHER"))?.isShared, true);
+
+    const denied = await MeetupService.updateTemplate(t.id, MGMT, "UOTHER", { ...baseTemplate, name: "Hijack" });
+    assert.deepEqual(denied, { ok: false, reason: "not_found" });
+
+    const edited = await MeetupService.updateTemplate(t.id, MGMT, OWNER, { ...baseTemplate, name: "Renamed", totalMinutes: 20 });
+    assert.equal(edited.ok, true);
+    if (edited.ok) {
+      assert.equal(edited.template.name, "Renamed");
+      assert.equal(edited.template.totalMinutes, 20);
+      assert.equal(edited.template.isShared, true);
+    }
+  });
+
+  test("renaming onto an existing name is rejected", async () => {
+    await mk({ name: "Taken" });
+    const other = await mk({ name: "Other name" });
+    const result = await MeetupService.updateTemplate(other.id, MGMT, OWNER, { ...baseTemplate, name: "Taken" });
+    assert.deepEqual(result, { ok: false, reason: "name_taken" });
+  });
+
+  test("unpublish pulls a shared template back to private and ignores other workspaces", async () => {
+    const t = await mk({ name: "Moderate me", isShared: true });
+    assert.equal(await MeetupService.unpublishTemplate(t.id, "other-team"), false);
+    assert.equal(await MeetupService.unpublishTemplate(t.id, MGMT), true);
+    assert.equal(await MeetupService.getTemplate(t.id, MGMT, "UOTHER"), null);
+    assert.equal((await MeetupService.getTemplate(t.id, MGMT, OWNER))?.isShared, false);
+    assert.equal(await MeetupService.unpublishTemplate(t.id, MGMT), false);
+  });
+
+  test("duplicating copies a visible template privately under a free name", async () => {
+    const t = await mk({ name: "Original", isShared: true });
+    const copy = await MeetupService.duplicateTemplate(t.id, MGMT, "UDUP");
+    assert.equal(copy?.name, "Original (copy)");
+    assert.equal(copy?.ownerUserId, "UDUP");
+    assert.equal(copy?.isShared, false);
+    assert.deepEqual(copy?.modules, baseTemplate.modules);
+    const second = await MeetupService.duplicateTemplate(t.id, MGMT, "UDUP");
+    assert.equal(second?.name, "Original (copy 2)");
+
+    const hidden = await mk({ name: "Hidden" });
+    assert.equal(await MeetupService.duplicateTemplate(hidden.id, MGMT, "UDUP"), null);
+  });
+});
+
+describe("Templates modal UI", () => {
+  const tpl = (i: number, owner: string, isShared: boolean) => ({
+    id: `id${i}`,
+    ownerUserId: owner,
+    isShared,
+    name: `T${i}`,
+    channelId: "C1",
+    speakerUserId: "U1",
+    totalMinutes: 30,
+    destination: "auto" as const,
+    reminderTextEnabled: true,
+    reminderImageEnabled: false,
+    modules: [{ title: "Intro", percentage: 100 }],
+  });
+  const overflowValues = (view: any) =>
+    (view.blocks as any[]).filter((b) => b.accessory?.type === "overflow").map((b) => b.accessory.options.map((o: any) => o.value));
+  const base = { tab: "mine" as const, page: 0, isManager: false };
+
+  test("own templates get manage actions, community ones get schedule and duplicate with the author", () => {
+    const templates = [tpl(1, "ME", false), tpl(2, "ME", true), tpl(3, "THEM", true)];
+    const mine = buildTemplatesModal(templates, "ME", base);
+    assert.deepEqual(overflowValues(mine), [
+      ["schedule:id1", "edit:id1", "share:id1", "delete:id1"],
+      ["schedule:id2", "edit:id2", "unshare:id2", "delete:id2"],
+    ]);
+    const community = buildTemplatesModal(templates, "ME", { ...base, tab: "community" });
+    assert.deepEqual(overflowValues(community), [["schedule:id3", "duplicate:id3"]]);
+    assert.match(JSON.stringify(community), /by <@THEM>/);
+  });
+
+  test("only managers see the unpublish action", () => {
+    const templates = [tpl(3, "THEM", true)];
+    const asManager = buildTemplatesModal(templates, "ME", { ...base, tab: "community", isManager: true });
+    assert.deepEqual(overflowValues(asManager), [["schedule:id3", "duplicate:id3", "unpublish:id3"]]);
+  });
+
+  test("never lists someone else's private template", () => {
+    const view = buildTemplatesModal([tpl(4, "THEM", false)], "ME", { ...base, tab: "community" });
+    assert.deepEqual(overflowValues(view), []);
+    assert.match(JSON.stringify(view), /Nobody has shared/);
+  });
+
+  test("paginates long lists within Slack's block limit", () => {
+    const templates = Array.from({ length: TEMPLATES_PAGE_SIZE + 3 }, (_, i) => tpl(i, "ME", false));
+    const first = buildTemplatesModal(templates, "ME", base);
+    assert.equal(overflowValues(first).length, TEMPLATES_PAGE_SIZE);
+    assert.ok(first.blocks.length <= 100);
+    assert.match(JSON.stringify(first), /templates_page_next/);
+    const last = buildTemplatesModal(templates, "ME", { ...base, page: 9 });
+    assert.equal(overflowValues(last).length, 3);
+    assert.match(JSON.stringify(last), /templates_page_prev/);
+    assert.doesNotMatch(JSON.stringify(last), /templates_page_next/);
+  });
+
+  test("delete asks for confirmation and only for the viewer's own template", () => {
+    const templates = [tpl(1, "ME", true), tpl(3, "THEM", true)];
+    const own = buildTemplatesModal(templates, "ME", { ...base, confirmDeleteId: "id1" });
+    assert.match(JSON.stringify(own), /confirm_delete_template/);
+    const foreign = buildTemplatesModal(templates, "ME", { ...base, confirmDeleteId: "id3" });
+    assert.doesNotMatch(JSON.stringify(foreign), /confirm_delete_template/);
+  });
+});
+
+describe("Scheduling or editing from a template", () => {
+  const t = {
+    id: "x",
+    ownerUserId: "OWNER",
+    isShared: true,
+    name: "Retro",
+    channelId: "C9",
+    speakerUserId: "U1,U2",
+    totalMinutes: 45,
+    destination: "main" as const,
+    reminderTextEnabled: true,
+    reminderImageEnabled: true,
+    modules: [{ title: "A", percentage: 40 }, { title: "B", percentage: 60 }],
+  };
+
+  test("the owner keeps channel and speakers, a teammate becomes the speaker and picks the channel", () => {
+    const own = templateToModalState(t, "OWNER");
+    assert.equal(own.channelId, "C9");
+    assert.deepEqual(own.speakerUserIds, ["U1", "U2"]);
+    const other = templateToModalState(t, "VIEWER");
+    assert.equal(other.channelId, undefined);
+    assert.deepEqual(other.speakerUserIds, ["VIEWER"]);
+    assert.equal(other.duration, 45);
+    assert.equal(other.subtopicCount, 2);
+  });
+
+  test("template edit mode swaps the title for a name and drops session-only fields", () => {
+    const view = buildScheduleModal({ ...templateToModalState(t, "OWNER"), editTemplateId: "x", templateName: "Retro" }) as any;
+    assert.equal(view.callback_id, "submit_edit_template_modal");
+    const blocks = view.blocks as any[];
+    assert.equal(blocks.find((b) => b.element?.action_id === "template_name_input").element.initial_value, "Retro");
+    for (const gone of ["title_input", "custom_thread_input", "private_huddle_checkbox", "save_template_checkbox", "template_select"]) {
+      assert.equal(blocks.some((b) => b.element?.action_id === gone || b.elements?.some((e: any) => e.action_id === gone)), false, gone);
+    }
+    const huddle = blocks.find((b) => b.element?.action_id === "huddle_select");
+    assert.deepEqual(huddle.element.options.map((o: any) => o.value), ["auto", "main"]);
+    assert.equal(JSON.parse(view.private_metadata).templateId, "x");
   });
 });

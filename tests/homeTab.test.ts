@@ -74,16 +74,19 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
       assert.ok(greetingBlock, "Should render generic greeting");
     });
 
-    test("renders action bar with Schedule Meetup, Analytics, Guide, and Settings buttons", () => {
+    test("renders action bar with Schedule Meetup, Templates, Analytics, Guide, and Settings buttons", () => {
       const view = buildHomeTabView([], [], dummyStats, "U_USER");
       const actionBar = view.blocks.find((b: any) => b.block_id === "home_action_bar");
       assert.ok(actionBar, "Action bar block should exist");
-      assert.strictEqual(actionBar.elements.length, 4);
+      assert.strictEqual(actionBar.elements.length, 5);
 
-      const [btnSchedule, btnAnalytics, btnGuide, btnSettings] = actionBar.elements;
+      const [btnSchedule, btnTemplates, btnAnalytics, btnGuide, btnSettings] = actionBar.elements;
       assert.strictEqual(btnSchedule.action_id, "open_schedule_modal");
       assert.strictEqual(btnSchedule.style, "primary");
       assert.match(btnSchedule.text.text, /Schedule Meetup/);
+
+      assert.strictEqual(btnTemplates.action_id, "open_templates_modal");
+      assert.strictEqual(btnTemplates.text.text, "Templates");
 
       assert.strictEqual(btnAnalytics.action_id, "open_report_modal");
       assert.strictEqual(btnAnalytics.text.text, "Analytics");

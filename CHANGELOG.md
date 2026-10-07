@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-07
+
+### Added
+- A Templates button in App Home opens a manager with two views. My templates lists yours and Community lists what teammates shared, with the author's name on each.
+- From the manager you can schedule a pace from any template, edit your own, share or stop sharing them, duplicate a teammate's template into your list, and delete with a confirmation.
+- Workspace admins and bot managers can unpublish any shared template.
+
+### Changed
+- Sharing moved out of the Schedule Meetup modal. "Save as template" there always saves to My templates.
+- Scheduling from a teammate's template keeps its agenda and makes you the speaker. You pick the channel.
+- Saving a shared template again under the same name no longer makes it private.
+
 ## [1.6.0] - 2026-10-07
 
 ### Added
@@ -113,7 +125,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/tBeltty/huddle-pace/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/tBeltty/huddle-pace/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/tBeltty/huddle-pace/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/tBeltty/huddle-pace/compare/v1.3.1...v1.4.0

@@ -56,6 +56,15 @@ export function buildHomeTabView(
           type: "button",
           text: {
             type: "plain_text",
+            text: "Templates",
+            emoji: true,
+          },
+          action_id: "open_templates_modal",
+        },
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
             text: "Analytics",
             emoji: true,
           },

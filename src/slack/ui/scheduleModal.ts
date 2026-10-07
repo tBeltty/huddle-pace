@@ -1,5 +1,6 @@
 import { ModalView } from "@slack/bolt";
 import { DetectedHuddle } from "../utils/huddleDiscovery.js";
+import type { MeetupTemplateData } from "../../services/meetupService.js";
 
 export const MAX_SUBTOPICS = 10;
 
@@ -53,14 +54,45 @@ export interface ModalStateData {
   templates?: ModalTemplateOption[];
   selectedTemplateId?: string;
   saveAsTemplate?: boolean;
-  shareTemplate?: boolean;
+  /** Set when the modal edits a saved template instead of scheduling a session. */
+  editTemplateId?: string;
+  templateName?: string;
+  /** Opaque list state so the Templates modal can be refreshed after saving. */
+  templateListState?: unknown;
   rev?: string;
   editMeetupId?: string;
+}
+
+/**
+ * Prefill for scheduling from a saved template. A teammate's template keeps its agenda but not
+ * its speakers or channel, so the viewer is the speaker and picks where it runs.
+ */
+export function templateToModalState(
+  template: MeetupTemplateData,
+  viewerUserId: string,
+  huddles: DetectedHuddle[] = []
+): Partial<ModalStateData> {
+  const isOwn = template.ownerUserId === viewerUserId;
+  const speakerIds = template.speakerUserId.split(",").map((s) => s.trim()).filter(Boolean);
+  return {
+    title: template.name,
+    currentUserId: viewerUserId,
+    channelId: isOwn ? template.channelId : undefined,
+    speakerUserIds: isOwn ? speakerIds : [viewerUserId],
+    duration: template.totalMinutes,
+    selectedHuddleChoice: template.destination,
+    subtopicCount: Math.min(MAX_SUBTOPICS, Math.max(1, template.modules.length)),
+    customSubtopics: template.modules.slice(0, MAX_SUBTOPICS).map((m) => ({ title: m.title, pct: String(m.percentage) })),
+    reminderTextEnabled: template.reminderTextEnabled,
+    reminderImageEnabled: template.reminderImageEnabled,
+    availableHuddles: isOwn ? huddles : [],
+  };
 }
 
 export function buildScheduleModal(initialState?: Partial<ModalStateData>): ModalView {
   const count = initialState?.subtopicCount ?? 3;
   const rev = initialState?.rev;
+  const isTemplateEdit = !!initialState?.editTemplateId;
   const bid = (base: string) => modalBlockId(base, rev);
 
   // Default suggested distribution presets for 3 rows
@@ -90,7 +122,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
   }
 
   // Construct Huddle selector options
-  const detectedHuddles = initialState?.availableHuddles || [];
+  const detectedHuddles = isTemplateEdit ? [] : initialState?.availableHuddles || [];
   const huddleOptions: any[] = [];
 
   // 1. Detected Huddles in this channel
@@ -123,11 +155,13 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     value: "main",
   });
 
-  // 4. Custom thread option
-  huddleOptions.push({
-    text: { type: "plain_text", text: "🔗 Custom Thread Link / TS", emoji: true },
-    value: "custom",
-  });
+  // 4. Custom thread option (a template never stores a specific thread)
+  if (!isTemplateEdit) {
+    huddleOptions.push({
+      text: { type: "plain_text", text: "🔗 Custom Thread Link / TS", emoji: true },
+      value: "custom",
+    });
+  }
 
   // Select initial option
   let initialHuddleOption = huddleOptions.find((o) => o.value === initialState?.selectedHuddleChoice);
@@ -194,7 +228,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
 
   const isEdit = !!initialState?.editMeetupId;
   // Slack caps static_select at 100 options; own templates take priority over shared ones.
-  const templates = isEdit
+  const templates = isEdit || isTemplateEdit
     ? []
     : [...(initialState?.templates || [])].sort((a, b) => Number(b.isOwn) - Number(a.isOwn)).slice(0, 100);
   if (templates.length > 0) {
@@ -517,19 +551,12 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
 
   const saveOption = {
     text: { type: "mrkdwn" as const, text: "*Save as template* (reuse this setup for recurring calls)" },
-    description: { type: "plain_text" as const, text: "Named after the session title. Saving the same title again updates it." },
+    description: {
+      type: "plain_text" as const,
+      text: "Named after the session title and kept private. Share it from Templates. Saving the same title again updates it.",
+    },
     value: "save_template",
   };
-  const shareOption = {
-    text: { type: "mrkdwn" as const, text: "*Share with workspace* (teammates can start from it)" },
-    description: { type: "plain_text" as const, text: "Only used when saving as a template. Without it the template stays in My templates." },
-    value: "share_template",
-  };
-  const initialTemplateOptions = [
-    ...(initialState?.saveAsTemplate ? [saveOption] : []),
-    ...(initialState?.shareTemplate ? [shareOption] : []),
-  ];
-
   blocks.push({
     type: "input",
     block_id: "save_template_block",
@@ -538,10 +565,46 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     element: {
       type: "checkboxes",
       action_id: "save_template_checkbox",
-      options: [saveOption, shareOption],
-      ...(initialTemplateOptions.length > 0 ? { initial_options: initialTemplateOptions } : {}),
+      options: [saveOption],
+      ...(initialState?.saveAsTemplate ? { initial_options: [saveOption] } : {}),
     },
   });
+
+  if (isTemplateEdit) {
+    const sessionOnly = ["custom_thread_block", "private_huddle_block", "save_template_block"];
+    const templateBlocks = blocks
+      .filter((b) => !sessionOnly.some((id) => typeof b.block_id === "string" && b.block_id.startsWith(id)))
+      .map((b) =>
+        typeof b.block_id === "string" && b.block_id.startsWith("title_block")
+          ? {
+              type: "input",
+              block_id: bid("template_name_block"),
+              label: { type: "plain_text", text: "Template Name" },
+              element: {
+                type: "plain_text_input",
+                action_id: "template_name_input",
+                max_length: 75,
+                initial_value: initialState?.templateName || "",
+              },
+            }
+          : b
+      );
+    return {
+      type: "modal",
+      callback_id: "submit_edit_template_modal",
+      title: { type: "plain_text", text: "Edit Template" },
+      submit: { type: "plain_text", text: "Save Template" },
+      close: { type: "plain_text", text: "Cancel" },
+      private_metadata: JSON.stringify({
+        subtopicCount: count,
+        channelId: initialState?.channelId,
+        rev,
+        templateId: initialState?.editTemplateId,
+        templateListState: initialState?.templateListState,
+      }),
+      blocks: templateBlocks,
+    };
+  }
 
   return {
     type: "modal",

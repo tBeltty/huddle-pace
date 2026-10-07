@@ -406,15 +406,106 @@ export class MeetupService {
       destination: this.templateDestination(data.threadTs),
       reminderTextEnabled: data.reminderTextEnabled,
       reminderImageEnabled: data.reminderImageEnabled,
-      isShared: data.isShared ?? false,
       modulesJson: JSON.stringify(data.modules.map((m) => ({ title: m.title.trim(), percentage: m.percentage }))),
     };
+    // Overwriting a template by name must not change who can see it unless the caller says so.
+    const sharing = data.isShared === undefined ? {} : { isShared: data.isShared };
     const row = await prisma.meetupTemplate.upsert({
       where: {
         teamId_ownerUserId_name: { teamId: data.teamId, ownerUserId: data.ownerUserId, name },
       },
-      create: { teamId: data.teamId, ownerUserId: data.ownerUserId, name, ...fields },
-      update: fields,
+      create: { teamId: data.teamId, ownerUserId: data.ownerUserId, name, ...fields, isShared: data.isShared ?? false },
+      update: { ...fields, ...sharing },
+    });
+    return this.toTemplateData(row);
+  }
+
+  /**
+   * Edits one of the owner's templates in place. Sharing is untouched.
+   */
+  static async updateTemplate(
+    id: string,
+    teamId: string,
+    ownerUserId: string,
+    data: Omit<SaveTemplateDTO, "teamId" | "ownerUserId" | "isShared">
+  ): Promise<{ ok: true; template: MeetupTemplateData } | { ok: false; reason: "not_found" | "name_taken" }> {
+    const name = data.name.trim();
+    const existing = await prisma.meetupTemplate.findFirst({ where: { id, teamId, ownerUserId } });
+    if (!existing) return { ok: false, reason: "not_found" };
+
+    const clash = await prisma.meetupTemplate.findFirst({
+      where: { teamId, ownerUserId, name, NOT: { id } },
+    });
+    if (clash) return { ok: false, reason: "name_taken" };
+
+    const row = await prisma.meetupTemplate.update({
+      where: { id },
+      data: {
+        name,
+        channelId: data.channelId,
+        speakerUserId: data.speakerUserId,
+        totalMinutes: data.totalMinutes,
+        destination: this.templateDestination(data.threadTs),
+        reminderTextEnabled: data.reminderTextEnabled,
+        reminderImageEnabled: data.reminderImageEnabled,
+        modulesJson: JSON.stringify(data.modules.map((m) => ({ title: m.title.trim(), percentage: m.percentage }))),
+      },
+    });
+    return { ok: true, template: this.toTemplateData(row) };
+  }
+
+  /**
+   * Shares or unshares a template. Only its owner can do it.
+   */
+  static async setTemplateShared(id: string, teamId: string, ownerUserId: string, isShared: boolean): Promise<boolean> {
+    const result = await prisma.meetupTemplate.updateMany({ where: { id, teamId, ownerUserId }, data: { isShared } });
+    return result.count > 0;
+  }
+
+  /**
+   * Moderation: pulls any shared template of the workspace back to its owner's private list.
+   * Callers must verify the viewer is a workspace manager.
+   */
+  static async unpublishTemplate(id: string, teamId: string): Promise<boolean> {
+    const result = await prisma.meetupTemplate.updateMany({
+      where: { id, teamId, isShared: true },
+      data: { isShared: false },
+    });
+    return result.count > 0;
+  }
+
+  /**
+   * Copies any template the user can see into their own private list under a free name.
+   */
+  static async duplicateTemplate(id: string, teamId: string, userId: string): Promise<MeetupTemplateData | null> {
+    const source = await prisma.meetupTemplate.findFirst({
+      where: { id, teamId, OR: [{ ownerUserId: userId }, { isShared: true }] },
+    });
+    if (!source) return null;
+
+    const taken = new Set(
+      (await prisma.meetupTemplate.findMany({ where: { teamId, ownerUserId: userId }, select: { name: true } })).map(
+        (t) => t.name
+      )
+    );
+    const base = source.name.slice(0, 60);
+    let name = `${base} (copy)`;
+    for (let n = 2; taken.has(name); n++) name = `${base} (copy ${n})`;
+
+    const row = await prisma.meetupTemplate.create({
+      data: {
+        teamId,
+        ownerUserId: userId,
+        name,
+        channelId: source.channelId,
+        speakerUserId: source.speakerUserId,
+        totalMinutes: source.totalMinutes,
+        destination: source.destination,
+        reminderTextEnabled: source.reminderTextEnabled,
+        reminderImageEnabled: source.reminderImageEnabled,
+        modulesJson: source.modulesJson,
+        isShared: false,
+      },
     });
     return this.toTemplateData(row);
   }
