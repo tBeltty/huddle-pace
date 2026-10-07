@@ -25,15 +25,21 @@ export async function ensureBotInChannel(
       errorCode === "channel_not_found"
     ) {
       // Check if bot is already a member
-      let isGroupDm = false;
       try {
         const info = await client.conversations.info({ channel: channelId });
         if (info?.channel?.is_member) {
           return { ok: true };
         }
-        isGroupDm = info?.channel?.is_mpim === true;
       } catch {
-        // Fallthrough to prompt invite
+        // Group messages need mpim:read for conversations.info, which HuddlePace does not request
+      }
+
+      // Reading one message works for a member of any channel type with the history scopes the app has
+      try {
+        await client.conversations.history({ channel: channelId, limit: 1 });
+        return { ok: true };
+      } catch {
+        // Not a member: fall through to the invite prompt
       }
 
       if (userId) {
@@ -41,9 +47,7 @@ export async function ensureBotInChannel(
           await client.chat.postEphemeral({
             channel: channelId,
             user: userId,
-            text: isGroupDm
-              ? "💡 *HuddlePace needs to be in this group message:* Add @HuddlePace to the conversation to track meetups here."
-              : `💡 *HuddlePace needs an invite:* To track meetups in this private channel, please invite the bot first by typing \`/invite @HuddlePace\` in this channel.`,
+            text: "💡 *HuddlePace needs to be in this conversation:* In a private channel, invite the bot by typing `/invite @HuddlePace`. In a group message, add @HuddlePace to the conversation.",
           });
         } catch {
           // Channel might not permit ephemeral either if not in channel

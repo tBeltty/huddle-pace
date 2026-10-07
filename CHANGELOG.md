@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-10-07
+
+### Fixed
+- Scheduling a pace in a group message no longer asks you to invite a bot that is already in the conversation. HuddlePace now checks that it is a member before showing the invite notice, and the notice covers private channels and group messages.
+
 ## [1.10.0] - 2026-10-07
 
 ### Added
@@ -163,7 +168,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.10.1...HEAD
+[1.10.1]: https://github.com/tBeltty/huddle-pace/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/tBeltty/huddle-pace/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/tBeltty/huddle-pace/compare/v1.8.2...v1.9.0
 [1.8.2]: https://github.com/tBeltty/huddle-pace/compare/v1.8.1...v1.8.2

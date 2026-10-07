@@ -9,6 +9,11 @@
 * **Cambio**: la sección 3 pasa a "Lo que no recopilamos ni usamos": sin audio ni transcripciones, la app recibe los mensajes de los canales y grupos donde está añadida, lee solo los mensajes de sistema de Huddle y no usa, guarda ni indexa ningún otro contenido. Se añade a la sección 2 el uso de `users:read` (zona horaria y rol admin/owner, sin nombres ni correos). Fecha de actualización: 7 de octubre de 2026. Inglés y español.
 * **Verificado en el código**: el esquema de Prisma no guarda texto de mensajes; `users.info` solo lee `tz` y `is_admin`/`is_owner`; `users.list` solo identifica miembros no bot para refrescar el App Home.
 
+## [2026-10-07] Membresía del Bot en Mensajes de Grupo (v1.10.1)
+* **Problema**: al agendar en un DM de grupo donde el bot ya estaba, `ensureBotInChannel` mostraba "HuddlePace needs an invite". `conversations.join` falla en un grupo y la comprobación de respaldo (`conversations.info`) exige `mpim:read`, que la app no pide, así que fallaba en silencio.
+* **Cambio**: tras el fallo de `join` e `info`, se hace `conversations.history` con `limit: 1`; si responde, el bot es miembro (cubre canales privados y grupos con los scopes de historial ya concedidos, sin reinstalación). El aviso nombra los dos casos (`/invite` en canal privado, añadir el bot en un grupo).
+* **Cobertura**: `tests/channelUtils.test.ts` con un cliente simulado de los tres casos.
+
 ## [2026-10-07] Botón Cancelar para Paces sin Iniciar (v1.10.0)
 * **Problema**: un pace agendado solo se podía editar o reprogramar. No había forma de descartarlo, así que seguía vigilando Huddles, ocupaba su hueco de ±20 min y retenía su código `m1`.
 * **Cambio**: botón **🗑️ Cancel** con confirmación (*Cancel this pace?*) en el App Home, en *My Scheduled Meetups*, *Manual start* y *Missed*, para speakers y creador (mismo criterio que Edit; el Home sigue sin distinguir managers). La acción `cancel_scheduled_meetup_action` repite las comprobaciones de Edit (mismo workspace, estado editable, `canUserManageMeetup`) y llama a `MeetupService.cancelMeetup`, que pasa el pace a `CANCELLED` solo si sigue en `SCHEDULED`, `MANUAL_START` o `MISSED` y libera `manualStartCode`. Refresca el Home del actor, el creador y los speakers.
