@@ -177,7 +177,7 @@
   "faq2Q": "¿HuddlePace graba audio?",
   "faq2A": "No. HuddlePace graba 0% de audio y no guarda transcripciones. Solo conserva las marcas de tiempo y los módulos de agenda que necesita para correr el temporizador.",
   "faq3Q": "¿Cómo inicio un Huddle con temporizador?",
-  "faq3A": "Ejecuta /pace en un canal, elige una duración y divídela en módulos por porcentaje. Inicia la sesión desde App Home y la barra de progreso aparece en el hilo del Huddle.",
+  "faq3A": "Ejecuta /pace en un canal, indica la fecha y la hora exactas, elige una duración y divídela en módulos por porcentaje. HuddlePace inicia la sesión cuando empieza un Huddle dentro de los 20 minutos de esa hora, y la barra de progreso aparece en el hilo del Huddle. También puedes iniciarla desde App Home.",
   "faq4Q": "¿Sirve para la daily standup?",
   "faq4A": "Sí. Una daily de 15 minutos se puede dividir en contexto, actualizaciones y bloqueos, con un aviso privado a cada speaker a mitad de sesión.",
   "faq5Q": "¿Puedo guardar una agenda y reutilizarla?",

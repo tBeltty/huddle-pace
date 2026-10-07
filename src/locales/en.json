@@ -176,7 +176,7 @@
   "faq2Q": "Does HuddlePace record audio?",
   "faq2A": "No. HuddlePace records 0% audio and stores no transcripts. It keeps only the timestamps and agenda modules it needs to run the timer.",
   "faq3Q": "How do I start a timed Huddle?",
-  "faq3A": "Run /pace in a channel, choose a duration and split it into modules by percentage. Start the session from App Home and the progress bar appears in the Huddle thread.",
+  "faq3A": "Run /pace in a channel, set the exact date and time, choose a duration and split it into modules by percentage. HuddlePace starts the session when a Huddle begins within 20 minutes of that time, and the progress bar appears in the Huddle thread. You can also start it from App Home.",
   "faq4Q": "Can I use it for a daily standup?",
   "faq4A": "Yes. A 15-minute standup can be split into context, updates and blockers, with a private alert to each speaker at the midpoint.",
   "faq5Q": "Can I save an agenda and reuse it?",
