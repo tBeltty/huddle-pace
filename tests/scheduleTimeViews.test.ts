@@ -148,6 +148,21 @@ describe("App Home Missed and Manual start sections", () => {
     assert.doesNotMatch(text({ missedMeetups: [pace] }, "U_OTHER"), /Reschedule/);
   });
 
+  test("a missed pace offers Cancel to those who can manage it and to nobody else", () => {
+    assert.match(text({ missedMeetups: [pace] }), /cancel_scheduled_meetup_action/);
+    assert.doesNotMatch(text({ missedMeetups: [pace] }, "U_OTHER"), /cancel_scheduled_meetup_action/);
+  });
+
+  test("a manual start pace offers Edit and Cancel to its speakers and neither to others", () => {
+    const manual = [{ ...pace, status: "MANUAL_START" }];
+    const mine = text({ manualStartMeetups: manual });
+    assert.match(mine, /edit_scheduled_meetup_action/);
+    assert.match(mine, /cancel_scheduled_meetup_action/);
+    const others = text({ manualStartMeetups: manual }, "U_OTHER");
+    assert.doesNotMatch(others, /edit_scheduled_meetup_action/);
+    assert.doesNotMatch(others, /cancel_scheduled_meetup_action/);
+  });
+
   test("lists manual start paces with the command to start them", () => {
     const home = text({ manualStartMeetups: [{ ...pace, status: "MANUAL_START" }] });
     assert.match(home, /\/pace start m1/);

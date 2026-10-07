@@ -169,6 +169,10 @@ describe("App Home Tab — Minimalist Layout, Personalization & Modal Helpers", 
       const editRow = mySection.find((b: any) => b.type === "actions" && b.elements?.[0]?.action_id === "edit_scheduled_meetup_action");
       assert.ok(editRow, "Speaker's own upcoming meetups must offer an Edit button");
       assert.strictEqual(editRow.elements[0].value, dummyMeetup1.id);
+      const cancelButton = editRow.elements.find((e: any) => e.action_id === "cancel_scheduled_meetup_action");
+      assert.ok(cancelButton, "Speaker's own upcoming meetups must offer a Cancel button");
+      assert.strictEqual(cancelButton.value, dummyMeetup1.id);
+      assert.ok(cancelButton.confirm, "Cancel must ask for confirmation");
       assert.strictEqual(
         mySection.some((b: any) => b.text?.text?.includes("Engineering All-Hands")),
         false

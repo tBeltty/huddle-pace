@@ -245,6 +245,30 @@ export function registerModalHandlers(app: App) {
     }
   });
 
+  // Action: Cancel a pace that has not started
+  app.action("cancel_scheduled_meetup_action", async ({ ack, body, client }) => {
+    await ack();
+    try {
+      const b = body as any;
+      const userId = b.user?.id;
+      const teamId = b.team?.id || b.user?.team_id || "default";
+      const meetup = await MeetupService.getMeetupById(b.actions[0]?.value);
+      if (!meetup || meetup.teamId !== teamId || !isEditableStatus(meetup.status)) return;
+      if (!(await MeetupService.canUserManageMeetup(client, meetup, userId))) return;
+
+      if (await MeetupService.cancelMeetup(meetup.id)) {
+        const owners = [userId, meetup.createdByUserId, ...MeetupService.parseSpeakerIds(meetup.speakerUserId)];
+        for (const owner of new Set(owners.filter((id): id is string => !!id))) {
+          publishHomeTab(client, owner, teamId).catch((error) => {
+            console.error(`Could not refresh App Home for ${owner} after cancelling a pace:`, error);
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error cancelling scheduled meetup:", error);
+    }
+  });
+
   // Action: Prefill the schedule modal from a saved template
   app.action("template_select", async ({ ack, body, client }) => {
     await ack();

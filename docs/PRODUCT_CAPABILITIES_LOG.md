@@ -9,6 +9,13 @@
 * **Cambio**: la sección 3 pasa a "Lo que no recopilamos ni usamos": sin audio ni transcripciones, la app recibe los mensajes de los canales y grupos donde está añadida, lee solo los mensajes de sistema de Huddle y no usa, guarda ni indexa ningún otro contenido. Se añade a la sección 2 el uso de `users:read` (zona horaria y rol admin/owner, sin nombres ni correos). Fecha de actualización: 7 de octubre de 2026. Inglés y español.
 * **Verificado en el código**: el esquema de Prisma no guarda texto de mensajes; `users.info` solo lee `tz` y `is_admin`/`is_owner`; `users.list` solo identifica miembros no bot para refrescar el App Home.
 
+## [2026-10-07] Botón Cancelar para Paces sin Iniciar (v1.10.0)
+* **Problema**: un pace agendado solo se podía editar o reprogramar. No había forma de descartarlo, así que seguía vigilando Huddles, ocupaba su hueco de ±20 min y retenía su código `m1`.
+* **Cambio**: botón **🗑️ Cancel** con confirmación (*Cancel this pace?*) en el App Home, en *My Scheduled Meetups*, *Manual start* y *Missed*, para speakers y creador (mismo criterio que Edit; el Home sigue sin distinguir managers). La acción `cancel_scheduled_meetup_action` repite las comprobaciones de Edit (mismo workspace, estado editable, `canUserManageMeetup`) y llama a `MeetupService.cancelMeetup`, que pasa el pace a `CANCELLED` solo si sigue en `SCHEDULED`, `MANUAL_START` o `MISSED` y libera `manualStartCode`. Refresca el Home del actor, el creador y los speakers.
+* **Sin migración**: `CANCELLED` ya estaba en el comentario de `Meetup.status`. Las consultas de captura, conflictos y Home filtran por estado y lo ignoran; las analíticas cuentan solo `COMPLETED`.
+* **Manual start**: el botón Edit pasó de accesorio de la sección a una fila de acciones junto a Cancel.
+* **Cobertura**: 227 pruebas.
+
 ## [2026-10-07] Huddles en Mensajes Directos de Grupo (v1.9.0)
 * **Problema**: `mpim:history` estaba en el manifest y en el README ("detecta Huddles en mensajes directos de grupo"), pero nada lo usaba: el manifest no suscribía `message.mpim` y el selector de canal del modal excluía los grupos.
 * **Cambio**: el manifest suscribe `message.mpim`; el `conversations_select` del modal incluye `mpim` (`filter.include: ["public", "private", "mpim"]`). La detección, el esquema de validación y `findChannelHuddles` ya eran genéricos y no cambian. `ensureBotInChannel` distingue un grupo (`is_mpim`) de un canal privado: si el bot no es miembro, avisa que hay que añadirlo en vez de pedir `/invite`.
