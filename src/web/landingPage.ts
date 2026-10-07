@@ -53,6 +53,7 @@ const PAGE_PAIRS: Array<{ file: string; metaKey: string; enPath: string; esPath:
   { file: "sprint-retrospective-agenda.html", metaKey: "retroMeta", enPath: "/sprint-retrospective-agenda", esPath: "/es/agenda-retrospectiva-sprint" },
   { file: "privacy.html", metaKey: "privacyMeta", enPath: "/privacy", esPath: "/es/privacy" },
   { file: "terms.html", metaKey: "termsMeta", enPath: "/terms", esPath: "/es/terms" },
+  { file: "support.html", metaKey: "supportMeta", enPath: "/support", esPath: "/es/soporte" },
 ];
 
 const PAGES: Record<string, PageDef> = {};

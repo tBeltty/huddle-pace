@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy | HuddlePace Slack App</title>
+  <title>Support | HuddlePace Slack App</title>
 
   <!-- Primary Meta Tags -->
-  <meta name="description" content="How HuddlePace collects, uses, and protects data when you install the Slack app. Zero audio recording, zero transcripts, plain-language data practices.">
+  <meta name="description" content="Get help with HuddlePace: use the Help widget, email hello@huddlepace.com, or send a message from the contact form.">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://huddlepace.com/privacy">
+  <link rel="canonical" href="https://huddlepace.com/support">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://huddlepace.com/privacy">
-  <meta property="og:title" content="Privacy Policy | HuddlePace Slack App">
-  <meta property="og:description" content="How HuddlePace collects, uses, and protects data when you install the Slack app.">
+  <meta property="og:url" content="https://huddlepace.com/support">
+  <meta property="og:title" content="Support | HuddlePace Slack App">
+  <meta property="og:description" content="Get help with HuddlePace, the Slack Huddle timer.">
   <meta property="og:image" content="https://huddlepace.com/assets/og-image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -22,8 +22,8 @@
   <meta property="og:site_name" content="HuddlePace">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Privacy Policy | HuddlePace Slack App">
-  <meta name="twitter:description" content="How HuddlePace collects, uses, and protects data when you install the Slack app.">
+  <meta name="twitter:title" content="Support | HuddlePace Slack App">
+  <meta name="twitter:description" content="Get help with HuddlePace, the Slack Huddle timer.">
   <meta name="twitter:image" content="https://huddlepace.com/assets/og-image.jpg">
   <meta name="twitter:image:alt" content="Vector, the HuddlePace falcon, next to a Slack Huddle progress bar">
 
@@ -32,10 +32,10 @@
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "WebPage",
-        "@id": "https://huddlepace.com/privacy#page",
-        "url": "https://huddlepace.com/privacy",
-        "name": "Privacy Policy",
+        "@type": "ContactPage",
+        "@id": "https://huddlepace.com/support#page",
+        "url": "https://huddlepace.com/support",
+        "name": "Support",
         "inLanguage": "en",
         "isPartOf": { "@id": "https://huddlepace.com/#website" }
       },
@@ -43,7 +43,7 @@
         "@type": "BreadcrumbList",
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://huddlepace.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Privacy Policy", "item": "https://huddlepace.com/privacy" }
+          { "@type": "ListItem", "position": 2, "name": "Support", "item": "https://huddlepace.com/support" }
         ]
       }
     ]
@@ -97,86 +97,60 @@
     <main id="main">
     <section class="legal-hero">
       <div class="badge-pilot">
-        <span data-i18n="privacyBadge">🔒 Privacy Policy</span>
+        <span data-i18n="supportBadge">💬 Support</span>
       </div>
-      <h1 data-i18n="privacyTitle">Your data, plainly explained</h1>
-      <p data-i18n="privacyLead">HuddlePace does not record audio or store transcripts. We only retain the timestamps and agenda modules needed to run your meeting timers.</p>
+      <h1 data-i18n="supportTitle">How can we help?</h1>
+      <p data-i18n="supportLead">Pick the way that suits you. Every message reaches the same team.</p>
     </section>
 
     <section class="legal-content">
-      <p class="legal-updated" data-i18n="privacyUpdated">Last updated: October 6, 2026</p>
-
       <section>
-        <h2 data-i18n="privacyS1Title">1. Overview</h2>
-        <p data-i18n="privacyS1Body">HuddlePace ("HuddlePace", "we", "us") is a Slack app operated by tBeltty. This policy explains what data we collect when you install and use HuddlePace inside your Slack workspace, why we collect it, and how you can control it. Installing HuddlePace means you accept the practices described here.</p>
+        <h2 data-i18n="supportWidgetTitle">Chat with us on this site</h2>
+        <p data-i18n="supportWidgetBody">Use the Help widget in the bottom corner of this page to start a conversation. You can leave your email there and we will answer you by mail if you close the tab.</p>
       </section>
 
       <section>
-        <h2 data-i18n="privacyS2Title">2. Information We Collect</h2>
-        <p data-i18n="privacyS2Intro"><strong>Slack workspace data.</strong> When your workspace admin installs HuddlePace via "Add to Slack" (OAuth v2), Slack shares the following with us, scoped to the permissions you approve:</p>
-        <ul>
-          <li data-i18n="privacyS2Item1">Workspace/team ID and name, and the bot access token needed to post and update timer messages.</li>
-          <li data-i18n="privacyS2Item2">Channel IDs where a session is scheduled or a Huddle is detected, so Vector can post and update the tracking card.</li>
-          <li data-i18n="privacyS2Item3">User IDs of session organizers and assigned speakers, used only to verify who may start, transition, or conclude a session and to send them private DM reminders.</li>
-          <li data-i18n="privacyS2Item4">Agenda structure you enter yourself: module names, percentage allocations, and total meeting duration.</li>
-        </ul>
-        <p data-i18n="privacyS2Support"><strong>Support data.</strong> If you use the "Help" widget on this site or contact hello@huddlepace.com, we (via our support platform, the tBelt dashboard) collect the name, email address, and message content you choose to submit, solely to respond to your request.</p>
-        <p data-i18n="privacyS2Technical"><strong>Technical data.</strong> This website does not store a language preference. The language is set by the page address (<code>/es/</code> for Spanish). We do not use advertising or cross-site tracking cookies.</p>
+        <h2 data-i18n="supportFaqTitle">Quick answers</h2>
+        <p data-i18n="supportFaqBody">Most setup questions are covered in the <a href="/#faq">FAQ</a>. If you are installing HuddlePace, <a href="https://huddlepace.com/slack/install" rel="nofollow">Add to Slack</a> starts the standard Slack permission screen.</p>
       </section>
 
       <section>
-        <h2 data-i18n="privacyS3Title">3. What We Never Collect</h2>
-        <p data-i18n="privacyS3Body">HuddlePace does not request Huddle audio, does not record calls, does not generate transcripts, and does not read channel messages. We only process the slash commands and interactive buttons triggered directly by your team. This architectural constraint is built directly into our codebase.</p>
+        <h2 data-i18n="supportEmailTitle">Email us</h2>
+        <p data-i18n="supportEmailBody">Write to <a href="mailto:hello@huddlepace.com">hello@huddlepace.com</a>. Include your Slack workspace name and the channel where the issue happened, so we can find it faster.</p>
       </section>
 
       <section>
-        <h2 data-i18n="privacyS4Title">4. How We Use Information</h2>
-        <ul>
-          <li data-i18n="privacyS4Item1">Operate core functionality: starting, tracking, and concluding timeboxed sessions, and posting progress updates to the right channel or thread.</li>
-          <li data-i18n="privacyS4Item2">Enforce role-gated controls, so only assigned speakers or organizers can control a session.</li>
-          <li data-i18n="privacyS4Item3">Generate the pacing reports and 30-day session history available to your workspace via <code>/pace report</code> and the App Home tab.</li>
-          <li data-i18n="privacyS4Item4">Respond to support requests submitted through the Help widget or by email.</li>
-        </ul>
-        <p data-i18n="privacyS4NoAi">We do not send any workspace data to third-party LLMs or paid AI APIs. HuddlePace has zero external AI dependency.</p>
+        <h2 data-i18n="supportFormTitle">Send a message</h2>
+        <p data-i18n="supportFormIntro">Fill in the form and your email app opens with the message ready to send.</p>
+        <form id="support-form" class="support-form">
+          <div class="contact-form-group">
+            <label for="support-name" data-i18n="contactNameLabel">Your Name</label>
+            <input type="text" id="support-name" name="name" autocomplete="name" required />
+          </div>
+          <div class="contact-form-group">
+            <label for="support-email" data-i18n="contactEmailLabel">Your Email</label>
+            <input type="email" id="support-email" name="email" autocomplete="email" required />
+          </div>
+          <div class="contact-form-group">
+            <label for="support-workspace" data-i18n="supportWorkspaceLabel">Slack workspace (optional)</label>
+            <input type="text" id="support-workspace" name="workspace" />
+          </div>
+          <div class="contact-form-group">
+            <label for="support-subject" data-i18n="contactSubjectLabel">Subject</label>
+            <input type="text" id="support-subject" name="subject" required />
+          </div>
+          <div class="contact-form-group">
+            <label for="support-message" data-i18n="contactMessageLabel">Message</label>
+            <textarea id="support-message" name="message" rows="6" required></textarea>
+          </div>
+          <button type="submit" class="contact-modal-submit" data-i18n="contactSendBtn">Send Message</button>
+          <p class="contact-modal-hint" data-i18n="supportFormHint">Opens your email app, addressed to hello@huddlepace.com.</p>
+        </form>
       </section>
 
       <section>
-        <h2 data-i18n="privacyS5Title">5. Who We Share Data With</h2>
-        <p data-i18n="privacyS5Intro">We do not sell your data. We share the minimum necessary with:</p>
-        <ul>
-          <li data-i18n="privacyS5Item1"><strong>Slack Technologies, LLC</strong>: the platform that transmits and receives our app's API calls. Slack's own privacy practices apply to your use of Slack itself.</li>
-          <li data-i18n="privacyS5Item2"><strong>tBelt Dashboard</strong>: our support ticketing platform (operated by tBeltty). When you submit a support request, the name, email, and message you provide are processed there so a human can reply to you.</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2 data-i18n="privacyS6Title">6. Data Storage &amp; Retention</h2>
-        <p data-i18n="privacyS6Body">Workspace and session data is stored in a self-hosted database (SQLite via Prisma) that HuddlePace operates directly. It is never shared with third-party data warehouses or analytics platforms. OAuth access tokens are stored encrypted at rest. Session and agenda records are retained to power your 30-day pacing reports; you can request earlier deletion at any time (see Section 8). Uninstalling HuddlePace revokes our access token immediately; we delete the associated workspace record within 30 days of uninstallation.</p>
-      </section>
-
-      <section>
-        <h2 data-i18n="privacyS7Title">7. Security</h2>
-        <p data-i18n="privacyS7Body">All traffic between Slack and HuddlePace is verified using HMAC-SHA256 request signing. Each workspace's credentials are isolated from every other workspace (multi-tenant isolation), ensuring no workspace can access another's data, tokens, or session history.</p>
-      </section>
-
-      <section>
-        <h2 data-i18n="privacyS8Title">8. Your Rights &amp; Choices</h2>
-        <p data-i18n="privacyS8Body">You can uninstall HuddlePace from your Slack workspace at any time from Slack's App Management settings, which immediately revokes our access. To request a copy or deletion of your workspace's data ahead of the standard retention window, email <a href="mailto:hello@huddlepace.com">hello@huddlepace.com</a> or use the Help widget on this site.</p>
-      </section>
-
-      <section>
-        <h2 data-i18n="privacyS9Title">9. Children's Privacy</h2>
-        <p data-i18n="privacyS9Body">HuddlePace is a business productivity tool intended for use by Slack workspace members in a professional context. It is not directed at, and we do not knowingly collect data from, children under 16.</p>
-      </section>
-
-      <section>
-        <h2 data-i18n="privacyS10Title">10. Changes to This Policy</h2>
-        <p data-i18n="privacyS10Body">We may update this policy as HuddlePace evolves. Material changes will be reflected by updating the "Last updated" date above. Continued use of HuddlePace after a change constitutes acceptance of the revised policy.</p>
-      </section>
-
-      <section>
-        <h2 data-i18n="privacyS11Title">11. Contact Us</h2>
-        <p data-i18n="privacyS11Body">Questions about this policy or your data? Reach us at <a href="mailto:hello@huddlepace.com">hello@huddlepace.com</a> or via the Help widget in the corner of this page.</p>
+        <h2 data-i18n="supportPrivacyTitle">What we do with your message</h2>
+        <p data-i18n="supportPrivacyBody">We use your name, email and message only to answer you. Details are in the <a href="/privacy">Privacy Policy</a>.</p>
       </section>
     </section>
     </main>
@@ -242,6 +216,23 @@
       </div>
     </footer>
   </div>
+
+
+  <script>
+    (function () {
+      var form = document.getElementById('support-form');
+      if (!form) return;
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var v = function (id) { return document.getElementById(id).value.trim(); };
+        var workspace = v('support-workspace');
+        var body = v('support-message') + '\n\n---\n' + v('support-name') + ' <' + v('support-email') + '>' +
+          (workspace ? '\nWorkspace: ' + workspace : '');
+        window.location.href = 'mailto:hello@huddlepace.com?subject=' + encodeURIComponent(v('support-subject')) +
+          '&body=' + encodeURIComponent(body);
+      });
+    })();
+  </script>
 
   <script>
     (function () {

@@ -431,7 +431,7 @@
             <ul>
               <li><a href="/privacy" data-i18n="fCol3Privacy">Privacy Policy</a></li>
               <li><a href="/terms" data-i18n="fCol3Terms">Terms of Service</a></li>
-              <li><a href="mailto:support@huddlepace.com" id="footer-contact-link" data-i18n="fCol3Support">Contact Support</a></li>
+              <li><a href="/support" id="footer-contact-link" data-i18n="fCol3Support">Contact Support</a></li>
               <li><a href="https://github.com/tBeltty/huddle-pace/releases" target="_blank" rel="noopener noreferrer"><span data-i18n="fCol3Changelog">Release Notes</span> <span class="version-tag">v__APP_VERSION__</span></a></li>
             </ul>
           </div>
@@ -532,7 +532,7 @@
         contactSubjectLabel: "Subject",
         contactMessageLabel: "Message",
         contactSendBtn: "Send Message",
-        contactModalHint: "Opens your email app, addressed to support@huddlepace.com."
+        contactModalHint: "Opens your email app, addressed to hello@huddlepace.com."
       },
       es: {
         navVector: "Conoce a Vector",
@@ -613,7 +613,7 @@
         contactSubjectLabel: "Asunto",
         contactMessageLabel: "Mensaje",
         contactSendBtn: "Enviar Mensaje",
-        contactModalHint: "Abre tu cliente de correo, dirigido a support@huddlepace.com."
+        contactModalHint: "Abre tu cliente de correo, dirigido a hello@huddlepace.com."
       }
     };
 
@@ -727,7 +727,7 @@
         const message = document.getElementById('contact-message').value.trim();
 
         const body = `${message}\n\n---\n${name} <${email}>`;
-        const mailtoUrl = `mailto:support@huddlepace.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        const mailtoUrl = `mailto:hello@huddlepace.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         window.location.href = mailtoUrl;
         closeModal();
         form.reset();
@@ -940,7 +940,7 @@
           <textarea id="contact-message" name="message" rows="5" required></textarea>
         </div>
         <button type="submit" class="contact-modal-submit" data-i18n="contactSendBtn">Send Message</button>
-        <p class="contact-modal-hint" data-i18n="contactModalHint">Opens your email app, addressed to support@huddlepace.com.</p>
+        <p class="contact-modal-hint" data-i18n="contactModalHint">Opens your email app, addressed to hello@huddlepace.com.</p>
       </form>
     </div>
   </div>

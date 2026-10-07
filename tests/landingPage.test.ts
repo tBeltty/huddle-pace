@@ -423,7 +423,7 @@ describe("Web Landing Page & Asset Delivery", () => {
   describe("sitemap.xml and robots.txt", () => {
     test("sitemap lists every page in both languages with hreflang alternates", () => {
       const xml = buildSitemapXml();
-      for (const loc of ["/", "/es/", "/privacy", "/es/privacy", "/terms", "/es/terms", "/slack-huddle-timer", "/es/temporizador-huddle-slack", "/daily-standup-timer-slack", "/es/temporizador-daily-standup-slack", "/engineering-managers-meeting-timer", "/es/temporizador-reuniones-engineering-managers", "/client-call-timer-slack", "/es/temporizador-llamadas-clientes-slack", "/sprint-retrospective-agenda", "/es/agenda-retrospectiva-sprint"]) {
+      for (const loc of ["/", "/es/", "/privacy", "/es/privacy", "/terms", "/es/terms", "/support", "/es/soporte", "/slack-huddle-timer", "/es/temporizador-huddle-slack", "/daily-standup-timer-slack", "/es/temporizador-daily-standup-slack", "/engineering-managers-meeting-timer", "/es/temporizador-reuniones-engineering-managers", "/client-call-timer-slack", "/es/temporizador-llamadas-clientes-slack", "/sprint-retrospective-agenda", "/es/agenda-retrospectiva-sprint"]) {
         assert.match(xml, new RegExp(`<loc>https://huddlepace\\.com${loc}</loc>`));
       }
       assert.match(xml, /hreflang="x-default"/);
