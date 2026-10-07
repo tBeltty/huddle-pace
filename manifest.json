@@ -28,7 +28,7 @@
         "command": "/pace",
         "url": "https://huddlepace.com/slack/events",
         "description": "Open HuddlePace meeting management and scheduling",
-        "usage_hint": "[schedule | status]",
+        "usage_hint": "[15m | start <code> | status | report | settings]",
         "should_escape": false
       }
     ]

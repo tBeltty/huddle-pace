@@ -1,4 +1,5 @@
 import { prisma } from "../db/client.js";
+import { normalizeTimezoneSetting } from "../utils/timezone.js";
 
 export interface SubtopicInput {
   title: string;
@@ -15,6 +16,8 @@ export interface CreateMeetupDTO {
   teamId?: string;
   threadTs?: string | null;
   scheduledFor?: Date;
+  /** Saves the meetup outside automatic capture; started with /pace start <code>. */
+  manualStart?: boolean;
   reminderTextEnabled?: boolean;
   reminderImageEnabled?: boolean;
   modules: SubtopicInput[];
@@ -167,6 +170,7 @@ export class MeetupService {
     reminderImageEnabled: boolean;
     flexibilityMode: "STRICT" | "STANDARD" | "RELAXED";
     managerUserIds: string[];
+    timezone: string;
   }> {
     try {
       const settings = await prisma.workspaceSettings.findUnique({
@@ -185,6 +189,7 @@ export class MeetupService {
           reminderImageEnabled: settings.reminderImageEnabled,
           flexibilityMode: (settings.flexibilityMode as any) || "STANDARD",
           managerUserIds: managers,
+          timezone: normalizeTimezoneSetting(settings.timezone),
         };
       }
     } catch (err) {
@@ -195,6 +200,7 @@ export class MeetupService {
       reminderImageEnabled: false,
       flexibilityMode: "STANDARD",
       managerUserIds: [],
+      timezone: "PT",
     };
   }
 
@@ -208,6 +214,7 @@ export class MeetupService {
       reminderImageEnabled?: boolean;
       flexibilityMode?: "STRICT" | "STANDARD" | "RELAXED";
       managerUserIds?: string[] | string | null;
+      timezone?: string;
     }
   ) {
     let normalizedManagers: string | null | undefined = undefined;
@@ -227,6 +234,7 @@ export class MeetupService {
         ...(settings.reminderTextEnabled !== undefined ? { reminderTextEnabled: settings.reminderTextEnabled } : {}),
         ...(settings.reminderImageEnabled !== undefined ? { reminderImageEnabled: settings.reminderImageEnabled } : {}),
         ...(settings.flexibilityMode !== undefined ? { flexibilityMode: settings.flexibilityMode } : {}),
+        ...(settings.timezone !== undefined ? { timezone: normalizeTimezoneSetting(settings.timezone) } : {}),
         ...(normalizedManagers !== undefined ? { managerUserIds: normalizedManagers || null } : {}),
       },
       create: {
@@ -234,9 +242,24 @@ export class MeetupService {
         reminderTextEnabled: settings.reminderTextEnabled ?? true,
         reminderImageEnabled: settings.reminderImageEnabled ?? false,
         flexibilityMode: settings.flexibilityMode || "STANDARD",
+        timezone: normalizeTimezoneSetting(settings.timezone),
         managerUserIds: normalizedManagers || null,
       },
     });
+  }
+
+  /**
+   * Who may start a pace by hand: its speakers, the person who created it, and workspace
+   * managers (delegated Bot Managers, the installer, Slack Admins and Owners).
+   */
+  static async canUserStartMeetup(
+    client: unknown,
+    meetup: { speakerUserId: string; createdByUserId: string | null; teamId: string },
+    userId: string
+  ): Promise<boolean> {
+    if (this.parseSpeakerIds(meetup.speakerUserId).includes(userId)) return true;
+    if (meetup.createdByUserId === userId) return true;
+    return await this.isUserWorkspaceManager(client, userId, meetup.teamId);
   }
 
   /**
@@ -331,7 +354,8 @@ export class MeetupService {
         createdByUserId: data.createdByUserId || null,
         isPrivate: data.isPrivate ?? false,
         scheduledFor: data.scheduledFor || new Date(),
-        status: "SCHEDULED",
+        status: data.manualStart ? "MANUAL_START" : "SCHEDULED",
+        manualStartCode: data.manualStart ? await this.nextManualStartCode(data.channelId, data.teamId) : null,
         reminderTextEnabled: textEnabled,
         reminderImageEnabled: imageEnabled,
         modules: {
@@ -551,14 +575,15 @@ export class MeetupService {
    * Edits a meetup that has not started yet. Replaces its modules and keeps its schedule slot.
    * Returns null when the meetup is missing or no longer SCHEDULED.
    */
-  static async updateScheduledMeetup(id: string, data: Omit<CreateMeetupDTO, "teamId" | "scheduledFor">) {
+  static async updateScheduledMeetup(id: string, data: Omit<CreateMeetupDTO, "teamId">) {
     const computedModules = this.calculateModuleAllocations(data.totalMinutes, data.modules);
 
     return await prisma.$transaction(async (tx) => {
       const claimed = await tx.meetup.updateMany({
-        where: { id, status: "SCHEDULED" },
+        where: { id, status: { in: ["SCHEDULED", "MANUAL_START"] } },
         data: {
           title: data.title.trim(),
+          ...(data.scheduledFor ? { scheduledFor: data.scheduledFor } : {}),
           totalMinutes: data.totalMinutes,
           channelId: data.channelId,
           threadTs: data.threadTs || null,
@@ -578,6 +603,137 @@ export class MeetupService {
         where: { id },
         include: { modules: { orderBy: { orderIndex: "asc" } } },
       });
+    });
+  }
+
+  /**
+   * Atomically claims a SCHEDULED or MANUAL_START meetup for launch. Only the caller that
+   * flips the status gets `true`, so two speakers entering one Huddle (or the timer worker
+   * racing a Huddle event) cannot publish two trackers for the same meetup.
+   * Returns the status the meetup had before the claim, or null when it was already taken.
+   */
+  static async claimMeetupForLaunch(id: string): Promise<"SCHEDULED" | "MANUAL_START" | null> {
+    const meetup = await prisma.meetup.findUnique({ where: { id } });
+    if (!meetup || (meetup.status !== "SCHEDULED" && meetup.status !== "MANUAL_START")) return null;
+
+    const now = new Date();
+    const claimed = await prisma.meetup.updateMany({
+      where: { id, status: meetup.status },
+      data: {
+        status: "ACTIVE",
+        startedAt: now,
+        endsAt: new Date(now.getTime() + meetup.totalMinutes * 60_000),
+        manualStartCode: null,
+      },
+    });
+    return claimed.count === 1 ? meetup.status : null;
+  }
+
+  /** Puts a claimed meetup back when its tracker could not be posted. */
+  static async releaseLaunchClaim(id: string, previousStatus: "SCHEDULED" | "MANUAL_START", manualStartCode?: string | null) {
+    await prisma.meetup.updateMany({
+      where: { id, status: "ACTIVE", trackerMessageTs: null },
+      data: { status: previousStatus, startedAt: null, endsAt: null, manualStartCode: manualStartCode ?? null },
+    });
+  }
+
+  /**
+   * Finds a SCHEDULED meetup in the channel whose time sits within the capture window of
+   * `scheduledFor`. Two paces that close would compete for the same Huddle.
+   */
+  static async findScheduleConflict(
+    channelId: string,
+    teamId: string | undefined,
+    scheduledFor: Date,
+    excludeMeetupId?: string
+  ) {
+    const radiusMilliseconds = this.CAPTURE_WINDOW_MINUTES * 60_000;
+    return await prisma.meetup.findFirst({
+      where: {
+        channelId,
+        status: "SCHEDULED",
+        ...(teamId && teamId !== "default" ? { teamId } : {}),
+        ...(excludeMeetupId ? { id: { not: excludeMeetupId } } : {}),
+        scheduledFor: {
+          gte: new Date(scheduledFor.getTime() - radiusMilliseconds),
+          lte: new Date(scheduledFor.getTime() + radiusMilliseconds),
+        },
+      },
+      orderBy: { scheduledFor: "asc" },
+    });
+  }
+
+  /** Next free manual start code (m1, m2...) among the channel's Manual start meetups. */
+  static async nextManualStartCode(channelId: string, teamId?: string): Promise<string> {
+    const taken = await prisma.meetup.findMany({
+      where: {
+        channelId,
+        status: "MANUAL_START",
+        ...(teamId && teamId !== "default" ? { teamId } : {}),
+      },
+      select: { manualStartCode: true },
+    });
+    const used = new Set(taken.map((m) => m.manualStartCode));
+    let n = 1;
+    while (used.has(`m${n}`)) n++;
+    return `m${n}`;
+  }
+
+  /** Moves a SCHEDULED meetup out of automatic capture and gives it the channel's next manual start code. */
+  static async moveToManualStart(id: string) {
+    const meetup = await prisma.meetup.findUnique({ where: { id } });
+    if (!meetup || meetup.status !== "SCHEDULED") return null;
+    const manualStartCode = await this.nextManualStartCode(meetup.channelId, meetup.teamId);
+    const moved = await prisma.meetup.updateMany({
+      where: { id, status: "SCHEDULED" },
+      data: { status: "MANUAL_START", manualStartCode },
+    });
+    if (moved.count === 0) return null;
+    return await prisma.meetup.findUnique({ where: { id }, include: { modules: { orderBy: { orderIndex: "asc" } } } });
+  }
+
+  /**
+   * Moves SCHEDULED meetups whose capture window closed without a Huddle to Manual start,
+   * one at a time so each gets its own code. Returns the meetups that moved.
+   */
+  static async moveMissedToManualStart(now: Date = new Date()) {
+    const cutoff = new Date(now.getTime() - this.CAPTURE_WINDOW_MINUTES * 60_000);
+    const missed = await prisma.meetup.findMany({
+      where: { status: "SCHEDULED", scheduledFor: { lt: cutoff } },
+      orderBy: { scheduledFor: "asc" },
+      select: { id: true },
+    });
+
+    const moved = [];
+    for (const { id } of missed) {
+      const meetup = await this.moveToManualStart(id);
+      if (meetup) moved.push(meetup);
+    }
+    return moved;
+  }
+
+  /** Meetups waiting for `/pace start <code>` in a channel, oldest code first. */
+  static async getManualStartMeetups(channelId: string, teamId?: string) {
+    const list = await prisma.meetup.findMany({
+      where: {
+        channelId,
+        status: "MANUAL_START",
+        ...(teamId && teamId !== "default" ? { teamId } : {}),
+      },
+      include: { modules: { orderBy: { orderIndex: "asc" } } },
+    });
+    return list.sort((a, b) => (a.manualStartCode ?? "").localeCompare(b.manualStartCode ?? "", undefined, { numeric: true }));
+  }
+
+  static async findManualStartMeetup(channelId: string, code: string, teamId?: string) {
+    return await prisma.meetup.findFirst({
+      where: {
+        channelId,
+        status: "MANUAL_START",
+        manualStartCode: code.toLowerCase(),
+        ...(teamId && teamId !== "default" ? { teamId } : {}),
+      },
+      include: { modules: { orderBy: { orderIndex: "asc" } } },
     });
   }
 
@@ -822,11 +978,50 @@ export class MeetupService {
     });
   }
 
+  /** A Huddle only captures a scheduled meetup starting within this many minutes of now (before or after). */
+  static readonly CAPTURE_WINDOW_MINUTES = 20;
+
   /**
-   * Finds the next scheduled meetup awaiting launch in a specific channel.
+   * Picks the scheduled meetup a Huddle starting at `now` belongs to: the one nearest to
+   * now among those inside the capture window (±CAPTURE_WINDOW_MINUTES of scheduledFor).
+   * With several meetups on the same day, each Huddle captures only its own.
+   * A meetup without scheduledFor has no window and is always eligible.
    */
-  static async findPendingScheduledMeetup(channelId: string, teamId?: string) {
-    return await prisma.meetup.findFirst({
+  static pickClosestToNow<T extends { scheduledFor: Date | null }>(
+    meetups: T[],
+    now: Date = new Date(),
+    windowMinutes: number = this.CAPTURE_WINDOW_MINUTES
+  ): T | undefined {
+    const windowMilliseconds = windowMinutes * 60_000;
+    let best: T | undefined;
+    let bestDistanceMilliseconds = Infinity;
+    for (const m of meetups) {
+      const distance = m.scheduledFor ? Math.abs(m.scheduledFor.getTime() - now.getTime()) : 0;
+      if (distance <= windowMilliseconds && distance < bestDistanceMilliseconds) {
+        best = m;
+        bestDistanceMilliseconds = distance;
+      }
+    }
+    return best;
+  }
+
+  /** Paces saved for manual start across a workspace, for the App Home. */
+  static async getManualStartMeetupsForTeam(teamId?: string) {
+    return await prisma.meetup.findMany({
+      where: { status: "MANUAL_START", ...(teamId ? { teamId } : {}) },
+      orderBy: [{ channelId: "asc" }, { manualStartCode: "asc" }],
+      take: 20,
+      include: { modules: { orderBy: { orderIndex: "asc" } } },
+    });
+  }
+
+  /**
+   * Finds the scheduled meetup awaiting launch in a specific channel that is closest to now.
+   * Automatic detection only takes meetups inside the capture window; pass `anyTime` when a
+   * person asked for it explicitly (/pace start, @mention) and the window should not apply.
+   */
+  static async findPendingScheduledMeetup(channelId: string, teamId?: string, options: { anyTime?: boolean } = {}) {
+    const scheduled = await prisma.meetup.findMany({
       where: {
         channelId,
         status: "SCHEDULED",
@@ -837,6 +1032,7 @@ export class MeetupService {
         modules: { orderBy: { orderIndex: "asc" } },
       },
     });
+    return this.pickClosestToNow(scheduled, new Date(), options.anyTime ? Infinity : this.CAPTURE_WINDOW_MINUTES) ?? null;
   }
 
   /**
@@ -858,6 +1054,19 @@ export class MeetupService {
       const ids = this.parseSpeakerIds(m.speakerUserId);
       return ids.includes(speakerUserId);
     });
+  }
+
+  /**
+   * Returns the single scheduled meetup a speaker's Huddle should launch, or null when the
+   * speaker already has a meetup in flight (their other scheduled ones wait for a later Huddle).
+   */
+  static async findMeetupToLaunchForSpeaker(speakerUserId: string, teamId?: string) {
+    const active = await this.getActiveMeetups(teamId && teamId !== "default" ? teamId : undefined);
+    if (active.some((m) => this.parseSpeakerIds(m.speakerUserId).includes(speakerUserId))) {
+      return null;
+    }
+    const pending = await this.findPendingScheduledMeetupsForSpeaker(speakerUserId, teamId);
+    return this.pickClosestToNow(pending) ?? null;
   }
 
   /**

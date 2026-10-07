@@ -13,7 +13,12 @@ import {
 import { findChannelHuddles, DetectedHuddle } from "../utils/huddleDiscovery.js";
 import { rebalanceAfterEdit, addRowKeepingTotal } from "../../utils/percentages.js";
 import { launchMeetupInThread } from "./actionHandlers.js";
-import { scheduleModalInputSchema } from "../schemas/scheduleSchema.js";
+import { scheduleModalInputSchema, ScheduleModalInputDTO } from "../schemas/scheduleSchema.js";
+import { buildScheduleConflictModal } from "../ui/conflictModal.js";
+import { resolveZoneForUser, scheduleContextFor } from "../utils/scheduleZone.js";
+import { stashPendingSchedule, takePendingSchedule } from "../utils/pendingSchedule.js";
+import { PendingSchedule, createScheduledMeetup, updateScheduledMeetup } from "./scheduleSubmission.js";
+import { PT_ZONE, formatEventTime, isValidZone, normalizeTimezoneSetting, zonedWallTimeToUtc } from "../../utils/timezone.js";
 import { ensureBotInChannel } from "../utils/channelUtils.js";
 import { publishHomeTab } from "./homeHandlers.js";
 
@@ -36,6 +41,10 @@ function readScheduleModalState(values: Record<string, any>, metadata: any): Par
   }
 
   return {
+    zone: metadata.zone,
+    scheduleDate: getModalAction(values, "schedule_date_picker")?.selected_date || undefined,
+    scheduleTime: getModalAction(values, "schedule_time_picker")?.selected_time || undefined,
+    blockedRange: metadata.blocked,
     title: getModalAction(values, "title_input")?.value || "",
     channelId: getModalAction(values, "channel_select")?.selected_conversation || metadata.channelId,
     speakerUserIds: getModalAction(values, "speaker_select")?.selected_users || [],
@@ -65,6 +74,16 @@ async function loadTemplateOptions(teamId: string | undefined, userId: string | 
     console.warn("Could not load meetup templates:", error);
     return [];
   }
+}
+
+/** The date, time and zone fields of a modal state, so re-renders from a template keep them. */
+function scheduleSlice(state: Partial<ModalStateData>): Partial<ModalStateData> {
+  return {
+    zone: state.zone,
+    scheduleDate: state.scheduleDate,
+    scheduleTime: state.scheduleTime,
+    blockedRange: state.blockedRange,
+  };
 }
 
 export function registerModalHandlers(app: App) {
@@ -188,13 +207,16 @@ export function registerModalHandlers(app: App) {
       const userId = b.user?.id;
       const teamId = b.team?.id || b.user?.team_id || "default";
       const meetup = await MeetupService.getMeetupById(b.actions[0]?.value);
-      if (!meetup || meetup.teamId !== teamId || meetup.status !== "SCHEDULED") return;
+      if (!meetup || meetup.teamId !== teamId || (meetup.status !== "SCHEDULED" && meetup.status !== "MANUAL_START")) return;
       if (!MeetupService.parseSpeakerIds(meetup.speakerUserId).includes(userId)) return;
+
+      const zone = await resolveZoneForUser(client, userId, teamId);
 
       const hasSpecificThread = !!meetup.threadTs && meetup.threadTs !== "auto" && meetup.threadTs !== "main";
       await client.views.open({
         trigger_id: b.trigger_id,
         view: buildScheduleModal({
+          ...scheduleContextFor(meetup.scheduledFor, zone),
           editMeetupId: meetup.id,
           title: meetup.title,
           channelId: meetup.channelId,
@@ -242,6 +264,7 @@ export function registerModalHandlers(app: App) {
         view_id: b.view.id,
         view: buildScheduleModal({
           ...templateToModalState(template, userId, huddles),
+          ...scheduleSlice(readScheduleModalState(b.view.state.values, JSON.parse(b.view.private_metadata || "{}"))),
           templates,
           selectedTemplateId: template.id,
           rev: Date.now().toString(36),
@@ -369,138 +392,189 @@ export function registerModalHandlers(app: App) {
 
     const editMeetupId: string | undefined = metadata.meetupId;
     const teamId = body.team?.id || body.user?.team_id || "default";
+    const userId: string = body.user.id;
     const validatedData = validationResult.data;
+    const zone: string = isValidZone(metadata.zone) ? metadata.zone : PT_ZONE;
+    const titleBlock = findModalBlockId(values, "title_input") ?? "title_block";
+    const timeBlock = findModalBlockId(values, "schedule_time_picker") ?? "schedule_time_block";
 
+    const existing = editMeetupId ? await MeetupService.getMeetupById(editMeetupId) : null;
     if (editMeetupId) {
-      const existing = await MeetupService.getMeetupById(editMeetupId);
-      const titleBlock = findModalBlockId(values, "title_input") ?? "title_block";
       if (!existing || existing.teamId !== teamId) {
         await ack({ response_action: "errors", errors: { [titleBlock]: "This meetup no longer exists." } });
         return;
       }
-      if (!MeetupService.parseSpeakerIds(existing.speakerUserId).includes(body.user.id)) {
+      if (!MeetupService.parseSpeakerIds(existing.speakerUserId).includes(userId)) {
         await ack({ response_action: "errors", errors: { [titleBlock]: "Only the designated speaker(s) can edit this meetup." } });
         return;
       }
-      if (existing.status !== "SCHEDULED") {
+      if (existing.status !== "SCHEDULED" && existing.status !== "MANUAL_START") {
         await ack({ response_action: "errors", errors: { [titleBlock]: "This meetup already started and can no longer be edited." } });
         return;
       }
+    }
 
-      await ack();
-      await ensureBotInChannel(client, validatedData.channelId, body.user.id);
-
-      try {
-        const updated = await MeetupService.updateScheduledMeetup(editMeetupId, {
-          title: validatedData.title,
-          totalMinutes: validatedData.totalMinutes,
-          channelId: validatedData.channelId,
-          speakerUserId: validatedData.speakerUserId,
-          threadTs: validatedData.threadTs,
-          reminderTextEnabled: validatedData.reminderTextEnabled,
-          reminderImageEnabled: validatedData.reminderImageEnabled,
-          isPrivate: validatedData.isPrivate,
-          modules: validatedData.modules,
-        });
-
-        const usersToRefresh = Array.from(
-          new Set([
-            body.user.id,
-            ...MeetupService.parseSpeakerIds(existing.speakerUserId),
-            ...MeetupService.parseSpeakerIds(validatedData.speakerUserId),
-          ])
-        );
-        for (const uid of usersToRefresh) {
-          publishHomeTab(client, uid, teamId).catch((err) => {
-            console.warn(`Failed to auto-refresh App Home for user ${uid}:`, err);
-          });
-        }
-
-        await client.chat.postMessage({
-          channel: body.user.id,
-          text: updated
-            ? `*Updated:* '${validatedData.title}' (${validatedData.totalMinutes}m) in <#${validatedData.channelId}>.`
-            : `⚠️ '${validatedData.title}' started before your changes were saved, so they were not applied.`,
-        });
-      } catch (error) {
-        console.error("Error updating meetup from modal submission:", error);
-      }
+    // Exact event time, read in the workspace zone
+    const pickedDate: string | undefined = getModalAction(values, "schedule_date_picker")?.selected_date;
+    const pickedTime: string | undefined = getModalAction(values, "schedule_time_picker")?.selected_time;
+    if (!pickedDate || !pickedTime) {
+      await ack({ response_action: "errors", errors: { [timeBlock]: "Pick the date and time of the Huddle." } });
+      return;
+    }
+    const scheduledFor = zonedWallTimeToUtc(pickedDate, pickedTime, zone);
+    const windowMilliseconds = MeetupService.CAPTURE_WINDOW_MINUTES * 60_000;
+    if (scheduledFor.getTime() + windowMilliseconds < Date.now()) {
+      await ack({ response_action: "errors", errors: { [timeBlock]: "That time has already passed. Pick a time from now on." } });
       return;
     }
 
-    // Acknowledge submission cleanly
+    // After "Change time" the range around the other pace stays blocked
+    const blocked = metadata.blocked as { from: string; to: string; title: string; channelId: string } | undefined;
+    if (
+      blocked &&
+      blocked.channelId === validatedData.channelId &&
+      scheduledFor.getTime() >= new Date(blocked.from).getTime() &&
+      scheduledFor.getTime() <= new Date(blocked.to).getTime()
+    ) {
+      await ack({
+        response_action: "errors",
+        errors: {
+          [timeBlock]: `Too close to "${blocked.title}". Pick a time before ${formatEventTime(new Date(blocked.from), zone)} or after ${formatEventTime(new Date(blocked.to), zone)}.`,
+        },
+      });
+      return;
+    }
+
+    // A pace that starts within the capture window of another would compete for the same Huddle
+    if (!existing || existing.status === "SCHEDULED") {
+      const conflict = await MeetupService.findScheduleConflict(validatedData.channelId, teamId, scheduledFor, editMeetupId);
+      if (conflict?.scheduledFor) {
+        const token = stashPendingSchedule<PendingSchedule>({
+          validatedData,
+          saveAsTemplate,
+          scheduledForIso: scheduledFor.toISOString(),
+          editMeetupId,
+          zone,
+          userId,
+          teamId,
+          formState: readScheduleModalState(values, metadata),
+          conflict: {
+            title: conflict.title,
+            scheduledForIso: conflict.scheduledFor.toISOString(),
+            channelId: validatedData.channelId,
+          },
+        });
+        const manualCode = existing?.manualStartCode ?? (await MeetupService.nextManualStartCode(validatedData.channelId, teamId));
+        await ack({
+          response_action: "push",
+          view: buildScheduleConflictModal({
+            token,
+            channelId: validatedData.channelId,
+            zone,
+            existingTitle: conflict.title,
+            existingTime: conflict.scheduledFor,
+            manualCode,
+          }),
+        });
+        return;
+      }
+    }
+
     await ack();
 
-    // Seamlessly ensure bot is present in target channel (auto-joins public channels)
-    await ensureBotInChannel(client, validatedData.channelId, body.user.id);
-
-    try {
-      await MeetupService.createMeetup({
-        title: validatedData.title,
-        totalMinutes: validatedData.totalMinutes,
-        channelId: validatedData.channelId,
-        speakerUserId: validatedData.speakerUserId,
-        createdByUserId: body.user.id,
-        isPrivate: validatedData.isPrivate,
-        threadTs: validatedData.threadTs,
-        teamId,
-        reminderTextEnabled: validatedData.reminderTextEnabled,
-        reminderImageEnabled: validatedData.reminderImageEnabled,
-        modules: validatedData.modules,
+    if (editMeetupId && existing) {
+      await updateScheduledMeetup({
+        client, userId, teamId, validatedData, saveAsTemplate, scheduledFor, zone,
+        manualStart: existing.status === "MANUAL_START",
+        editMeetupId,
+        previousSpeakerIds: MeetupService.parseSpeakerIds(existing.speakerUserId),
       });
+      return;
+    }
 
-      let templateNote = "";
-      if (saveAsTemplate) {
-        try {
-          await MeetupService.saveTemplate({
-            teamId,
-            ownerUserId: body.user.id,
-            name: validatedData.title,
-            channelId: validatedData.channelId,
-            speakerUserId: validatedData.speakerUserId,
-            totalMinutes: validatedData.totalMinutes,
-            threadTs: validatedData.threadTs,
-            reminderTextEnabled: validatedData.reminderTextEnabled,
-            reminderImageEnabled: validatedData.reminderImageEnabled,
-            modules: validatedData.modules,
-          });
-          templateNote = " Saved to My templates.";
-        } catch (templateError) {
-          console.error("Meetup scheduled but template could not be saved:", templateError);
-          templateNote = " The template could not be saved.";
-        }
-      }
+    await createScheduledMeetup({ client, userId, teamId, validatedData, saveAsTemplate, scheduledFor, zone, manualStart: false });
+  });
 
-      const speakerText = MeetupService.formatSpeakerMentions(speakerUserId);
-      const destinationNote = threadTs && threadTs !== "auto" && threadTs !== "main"
-        ? "locked to selected Huddle thread"
-        : threadTs === "main"
-        ? "main channel feed"
-        : "auto-detect active Huddle on launch";
+  // Submission: "Save for manual start" on the time conflict notice
+  app.view("submit_schedule_conflict_modal", async ({ ack, view, client }) => {
+    const { token } = JSON.parse(view.private_metadata || "{}");
+    const pending = takePendingSchedule<PendingSchedule>(token);
+    if (!pending) {
+      await ack({
+        response_action: "update",
+        view: {
+          type: "modal",
+          title: { type: "plain_text", text: "Time conflict" },
+          close: { type: "plain_text", text: "Close" },
+          blocks: [
+            {
+              type: "section",
+              text: { type: "mrkdwn", text: "This form expired. Close it and schedule the pace again." },
+            },
+          ],
+        },
+      });
+      return;
+    }
 
-      // Refresh App Home for creator and speakers so the session appears immediately
-      const usersToRefresh = Array.from(new Set([body.user.id, ...MeetupService.parseSpeakerIds(speakerUserId)]));
-      for (const uid of usersToRefresh) {
-        publishHomeTab(client, uid, teamId).catch((err) => {
-          console.warn(`Failed to auto-refresh App Home for user ${uid}:`, err);
-        });
-      }
+    await ack({ response_action: "clear" });
 
-      // Silent scheduling: post ephemeral confirmation to creator without public channel spam
-      try {
-        await client.chat.postEphemeral({
-          channel: channelId,
-          user: body.user.id,
-          text: `*Scheduled:* '${title}' (${totalMinutes}m) with ${speakerText} (${destinationNote}). Ready to launch from your Home tab!${templateNote}`,
-        });
-      } catch {
-        await client.chat.postMessage({
-          channel: body.user.id,
-          text: `*Scheduled:* '${title}' (${totalMinutes}m) in <#${channelId}> with ${speakerText} (${destinationNote}).`,
-        });
-      }
+    const request = {
+      client,
+      userId: pending.userId,
+      teamId: pending.teamId,
+      validatedData: pending.validatedData,
+      saveAsTemplate: pending.saveAsTemplate,
+      scheduledFor: new Date(pending.scheduledForIso),
+      zone: pending.zone,
+      manualStart: true,
+    };
+
+    if (pending.editMeetupId) {
+      const existing = await MeetupService.getMeetupById(pending.editMeetupId);
+      if (!existing || existing.teamId !== pending.teamId) return;
+      await updateScheduledMeetup({
+        ...request,
+        editMeetupId: pending.editMeetupId,
+        previousSpeakerIds: MeetupService.parseSpeakerIds(existing.speakerUserId),
+      });
+      return;
+    }
+    await createScheduledMeetup(request);
+  });
+
+  // "Change time" on the conflict notice: back to the form with the other pace's range blocked
+  app.view({ callback_id: "submit_schedule_conflict_modal", type: "view_closed" }, async ({ ack, view, client }) => {
+    await ack();
+    try {
+      const { token } = JSON.parse(view.private_metadata || "{}");
+      const pending = takePendingSchedule<PendingSchedule>(token);
+      if (!pending || !view.previous_view_id) return;
+
+      const windowMilliseconds = MeetupService.CAPTURE_WINDOW_MINUTES * 60_000;
+      const otherPaceAt = new Date(pending.conflict.scheduledForIso).getTime();
+      const from = new Date(otherPaceAt - windowMilliseconds);
+      const to = new Date(otherPaceAt + windowMilliseconds);
+      const fromLabel = formatEventTime(from, pending.zone);
+      const toLabel = formatEventTime(to, pending.zone);
+
+      await client.views.update({
+        view_id: view.previous_view_id,
+        view: buildScheduleModal({
+          ...pending.formState,
+          zone: pending.zone,
+          scheduleNotice: `🔒 *${fromLabel} to ${toLabel} is taken by "${pending.conflict.title}".* Pick a time before ${fromLabel} or after ${toLabel}.`,
+          blockedRange: {
+            from: from.toISOString(),
+            to: to.toISOString(),
+            title: pending.conflict.title,
+            channelId: pending.conflict.channelId,
+          },
+          rev: Date.now().toString(36),
+        }),
+      });
     } catch (error) {
-      console.error("Error creating meetup from modal submission:", error);
+      console.error("Error returning to the schedule form after a time conflict:", error);
     }
   });
 
@@ -535,12 +609,14 @@ export function registerModalHandlers(app: App) {
       const flexMode = values.flexibility_settings_block?.flexibility_mode_select?.selected_option?.value as any;
       const flexibilityMode = flexMode === "STRICT" || flexMode === "RELAXED" ? flexMode : "STANDARD";
 
+      const timezone = normalizeTimezoneSetting(values.timezone_settings_block?.timezone_select?.selected_option?.value);
       const managerSelected = values.manager_settings_block?.manager_users_select?.selected_users || [];
 
       await MeetupService.updateWorkspaceSettings(teamId, {
         reminderTextEnabled,
         reminderImageEnabled,
         flexibilityMode,
+        timezone,
         managerUserIds: managerSelected,
       });
 

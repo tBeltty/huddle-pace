@@ -1,6 +1,7 @@
 import { View, ModalView } from "@slack/bolt";
 import { renderProgressBar, formatMinutes } from "../../utils/progressBar.js";
 import { MeetupService, PacingReportStats } from "../../services/meetupService.js";
+import { PT_ZONE, formatEventDateTime } from "../../utils/timezone.js";
 
 interface MeetupWithModules {
   id: string;
@@ -9,12 +10,21 @@ interface MeetupWithModules {
   channelId: string;
   speakerUserId: string;
   startedAt: Date | null;
+  scheduledFor?: Date | null;
+  manualStartCode?: string | null;
   status: string;
   modules: Array<{
     title: string;
     percentage: number;
     durationMinutes: number;
   }>;
+}
+
+export interface HomeTabOptions {
+  /** Paces saved for manual start, started with /pace start <code>. */
+  manualStartMeetups?: MeetupWithModules[];
+  /** Zone event times are shown in. */
+  zone?: string;
 }
 
 /**
@@ -24,8 +34,14 @@ export function buildHomeTabView(
   activeMeetups: MeetupWithModules[],
   upcomingMeetups: MeetupWithModules[],
   _stats?: PacingReportStats,
-  currentUserId?: string
+  currentUserId?: string,
+  options: HomeTabOptions = {}
 ): View {
+  const zone = options.zone ?? PT_ZONE;
+  const manualStartMeetups = options.manualStartMeetups ?? [];
+  const whenLine = (meetup: MeetupWithModules) =>
+    meetup.scheduledFor ? `\n🕒 ${formatEventDateTime(meetup.scheduledFor, zone)}` : "";
+
   const greeting = currentUserId ? `Hi, <@${currentUserId}> :wave:` : "Hi there :wave:";
 
   const blocks: any[] = [
@@ -93,7 +109,7 @@ export function buildHomeTabView(
     { type: "divider" },
   ];
 
-  const isCleanSlate = activeMeetups.length === 0 && upcomingMeetups.length === 0;
+  const isCleanSlate = activeMeetups.length === 0 && upcomingMeetups.length === 0 && manualStartMeetups.length === 0;
 
   if (isCleanSlate) {
     blocks.push(
@@ -199,7 +215,7 @@ export function buildHomeTabView(
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\n${breakdownText}`,
+                  text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})${whenLine(meetup)}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\n${breakdownText}`,
                 },
                 accessory: {
                   type: "button",
@@ -251,7 +267,7 @@ export function buildHomeTabView(
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\n${breakdownText}`,
+                  text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})${whenLine(meetup)}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\n${breakdownText}`,
                 },
               },
               { type: "divider" }
@@ -279,7 +295,7 @@ export function buildHomeTabView(
               type: "section",
               text: {
                 type: "mrkdwn",
-                text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})\nSpeakers: ${speakers} in <#${meetup.channelId}>\n${breakdownText}`,
+                text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})${whenLine(meetup)}\nSpeakers: ${speakers} in <#${meetup.channelId}>\n${breakdownText}`,
               },
               accessory: {
                 type: "button",
@@ -297,6 +313,38 @@ export function buildHomeTabView(
           );
         }
       }
+    }
+  }
+
+  // 5. Saved for manual start: kept out of automatic capture, started with /pace start <code>
+  if (manualStartMeetups.length > 0) {
+    blocks.push({
+      type: "header",
+      text: { type: "plain_text", text: "⏯️ Manual start", emoji: true },
+    });
+    for (const meetup of manualStartMeetups) {
+      const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
+      const canEdit = currentUserId
+        ? MeetupService.parseSpeakerIds(meetup.speakerUserId).includes(currentUserId)
+        : false;
+      blocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `\`${meetup.manualStartCode}\` *${meetup.title}* (${formatMinutes(meetup.totalMinutes)})${whenLine(meetup)}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\nStart it from the Huddle with \`/pace start ${meetup.manualStartCode}\``,
+        },
+        ...(canEdit
+          ? {
+              accessory: {
+                type: "button",
+                text: { type: "plain_text", text: "✏️ Edit", emoji: true },
+                value: meetup.id,
+                action_id: "edit_scheduled_meetup_action",
+              },
+            }
+          : {}),
+      });
+      blocks.push({ type: "divider" });
     }
   }
 

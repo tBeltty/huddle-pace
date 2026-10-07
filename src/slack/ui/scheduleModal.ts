@@ -1,6 +1,7 @@
 import { ModalView } from "@slack/bolt";
 import { DetectedHuddle } from "../utils/huddleDiscovery.js";
 import type { MeetupTemplateData } from "../../services/meetupService.js";
+import { PT_ZONE, zoneLabel } from "../../utils/timezone.js";
 
 export const MAX_SUBTOPICS = 10;
 
@@ -37,6 +38,15 @@ export function getModalAction(values: Record<string, any>, actionId: string): a
 }
 
 export interface ModalStateData {
+  /** IANA zone the picked date and time are read in (workspace setting resolved for the scheduler). */
+  zone?: string;
+  /** "YYYY-MM-DD" and "HH:mm" wall clock in `zone`. */
+  scheduleDate?: string;
+  scheduleTime?: string;
+  /** Shown above the time field, e.g. the range blocked by another pace after "Change time". */
+  scheduleNotice?: string;
+  /** Times inside this range (ISO instants, inclusive) are rejected on submit for `channelId`. */
+  blockedRange?: { from: string; to: string; title: string; channelId: string };
   title?: string;
   duration?: number;
   channelId?: string;
@@ -94,6 +104,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
   const rev = initialState?.rev;
   const isTemplateEdit = !!initialState?.editTemplateId;
   const bid = (base: string) => modalBlockId(base, rev);
+  const zone = initialState?.zone || PT_ZONE;
 
   // Default suggested distribution presets for 3 rows
   const defaultPresets = [
@@ -327,6 +338,34 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       label: {
         type: "plain_text",
         text: "Target Channel",
+      },
+    },
+    {
+      type: "input",
+      block_id: bid("schedule_date_block"),
+      element: {
+        type: "datepicker",
+        action_id: "schedule_date_picker",
+        ...(initialState?.scheduleDate ? { initial_date: initialState.scheduleDate } : {}),
+      },
+      label: { type: "plain_text", text: "Date" },
+    },
+    ...(initialState?.scheduleNotice
+      ? [{ type: "section", block_id: bid("schedule_notice_block"), text: { type: "mrkdwn", text: initialState.scheduleNotice } }]
+      : []),
+    {
+      type: "input",
+      block_id: bid("schedule_time_block"),
+      element: {
+        type: "timepicker",
+        action_id: "schedule_time_picker",
+        ...(initialState?.scheduleTime ? { initial_time: initialState.scheduleTime } : {}),
+        placeholder: { type: "plain_text", text: "Select time" },
+      },
+      label: { type: "plain_text", text: `Time (${zoneLabel(zone)})` },
+      hint: {
+        type: "plain_text",
+        text: "Exact start time. HuddlePace watches for a Huddle from 20 minutes before to 20 minutes after.",
       },
     },
     {
@@ -571,7 +610,14 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
   });
 
   if (isTemplateEdit) {
-    const sessionOnly = ["custom_thread_block", "private_huddle_block", "save_template_block"];
+    const sessionOnly = [
+      "schedule_date_block",
+      "schedule_notice_block",
+      "schedule_time_block",
+      "custom_thread_block",
+      "private_huddle_block",
+      "save_template_block",
+    ];
     const templateBlocks = blocks
       .filter((b) => !sessionOnly.some((id) => typeof b.block_id === "string" && b.block_id.startsWith(id)))
       .map((b) =>
@@ -626,6 +672,8 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       channelId: initialState?.channelId,
       rev,
       meetupId: initialState?.editMeetupId,
+      zone,
+      blocked: initialState?.blockedRange,
     }),
     blocks,
   };

@@ -1,3 +1,4 @@
+import { getScheduleContext } from "../utils/scheduleZone.js";
 import { App } from "@slack/bolt";
 import { MeetupService } from "../../services/meetupService.js";
 import { buildScheduleModal, getModalAction, findModalBlockId, MAX_SUBTOPICS, templateToModalState } from "../ui/scheduleModal.js";
@@ -101,9 +102,14 @@ export function registerTemplateHandlers(app: App) {
       switch (op) {
         case "schedule": {
           const huddles = isOwn ? await findChannelHuddles(client, template.channelId) : [];
+          const scheduleContext = await getScheduleContext(client, userId, teamId);
           await client.views.push({
             trigger_id: b.trigger_id,
-            view: buildScheduleModal({ ...templateToModalState(template, userId, huddles), rev: Date.now().toString(36) }),
+            view: buildScheduleModal({
+              ...templateToModalState(template, userId, huddles),
+              ...scheduleContext,
+              rev: Date.now().toString(36),
+            }),
           });
           return;
         }

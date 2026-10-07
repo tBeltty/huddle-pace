@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-07
+
+### Added
+- Scheduling asks for the exact date and time of the Huddle. HuddlePace watches for a Huddle from 20 minutes before to 20 minutes after that time and starts the pace in the first one it finds.
+- A scheduling timezone in Settings. It defaults to Pacific Time and can follow each scheduler's own timezone or a fixed zone. Summaries show the time with its zone, for example 10:00 AM PT.
+- Manual start. When another pace in the channel is within 20 minutes of the time you picked, the form says so. You can pick another time or save the pace for manual start under a code like `m1`, then run `/pace start m1` inside the Huddle. Speakers, the pace creator and workspace managers can start it.
+- Paces saved for manual start show in App Home and on the standby card HuddlePace posts when a Huddle begins.
+- A pace whose Huddle never started moves to manual start, and its speakers get a DM with the code.
+
+### Changed
+- Several paces on the same day no longer all start with the first Huddle. Each Huddle starts only the pace nearest its time.
+- A pace starts once, even when two of its speakers join the same Huddle together.
+- `/pace start` and an @HuddlePace mention still start the nearest scheduled pace at any time.
+- Paces scheduled before this version use the time they were created as their start time, so they move to manual start once that window has passed.
+
 ## [1.7.0] - 2026-10-07
 
 ### Added
@@ -125,7 +140,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/tBeltty/huddle-pace/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/tBeltty/huddle-pace/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/tBeltty/huddle-pace/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/tBeltty/huddle-pace/compare/v1.4.0...v1.5.0

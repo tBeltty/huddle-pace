@@ -1,12 +1,47 @@
 import { ModalView } from "@slack/bolt";
+import { COMMON_ZONES, normalizeTimezoneSetting } from "../../utils/timezone.js";
 
 export interface SettingsModalOptions {
   reminderTextEnabled: boolean;
   reminderImageEnabled: boolean;
   flexibilityMode?: "STRICT" | "STANDARD" | "RELAXED";
   managerUserIds?: string[];
+  /** "PT" (default), "USER" or an IANA zone id. */
+  timezone?: string;
   teamId?: string;
   canEdit?: boolean;
+}
+
+const PT_OPTION_LABEL = "Pacific Time (default)";
+const USER_OPTION_LABEL = "My timezone (each scheduler's own)";
+
+/** Label shown for a stored timezone setting. */
+function describeTimezoneSetting(setting: string): string {
+  if (setting === "PT") return PT_OPTION_LABEL;
+  if (setting === "USER") return USER_OPTION_LABEL;
+  return COMMON_ZONES.find((zone) => zone.id === setting)?.label ?? setting;
+}
+
+function buildTimezoneSelect(setting: string) {
+  const zoneOption = (id: string, label: string) => ({ text: { type: "plain_text" as const, text: label }, value: id });
+  const knownZone = COMMON_ZONES.some((zone) => zone.id === setting);
+  const customOptions = [
+    ...COMMON_ZONES.map((zone) => zoneOption(zone.id, zone.label)),
+    ...(setting !== "PT" && setting !== "USER" && !knownZone ? [zoneOption(setting, setting)] : []),
+  ];
+  const presetOptions = [zoneOption("PT", PT_OPTION_LABEL), zoneOption("USER", USER_OPTION_LABEL)];
+  const initialOption = [...presetOptions, ...customOptions].find((option) => option.value === setting) ?? presetOptions[0];
+
+  return {
+    type: "static_select" as const,
+    action_id: "timezone_select",
+    placeholder: { type: "plain_text" as const, text: "Select timezone" },
+    initial_option: initialOption,
+    option_groups: [
+      { label: { type: "plain_text" as const, text: "Presets" }, options: presetOptions },
+      { label: { type: "plain_text" as const, text: "Custom zone" }, options: customOptions },
+    ],
+  };
 }
 
 /**
@@ -16,6 +51,7 @@ export interface SettingsModalOptions {
 export function buildSettingsModal(options: SettingsModalOptions): ModalView {
   const canEdit = options.canEdit !== false;
   const flexMode = (options.flexibilityMode || "STANDARD").toUpperCase();
+  const timezoneSetting = normalizeTimezoneSetting(options.timezone);
 
   const flexDescriptions: Record<string, { label: string; desc: string }> = {
     STANDARD: {
@@ -83,6 +119,16 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
           text: {
             type: "mrkdwn",
             text: `*Pacing Analytics & Flexibility*\n• *Grace Buffer:* *${currentFlex.label}*\n_${currentFlex.desc}_`,
+          },
+        },
+        {
+          type: "divider",
+        },
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*Scheduling Timezone*\n${describeTimezoneSetting(timezoneSetting)}\n_Times picked in the schedule form are read in this zone._`,
           },
         },
         {
@@ -234,6 +280,29 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
         hint: {
           type: "plain_text",
           text: "Sessions wrapping up within the grace buffer are marked ⏳ Flexible without lowering team on-time compliance.",
+        },
+      },
+      {
+        type: "divider",
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*Scheduling Timezone*\nThe zone used to read the date and time picked when scheduling a pace.",
+        },
+      },
+      {
+        type: "input",
+        block_id: "timezone_settings_block",
+        label: {
+          type: "plain_text",
+          text: "Timezone",
+        },
+        element: buildTimezoneSelect(timezoneSetting),
+        hint: {
+          type: "plain_text",
+          text: "My timezone reads each scheduler's own Slack timezone. Event times always show their zone.",
         },
       },
       {
