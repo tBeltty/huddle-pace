@@ -4,6 +4,11 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-07] Política de Privacidad Alineada con los Scopes de Historial
+* **Problema**: la sección 3 decía "no lee los mensajes de tus canales", pero `channels:history`, `groups:history` y `mpim:history` hacen que la app reciba los mensajes de los canales donde está y lea los de sistema de Huddle (`isHuddleMessage` también marca cualquier mensaje que contenga "huddle"). Las guías del Marketplace exigen declarar los datos que se reciben y no se usan, y someten los scopes `*:history` a revisión reforzada.
+* **Cambio**: la sección 3 pasa a "Lo que no recopilamos ni usamos": sin audio ni transcripciones, la app recibe los mensajes de los canales y grupos donde está añadida, lee solo los mensajes de sistema de Huddle y no usa, guarda ni indexa ningún otro contenido. Se añade a la sección 2 el uso de `users:read` (zona horaria y rol admin/owner, sin nombres ni correos). Fecha de actualización: 7 de octubre de 2026. Inglés y español.
+* **Verificado en el código**: el esquema de Prisma no guarda texto de mensajes; `users.info` solo lee `tz` y `is_admin`/`is_owner`; `users.list` solo identifica miembros no bot para refrescar el App Home.
+
 ## [2026-10-07] Huddles en Mensajes Directos de Grupo (v1.9.0)
 * **Problema**: `mpim:history` estaba en el manifest y en el README ("detecta Huddles en mensajes directos de grupo"), pero nada lo usaba: el manifest no suscribía `message.mpim` y el selector de canal del modal excluía los grupos.
 * **Cambio**: el manifest suscribe `message.mpim`; el `conversations_select` del modal incluye `mpim` (`filter.include: ["public", "private", "mpim"]`). La detección, el esquema de validación y `findChannelHuddles` ya eran genéricos y no cambian. `ensureBotInChannel` distingue un grupo (`is_mpim`) de un canal privado: si el bot no es miembro, avisa que hay que añadirlo en vez de pedir `/invite`.

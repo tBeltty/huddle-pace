@@ -71,7 +71,6 @@
   "fCol3Changelog": "Release Notes",
   "footerPill": "🛡️ Slack-Verified OAuth · ⚡ Live Cadence Updates · 🦅 Vector v__APP_VERSION__",
   "footerCopy": "© 2026 HuddlePace. Engineered for teams that value focus.",
-
   "privacyMeta": {
     "title": "Privacy Policy | HuddlePace",
     "description": "How HuddlePace collects, uses, and protects data when you install the Slack app. Zero audio recording, zero transcripts, plain-language data practices.",
@@ -90,10 +89,11 @@
   "privacyS2Item2": "Channel IDs where a session is scheduled or a Huddle is detected, so Vector can post and update the tracking card.",
   "privacyS2Item3": "User IDs of session organizers and assigned speakers, used only to verify who may start, transition, or conclude a session and to send them private DM reminders.",
   "privacyS2Item4": "Agenda structure you enter yourself: module names, percentage allocations, and total meeting duration.",
+  "privacyS2Item5": "Slack profile attributes: the time zone of the person who schedules a pace (when the workspace uses the \"My timezone\" setting) and whether a user is a workspace admin or owner, to decide who can manage paces. HuddlePace reads only these attributes. It stores neither profile names nor email addresses.",
   "privacyS2Support": "<strong>Support data.</strong> If you use the \"Help\" widget on this site or contact support@huddlepace.com, we (via our support platform, the tBelt dashboard) collect the name, email address, and message content you choose to submit, solely to respond to your request.",
   "privacyS2Technical": "<strong>Technical data.</strong> This website sets a single functional cookie (<code>huddlepace_lang</code>) to remember your language preference. We do not use advertising or cross-site tracking cookies.",
-  "privacyS3Title": "3. What We Never Collect",
-  "privacyS3Body": "HuddlePace does not request Huddle audio, does not record calls, does not generate transcripts, and does not read channel messages. We only process the slash commands and interactive buttons triggered directly by your team. This architectural constraint is built directly into our codebase.",
+  "privacyS3Title": "3. What We Do Not Collect or Use",
+  "privacyS3Body": "HuddlePace does not request Huddle audio, does not record calls and does not generate transcripts. To detect when a Huddle starts and ends, HuddlePace receives the messages posted in the channels and group messages where it has been added, and reads the Huddle start and end system messages in them. It does not use, store or index the content of any other message. Data that Slack delivers and HuddlePace does not use is ignored and not stored.",
   "privacyS4Title": "4. How We Use Information",
   "privacyS4Item1": "Operate core functionality: starting, tracking, and concluding timeboxed sessions, and posting progress updates to the right channel or thread.",
   "privacyS4Item2": "Enforce role-gated controls, so only assigned speakers or organizers can control a session.",
@@ -116,7 +116,6 @@
   "privacyS10Body": "We may update this policy as HuddlePace evolves. Material changes will be reflected by updating the \"Last updated\" date above. Continued use of HuddlePace after a change constitutes acceptance of the revised policy.",
   "privacyS11Title": "11. Contact Us",
   "privacyS11Body": "Questions about this policy or your data? Reach us at <a href=\"mailto:support@huddlepace.com\">support@huddlepace.com</a> or via the Help widget in the corner of this page.",
-
   "termsMeta": {
     "title": "Terms of Service | HuddlePace",
     "description": "The terms that govern your use of the HuddlePace Slack app: license, acceptable use, availability, liability, and termination.",
