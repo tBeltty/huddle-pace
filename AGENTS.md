@@ -38,6 +38,13 @@ Any agent operating in this codebase must reference and respect the following co
 * Whenever new features, modifications, UI updates, schema changes, or architectural decisions are made to HuddlePace, the agent **MUST immediately document them at the TOP** of [`docs/PRODUCT_CAPABILITIES_LOG.md`](docs/PRODUCT_CAPABILITIES_LOG.md).
 * **Format**: Reverse-chronological order (newest entry at the top, oldest at the bottom). Include date, category, and bullet points describing the functional change.
 
+### 1b. Scheduling & Capture Invariants
+* **Exact time, one zone**: every scheduled pace stores an exact `scheduledFor`. The date and time picked in the modal are read in the workspace zone (`WorkspaceSettings.timezone`: `PT` default, `USER` or an IANA id) through `src/utils/timezone.ts`. Always show a time with its zone (`10:00 AM PT`).
+* **Capture window**: automatic detection starts a pace only when a Huddle begins within `MeetupService.CAPTURE_WINDOW_MINUTES` (20) before or after `scheduledFor`, and picks the nearest one. Explicit commands (`/pace start`, `@HuddlePace`) pass `{ anyTime: true }`. Do not hard-code `20` elsewhere.
+* **One launch path**: every start goes through `launchMeetupInThread`, which claims the pace atomically (`claimMeetupForLaunch`) before posting a tracker. Never post a tracker or flip a pace to `ACTIVE` anywhere else, and only send "auto-launched" notices when it returns `true`.
+* **No overlapping paces**: scheduling rejects a second `SCHEDULED` pace in the same channel within the capture window and offers **Manual start** (`status = MANUAL_START`, codes `m1`, `m2`, started with `/pace start <code>`). Keep new automatic-capture queries on `status: "SCHEDULED"` so Manual start paces stay out of them.
+* **Clock-free UI**: Block Kit builders in `src/slack/ui/` never read the clock. Handlers resolve defaults (`getScheduleContext`) and pass them in.
+
 ### 2. User-Facing Copy & Anti-AI Slop Protocol
 * **MANDATORY for every draft of user-facing prose**: Slack Block Kit messages, modal views, button labels, toasts, bot notifications, landing page text (`marketing/index.html`), marketing dossier (`marketing/MARKETING.md`), `README.md`, and changelogs.
 * **Proactive Execution**: Run `no-ai-slop` proactively; do not wait for the user to type `/no-ai-slop`.

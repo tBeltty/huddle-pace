@@ -77,6 +77,12 @@ HuddlePace requests only the minimum granular scopes required to coordinate meet
 7. **On-Demand Pacing Reports**:
    - Execute `/pace report [days]` (default: 30 days) in any channel to view timebox adherence rates and session logs.
 
+8. **Exact-Time Scheduling & Manual Start**:
+   - Every scheduled pace has an exact date and time, read in the workspace scheduling timezone (Pacific Time by default; `/pace settings` switches it to each scheduler's own timezone or a fixed zone). Summaries show the time with its zone, for example `10:00 AM PT`.
+   - HuddlePace watches for a Huddle from 20 minutes before to 20 minutes after that time and starts the pace in the first Huddle it finds. Each Huddle starts only the pace nearest its time.
+   - Two paces in the same channel cannot sit within 20 minutes of each other. The form says so and offers to pick another time or save the new pace for **manual start** under a code (`m1`, `m2`...). Start it with `/pace start m1` inside the Huddle. Speakers, the pace creator and workspace managers can start it.
+   - A pace whose window closes without a Huddle moves to manual start and its speakers get a DM. Manual start paces are listed in App Home and on the Huddle standby card.
+
 ---
 
 ## Slack Commands & Shortcuts
@@ -86,6 +92,9 @@ HuddlePace requests only the minimum granular scopes required to coordinate meet
 | **Schedule Modal** | `/pace` or Global Shortcut | Opens the interactive meetup scheduling modal. |
 | **Channel Status** | `/pace status` | Displays active pacing sessions running in the current channel. |
 | **Pacing Report** | `/pace report [days]` | Shows timebox compliance and duration metrics (default: 30 days). |
+| **Start a Pace** | `/pace start` | Starts the scheduled pace closest to now in this channel. |
+| **Manual Start** | `/pace start <code>` | Starts a pace saved for manual start (`m1`, `m2`...) in this channel's active Huddle. |
+| **Settings** | `/pace settings` | Reminder defaults, grace buffer, scheduling timezone and bot managers. |
 | **Clear Bot DMs** | `/pace clear` | Deletes historical pacing alerts and direct messages sent by the bot. |
 | **Help Guide** | `/pace help` | Displays command syntax and operational hints. |
 | **App Home Tab** | Click `HuddlePace` under Apps | Opens the visual workspace dashboard, schedule modal, and stats. |
