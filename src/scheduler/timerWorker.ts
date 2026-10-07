@@ -429,6 +429,38 @@ export class TimerWorker {
           } catch (err) {
             console.warn(`Failed to post timebox alert for meetup ${meetup.id}:`, err);
           }
+
+          // Private nudge to the speakers, so the end of the scheduled time reaches them even when
+          // the thread is busy. Just Chatting keeps the extra minutes out of the overtime stats.
+          const timeUpText = `⏱️ *Time is up for "${meetup.title}".* The scheduled ${meetup.totalMinutes}m are over. If the conversation keeps going, switch to Just Chatting so the extra time stays out of your overtime stats.`;
+          for (const speakerId of speakerIds) {
+            try {
+              const res = await this.app.client.chat.postMessage({
+                token: botToken,
+                channel: speakerId,
+                text: timeUpText,
+                blocks: [
+                  { type: "section", text: { type: "mrkdwn", text: timeUpText } },
+                  {
+                    type: "actions",
+                    elements: [
+                      {
+                        type: "button",
+                        text: { type: "plain_text", text: "☕ Just Chatting", emoji: true },
+                        value: meetup.id,
+                        action_id: "switch_to_chatting_action",
+                      },
+                    ],
+                  },
+                ],
+              });
+              if (res?.ts && res?.channel) {
+                await MeetupService.recordDmMessage(meetup.id, res.channel as string, res.ts as string);
+              }
+            } catch (err) {
+              console.warn(`Failed to send time-is-up DM to speaker ${speakerId}:`, err);
+            }
+          }
         }
       }
     } finally {
