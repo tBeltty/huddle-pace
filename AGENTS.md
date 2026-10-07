@@ -61,13 +61,14 @@ Any agent operating in this codebase must reference and respect the following co
 * After editing any page in `public/*.html`, the strings it renders in `src/locales/*.json`, or its FAQ, run `pnpm page-dates` and commit `src/web/pageDates.json`. It feeds the sitemap `<lastmod>` values, moves a page's date only when that page's content hash changes, and `pnpm test` fails when it is stale.
 
 ### 5. Mandatory Proactive Versioning & GitHub Releases Protocol (Zero User Reminders)
-* **Automatic Execution Required**: The agent MUST NEVER complete any task involving functional code, bug fixes, schema changes, or UI updates without proactively executing the full release lifecycle. **Do NOT wait for the user to ask or remind you to update the changelog or cut a release.**
+* **Product Only**: Versions, tags, `CHANGELOG.md` entries and GitHub Releases cover the HuddlePace Slack app (bot behavior, commands, modals, App Home, notifications, OAuth, data). Website changes (`public/`, SEO, fonts, images, sitemap, 404, performance), documentation, tests and tooling get none of them. Record those in `docs/PRODUCT_CAPABILITIES_LOG.md`, push to `main` and let CI deploy.
+* **Automatic Execution Required**: The agent MUST NEVER complete any task involving product code, bug fixes, schema changes, or Slack UI updates without proactively executing the full release lifecycle. **Do NOT wait for the user to ask or remind you to update the changelog or cut a release.**
 * **Strict SemVer Determination**:
   * **PATCH (`x.x.Y`)**: Backward-compatible bug fixes, refinements, UI adjustments, setting toggles, minor enhancements, or doc fixes. Use `pnpm version:patch`.
   * **MINOR (`x.Y.0`)**: New major capabilities, interactive workflows, modal architectures, or new command subsystems. Use `pnpm version:minor`.
 * **Atomic Keep a Changelog Hygiene**:
   * Concurrently with any code change, create or update the release block in `CHANGELOG.md` following [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/).
-  * The release workflow publishes that block verbatim as the GitHub Release notes. Run the `no-ai-slop` pass and the [editorial standards](docs/guidelines/EDITORIAL_STANDARDS.md) on it **before** committing and tagging, and keep implementation detail in the Capabilities Log. `pnpm test` fails when an entry from 1.5.0 on breaks them.
+  * The release workflow publishes that block verbatim as the GitHub Release notes. Run the `no-ai-slop` pass and the [editorial standards](docs/guidelines/EDITORIAL_STANDARDS.md) on it **before** committing and tagging, and keep implementation detail in the Capabilities Log. `pnpm test` fails when an entry after 1.4.0 breaks them or mentions the website, tests, docs or tooling.
   * Update footer comparison links (`[Unreleased]`, `[x.y.z]`) to maintain accurate GitHub diff links.
 * **Tag & Automated Release Deployment**:
   * Immediately after the CI/CD deploy run passes green (`✓`) on `main` and production smoke checks pass (`/healthz` 200 OK):

@@ -4,6 +4,13 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-07] Releases y Changelog Solo del Producto Slack
+* **Decisión**: `CHANGELOG.md`, los tags y los GitHub Releases describen únicamente la app de Slack. El sitio web, el SEO, la documentación, los tests y las herramientas no generan versión, tag ni entrada de changelog; se registran aquí.
+* **Corrección del historial**: las versiones 1.5.0 a 1.10.2 eran todas de sitio web (páginas, SEO, fuentes, sitemap, 404) o de mantenimiento. Se borraron sus releases y tags de GitHub, se quitaron del changelog y `package.json` volvió a 1.4.0, el último release de producto. Los commits siguen en el historial de `main`; los SHA de cada tag retirado quedan en el mensaje del commit de esta decisión por si hiciera falta restaurar alguno.
+* **Caché del CSS (`landingPage.ts`)**: la URL del estilo era `site.css?v=<versión>`. Sin releases web la versión ya no cambia, así que ahora usa `?v=<hash del propio archivo>` (`__CSS_HASH__`) y cada edición del CSS llega a Cloudflare sin versionar nada.
+* **Barrera (`tests/changelogStyle.test.ts`)**: además del estilo editorial, rechaza viñetas que mencionen sitio web, SEO, fuentes, sitemap, tests, changelog, docs o herramientas. Las reglas se prueban con ejemplos buenos y malos, incluidas las entradas que se habían colado.
+* **Proceso (`RELEASE_PROCESS.md` sección 0, `AGENTS.md` §5, `DEFINITION_OF_DONE.md`)**: la sección "Product Only" define qué merece release y qué no.
+
 ## [2026-10-06] Release Notes Reescritas y Barrera Editorial Antes de Publicar
 * **Problema**: `release.yml` publica el bloque del CHANGELOG tal cual como notas del release. Las entradas 1.5.0 a 1.10.0 se escribieron sin pasar `no-ai-slop` ni `EDITORIAL_STANDARDS.md`: abrían con etiquetas en negrita y dos puntos, usaban "beacon" (léxico vetado) y mezclaban detalle interno (cabeceras, hashes, orden de rutas de Bolt, cifras de Lighthouse).
 * **Corrección**: las diecisiete entradas se reescribieron en frases cortas sobre lo que cambió para visitantes y mantenedores; el detalle técnico queda en este registro. Las notas de los releases ya publicados en GitHub se actualizaron para coincidir.

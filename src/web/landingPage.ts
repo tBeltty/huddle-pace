@@ -82,6 +82,17 @@ export function getAppVersion(): string {
   return "1.1.0";
 }
 
+// Cache key for /assets/site.css. It follows the file's content, so stylesheet edits reach
+// Cloudflare and browsers without a release or a version bump.
+function stylesheetHash(): string {
+  try {
+    const css = fs.readFileSync(path.join(PUBLIC_DIR, "assets", "site.css"));
+    return crypto.createHash("sha256").update(css).digest("hex").slice(0, 10);
+  } catch {
+    return "0";
+  }
+}
+
 function getPageHtml(file: string): string {
   if (process.env.NODE_ENV === "production" && cachedHtml[file]) {
     return cachedHtml[file];
@@ -98,6 +109,7 @@ function getPageHtml(file: string): string {
   // this module runs before Slack credentials are validated.
   html = html.replaceAll("__BEACON_WIDGET_KEY__", process.env.BEACON_WIDGET_KEY ?? "");
   html = html.replaceAll("__APP_VERSION__", getAppVersion());
+  html = html.replaceAll("__CSS_HASH__", stylesheetHash());
 
   if (process.env.NODE_ENV === "production") {
     cachedHtml[file] = html;
