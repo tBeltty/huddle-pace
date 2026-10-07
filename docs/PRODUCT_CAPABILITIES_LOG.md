@@ -9,6 +9,11 @@
 * **Cambio**: la sección 3 pasa a "Lo que no recopilamos ni usamos": sin audio ni transcripciones, la app recibe los mensajes de los canales y grupos donde está añadida, lee solo los mensajes de sistema de Huddle y no usa, guarda ni indexa ningún otro contenido. Se añade a la sección 2 el uso de `users:read` (zona horaria y rol admin/owner, sin nombres ni correos). Fecha de actualización: 7 de octubre de 2026. Inglés y español.
 * **Verificado en el código**: el esquema de Prisma no guarda texto de mensajes; `users.info` solo lee `tz` y `is_admin`/`is_owner`; `users.list` solo identifica miembros no bot para refrescar el App Home.
 
+## [2026-10-07] DM al Cumplirse el Tiempo del Pace (v1.11.0)
+* **Problema**: al llegar al tiempo total, el único aviso es el *Timebox Reached* en el hilo del Huddle, que se pierde si el hilo está activo o el Huddle ocurre en un grupo. Los speakers no recibían nada privado.
+* **Cambio**: en el mismo punto del `timerWorker` (una vez por pace, `exitRampsSent`), cada speaker recibe un DM con el aviso y el botón **☕ Just Chatting** (`switch_to_chatting_action`, que ya funciona desde un DM). Se registra con `recordDmMessage`, así que se borra al concluir. En modo Just Chatting no se envía, igual que los demás avisos.
+* **Nota**: los flags de avisos enviados viven en memoria del worker; un reinicio del servicio durante un pace puede repetir un aviso.
+
 ## [2026-10-07] Hint Corto de `/pace` (v1.10.2)
 * **Problema**: el `usage_hint` que Slack muestra al escribir `/pace` listaba cinco opciones (`[15m | start <code> | status | report | settings]`) y confundía.
 * **Cambio**: `manifest.json` pasa a `[15m | help]`. Los subcomandos siguen funcionando y `/pace help` los lista todos. El modal no cambia.
