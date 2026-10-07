@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.2] - 2026-10-06
+
+### Fixed
+- The 1.5.0 release note had a colon in the middle of a sentence. The changelog test now rejects those, outside of code and ratios like 4.5:1.
+
 ## [1.10.1] - 2026-10-06
 
 ### Added
@@ -136,7 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - The URL sets the language. Browser language, cookies and `?lang=` no longer change the content, and `?lang=` redirects to the matching address.
-- Social tags are cleaner: unused meta tags removed, Twitter tags use `name=`, and the preview image has a size and alt text.
+- Social preview tags are cleaner. Unused meta tags are gone, Twitter tags use `name=`, and the preview image has a size and alt text.
 - The header avatar is 17 KB instead of 619 KB.
 - Decorative headings became paragraphs, and muted text has higher contrast.
 
@@ -225,7 +230,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.10.1...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.10.2...HEAD
+[1.10.2]: https://github.com/tBeltty/huddle-pace/compare/v1.10.1...v1.10.2
 [1.10.1]: https://github.com/tBeltty/huddle-pace/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/tBeltty/huddle-pace/compare/v1.9.5...v1.10.0
 [1.9.5]: https://github.com/tBeltty/huddle-pace/compare/v1.9.4...v1.9.5

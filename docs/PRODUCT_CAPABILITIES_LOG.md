@@ -8,6 +8,7 @@
 * **Problema**: `release.yml` publica el bloque del CHANGELOG tal cual como notas del release. Las entradas 1.5.0 a 1.10.0 se escribieron sin pasar `no-ai-slop` ni `EDITORIAL_STANDARDS.md`: abrían con etiquetas en negrita y dos puntos, usaban "beacon" (léxico vetado) y mezclaban detalle interno (cabeceras, hashes, orden de rutas de Bolt, cifras de Lighthouse).
 * **Corrección**: las diecisiete entradas se reescribieron en frases cortas sobre lo que cambió para visitantes y mantenedores; el detalle técnico queda en este registro. Las notas de los releases ya publicados en GitHub se actualizaron para coincidir.
 * **Barrera (`tests/changelogStyle.test.ts`)**: desde 1.5.0 falla `pnpm test` si una entrada usa léxico vetado, etiquetas `**Texto**:`, guiones largos, contrastes binarios o viñetas de más de 320 caracteres. Verificado inyectando una línea con esos defectos: el test falla y señala la palabra.
+* **Ajuste posterior**: la primera versión del test solo detectaba etiquetas en negrita y dejó pasar un colon dentro de una frase en la nota de 1.5.0. Se corrigió la frase y el test ahora rechaza cualquier colon en las viñetas, salvo dentro de código o en proporciones como 4.5:1.
 * **Proceso**: `RELEASE_PROCESS.md` (paso 2) y `AGENTS.md` exigen la revisión editorial antes del commit y del tag, no después.
 
 ## [2026-10-06] Página 404 con noindex y lastmod Verificable en el Sitemap
