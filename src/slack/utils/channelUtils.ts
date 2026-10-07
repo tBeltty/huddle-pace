@@ -25,11 +25,13 @@ export async function ensureBotInChannel(
       errorCode === "channel_not_found"
     ) {
       // Check if bot is already a member
+      let isGroupDm = false;
       try {
         const info = await client.conversations.info({ channel: channelId });
         if (info?.channel?.is_member) {
           return { ok: true };
         }
+        isGroupDm = info?.channel?.is_mpim === true;
       } catch {
         // Fallthrough to prompt invite
       }
@@ -39,7 +41,9 @@ export async function ensureBotInChannel(
           await client.chat.postEphemeral({
             channel: channelId,
             user: userId,
-            text: `💡 *HuddlePace needs an invite:* To track meetups in this private channel, please invite the bot first by typing \`/invite @HuddlePace\` in this channel.`,
+            text: isGroupDm
+              ? "💡 *HuddlePace needs to be in this group message:* Add @HuddlePace to the conversation to track meetups here."
+              : `💡 *HuddlePace needs an invite:* To track meetups in this private channel, please invite the bot first by typing \`/invite @HuddlePace\` in this channel.`,
           });
         } catch {
           // Channel might not permit ephemeral either if not in channel

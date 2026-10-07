@@ -325,7 +325,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         action_id: "channel_select",
         response_url_enabled: false,
         filter: {
-          include: ["public", "private"],
+          include: ["public", "private", "mpim"],
         },
         placeholder: {
           type: "plain_text",

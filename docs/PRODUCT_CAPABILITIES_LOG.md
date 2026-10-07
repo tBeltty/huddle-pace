@@ -4,6 +4,12 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-07] Huddles en Mensajes Directos de Grupo (v1.9.0)
+* **Problema**: `mpim:history` estaba en el manifest y en el README ("detecta Huddles en mensajes directos de grupo"), pero nada lo usaba: el manifest no suscribía `message.mpim` y el selector de canal del modal excluía los grupos.
+* **Cambio**: el manifest suscribe `message.mpim`; el `conversations_select` del modal incluye `mpim` (`filter.include: ["public", "private", "mpim"]`). La detección, el esquema de validación y `findChannelHuddles` ya eran genéricos y no cambian. `ensureBotInChannel` distingue un grupo (`is_mpim`) de un canal privado: si el bot no es miembro, avisa que hay que añadirlo en vez de pedir `/invite`.
+* **Configuración**: `message.mpim` se añadió a *Event Subscriptions* de la app en Slack (scope `mpim:history` ya concedido, sin reinstalación).
+* **Pendiente de verificar en vivo**: que Slack permita añadir el bot a un grupo existente. Si no, el scope vuelve a quedar sin uso y hay que revisarlo antes de enviarlo a revisión.
+
 ## [2026-10-07] Página de Soporte (`/support`, `/es/soporte`)
 * **Página nueva**: `public/support.html` con el widget de Ayuda, enlace a las FAQ, correo `hello@huddlepace.com` y un formulario que abre el cliente de correo (`mailto:`) con nombre, correo, workspace opcional, asunto y mensaje. Pensada como URL de soporte para la ficha de la app en Slack. Entra al sitemap con hreflang y fecha por contenido.
 * **Correo de contacto**: el formulario del modal del home, los textos legales y los enlaces del footer pasan de `support@huddlepace.com` a `hello@huddlepace.com`. El enlace "Contact Support" del footer apunta a `/support` en todas las páginas (en el home sigue abriendo el modal). `README.md` y `SECURITY.md` conservan `support@` para reportes de seguridad.

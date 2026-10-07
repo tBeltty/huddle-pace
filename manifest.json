@@ -58,6 +58,7 @@
         "app_home_opened",
         "message.channels",
         "message.groups",
+        "message.mpim",
         "user_huddle_changed"
       ]
     },
