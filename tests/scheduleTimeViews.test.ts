@@ -140,6 +140,10 @@ describe("App Home Missed and Manual start sections", () => {
     assert.match(home, /Reschedule/);
   });
 
+  test("the creator can reschedule a missed pace even when not a speaker", () => {
+    assert.match(text({ missedMeetups: [{ ...pace, createdByUserId: "U_CREATOR" }] }, "U_CREATOR"), /Reschedule/);
+  });
+
   test("other members see a missed pace without the Reschedule button", () => {
     assert.doesNotMatch(text({ missedMeetups: [pace] }, "U_OTHER"), /Reschedule/);
   });

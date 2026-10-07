@@ -12,6 +12,7 @@ interface MeetupWithModules {
   startedAt: Date | null;
   scheduledFor?: Date | null;
   manualStartCode?: string | null;
+  createdByUserId?: string | null;
   status: string;
   modules: Array<{
     title: string;
@@ -42,6 +43,10 @@ export function buildHomeTabView(
   const zone = options.zone ?? PT_ZONE;
   const manualStartMeetups = options.manualStartMeetups ?? [];
   const missedMeetups = options.missedMeetups ?? [];
+  const canManage = (meetup: MeetupWithModules) =>
+    currentUserId
+      ? MeetupService.parseSpeakerIds(meetup.speakerUserId).includes(currentUserId) || meetup.createdByUserId === currentUserId
+      : false;
   const whenLine = (meetup: MeetupWithModules) =>
     meetup.scheduledFor ? `\n🕒 ${formatEventDateTime(meetup.scheduledFor, zone)}` : "";
 
@@ -327,9 +332,7 @@ export function buildHomeTabView(
     });
     for (const meetup of manualStartMeetups) {
       const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
-      const canEdit = currentUserId
-        ? MeetupService.parseSpeakerIds(meetup.speakerUserId).includes(currentUserId)
-        : false;
+      const canEdit = canManage(meetup);
       blocks.push({
         type: "section",
         text: {
@@ -359,9 +362,7 @@ export function buildHomeTabView(
     });
     for (const meetup of missedMeetups) {
       const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
-      const canReschedule = currentUserId
-        ? MeetupService.parseSpeakerIds(meetup.speakerUserId).includes(currentUserId)
-        : false;
+      const canReschedule = canManage(meetup);
       blocks.push({
         type: "section",
         text: {

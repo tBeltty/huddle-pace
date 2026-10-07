@@ -249,10 +249,10 @@ export class MeetupService {
   }
 
   /**
-   * Who may start a pace by hand: its speakers, the person who created it, and workspace
-   * managers (delegated Bot Managers, the installer, Slack Admins and Owners).
+   * Who may start, edit or reschedule a pace: its speakers, the person who created it, and
+   * workspace managers (delegated Bot Managers, the installer, Slack Admins and Owners).
    */
-  static async canUserStartMeetup(
+  static async canUserManageMeetup(
     client: unknown,
     meetup: { speakerUserId: string; createdByUserId: string | null; teamId: string },
     userId: string

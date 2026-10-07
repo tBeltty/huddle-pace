@@ -4,6 +4,13 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-07] Aviso de Missed al Creador y Permisos de Gestión (v1.8.1)
+* **Destinatario**: el DM de un pace `MISSED` (`notifyCreatorOfMissedHuddle`) va solo a `createdByUserId`. Los pace anteriores a que se registrara el creador no lo tienen, así que en ese caso el aviso cae a sus speakers; de lo contrario nadie lo recibiría. Reemplaza `notifySpeakersOfMissedHuddle` de la 1.8.0.
+* **Permiso unificado**: `canUserStartMeetup` pasa a `canUserManageMeetup` (speakers, creador y managers). Lo usan `/pace start <code>`, el botón Edit/Reschedule y el envío del modal de edición. Antes editar era solo para speakers, y un creador que no es speaker no habría podido usar el botón del aviso.
+* **Home**: el botón Reschedule de "Missed" y el Edit de "Manual start" se muestran también al creador. Los managers pueden editar desde el aviso o por `/pace start`, pero el Home no los distingue porque el constructor de la vista no consulta roles.
+* **Refresco**: al marcar paces como `MISSED` el timer worker refresca el Home de sus dueños, una vez por usuario por ciclo.
+* **Cobertura**: 222 pruebas, con destinatario único y respaldo a speakers.
+
 ## [2026-10-07] Hora Exacta, Zona Horaria y Manual Start (v1.8.0)
 * **Problema**: con varios huddles el mismo día, `user_huddle_changed` lanzaba todos los meetups pendientes del speaker en un bucle, y el timer worker lanzaba todos los pendientes de cualquier canal con un huddle activo. Además `scheduledFor` caía a `new Date()` porque ningún flujo pedía la hora.
 * **Hora exacta**: el modal de agenda pide fecha y hora (`datepicker` + `timepicker`), leídas en la zona resuelta del workspace. Se guardan en `Meetup.scheduledFor`. `buildScheduleModal` no lee el reloj: los valores por defecto (siguiente cuarto de hora) los calcula `getScheduleContext` en el handler. Fechas pasadas se rechazan; una hora dentro de su ventana todavía vale.

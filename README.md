@@ -80,8 +80,8 @@ HuddlePace requests only the minimum granular scopes required to coordinate meet
 8. **Exact-Time Scheduling & Manual Start**:
    - Every scheduled pace has an exact date and time, read in the workspace scheduling timezone (Pacific Time by default; `/pace settings` switches it to each scheduler's own timezone or a fixed zone). Summaries show the time with its zone, for example `10:00 AM PT`.
    - HuddlePace watches for a Huddle from 20 minutes before to 20 minutes after that time and starts the pace in the first Huddle it finds. Each Huddle starts only the pace nearest its time.
-   - Two paces in the same channel cannot sit within 20 minutes of each other. The form says so and offers to pick another time or save the new pace for **manual start** under a code (`m1`, `m2`...). Start it with `/pace start m1` inside the Huddle. Speakers, the pace creator and workspace managers can start it.
-   - A pace whose window closes without a Huddle is marked **Missed**. Its speakers get a DM with a Reschedule button, and App Home lists it under Missed (the section only appears when there is one). Rescheduling with a new time puts it back under detection.
+   - Two paces in the same channel cannot sit within 20 minutes of each other. The form says so and offers to pick another time or save the new pace for **manual start** under a code (`m1`, `m2`...). Start it with `/pace start m1` inside the Huddle. Speakers, the pace creator and workspace managers can start, edit and reschedule it.
+   - A pace whose window closes without a Huddle is marked **Missed**. Its creator gets a DM with a Reschedule button (its speakers, for paces created before creators were recorded), and App Home lists it under Missed (the section only appears when there is one). Rescheduling with a new time puts it back under detection.
    - Manual start paces are listed in App Home and on the Huddle standby card.
 
 ---
