@@ -6,7 +6,7 @@ import { getBotTokenForTeam } from "../slack/oauth/installationStore.js";
 import { publishHomeTab } from "../slack/handlers/homeHandlers.js";
 import { formatMinutes } from "../utils/progressBar.js";
 import { findChannelHuddles, isHuddleEnded } from "../slack/utils/huddleDiscovery.js";
-import { launchMeetupInThread, notifySpeakersOfAutoLaunch } from "../slack/handlers/actionHandlers.js";
+import { launchMeetupInThread, notifySpeakersOfAutoLaunch, notifySpeakersOfMissedHuddle } from "../slack/handlers/actionHandlers.js";
 
 export class TimerWorker {
   private timer: NodeJS.Timeout | null = null;
@@ -48,19 +48,57 @@ export class TimerWorker {
           include: { modules: { orderBy: { orderIndex: "asc" } } },
         });
 
-        for (const scheduled of pendingScheduled) {
+        // One meetup per channel per tick: the one whose capture window covers now and is
+        // closest to its time. Scheduling blocks paces closer than the window, so this is
+        // normally the only candidate; the pick keeps legacy overlaps from launching together.
+        const byChannel = new Map<string, typeof pendingScheduled>();
+        for (const m of pendingScheduled) {
+          const key = `${m.teamId}:${m.channelId}`;
+          byChannel.set(key, [...(byChannel.get(key) ?? []), m]);
+        }
+
+        for (const candidates of byChannel.values()) {
+          const scheduled = MeetupService.pickClosestToNow(candidates);
+          if (!scheduled) continue;
+
           const botToken = await getBotTokenForTeam(scheduled.teamId);
           const huddles = await findChannelHuddles(this.app.client, scheduled.channelId, botToken);
           const activeHuddle = huddles.find((h) => h.isActive);
 
           if (activeHuddle) {
+            // A Huddle already tracking a meetup keeps it; the next pace waits for its turn.
+            const alreadyTracked = await prisma.meetup.findFirst({
+              where: {
+                channelId: scheduled.channelId,
+                threadTs: activeHuddle.ts,
+                status: { in: ["ACTIVE", "JUST_CHATTING"] },
+              },
+              select: { id: true },
+            });
+            if (alreadyTracked) continue;
+
             console.info(`⏱️ Timer worker detected active Huddle in channel ${scheduled.channelId}. Auto-launching scheduled meetup ${scheduled.id}.`);
-            await launchMeetupInThread(this.app.client, scheduled.id, activeHuddle.ts);
-            await notifySpeakersOfAutoLaunch(this.app.client, scheduled, botToken);
+            if (await launchMeetupInThread(this.app.client, scheduled.id, activeHuddle.ts)) {
+              await notifySpeakersOfAutoLaunch(this.app.client, scheduled, botToken);
+            }
           }
         }
       } catch (scheduledErr) {
         console.warn("Error checking pending scheduled meetups in timer worker:", scheduledErr);
+      }
+
+      // Paces whose window closed without a Huddle wait for /pace start instead of staying
+      // SCHEDULED forever. Only recent misses notify, so old backlog does not flood DMs.
+      try {
+        const missed = await MeetupService.moveMissedToManualStart();
+        const recentMilliseconds = 24 * 3_600_000;
+        for (const meetup of missed) {
+          if (!meetup.scheduledFor || Date.now() - meetup.scheduledFor.getTime() > recentMilliseconds) continue;
+          const botToken = await getBotTokenForTeam(meetup.teamId);
+          await notifySpeakersOfMissedHuddle(this.app.client, meetup, botToken);
+        }
+      } catch (missedErr) {
+        console.warn("Error moving missed meetups to manual start in timer worker:", missedErr);
       }
 
       const activeMeetups = await MeetupService.getActiveMeetups();

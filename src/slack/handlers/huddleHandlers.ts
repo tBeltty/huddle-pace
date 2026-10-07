@@ -92,8 +92,9 @@ export function registerHuddleHandlers(app: App) {
           if (!greetedHuddleThreads.has(rootTs)) {
             greetedHuddleThreads.add(rootTs);
             console.info(`Active Huddle detected in channel ${channelId}. Auto-launching scheduled meetup ${scheduled.id}.`);
-            await launchMeetupInThread(client, scheduled.id, rootTs);
-            await notifySpeakersOfAutoLaunch(client, scheduled);
+            if (await launchMeetupInThread(client, scheduled.id, rootTs)) {
+              await notifySpeakersOfAutoLaunch(client, scheduled);
+            }
           }
           return;
         }
@@ -101,6 +102,7 @@ export function registerHuddleHandlers(app: App) {
         // If no scheduled meetup, post unobtrusive standby presence greeting in the Huddle thread
         if (!greetedHuddleThreads.has(rootTs)) {
           greetedHuddleThreads.add(rootTs);
+          const manualStartPaces = await MeetupService.getManualStartMeetups(channelId, teamId);
           await client.chat.postMessage({
             channel: channelId,
             thread_ts: rootTs,
@@ -131,6 +133,21 @@ export function registerHuddleHandlers(app: App) {
                   },
                 ],
               },
+              ...(manualStartPaces.length > 0
+                ? [
+                    {
+                      type: "context" as const,
+                      elements: [
+                        {
+                          type: "mrkdwn" as const,
+                          text: `Saved for manual start here (${manualStartPaces
+                            .map((pace) => `\`${pace.manualStartCode}\` ${pace.title}`)
+                            .join(", ")}). Type \`/pace start ${manualStartPaces[0].manualStartCode}\` to begin one.`,
+                        },
+                      ],
+                    },
+                  ]
+                : []),
             ],
           }).catch(() => {});
         }
@@ -197,9 +214,8 @@ export function registerHuddleHandlers(app: App) {
       }
 
       // Default: Check if there's a pending scheduled meetup to start, or offer quick launch
-      const scheduled = await MeetupService.findPendingScheduledMeetup(channelId, teamId);
-      if (scheduled) {
-        await launchMeetupInThread(client, scheduled.id, threadTs);
+      const scheduled = await MeetupService.findPendingScheduledMeetup(channelId, teamId, { anyTime: true });
+      if (scheduled && (await launchMeetupInThread(client, scheduled.id, threadTs))) {
         await client.chat.postMessage({
           channel: channelId,
           thread_ts: threadTs,
@@ -260,17 +276,19 @@ export function registerHuddleHandlers(app: App) {
 
       if (huddleState === "in_a_huddle") {
         // Speaker has entered a Huddle! Check for pending scheduled meetups
-        const pendingMeetups = await MeetupService.findPendingScheduledMeetupsForSpeaker(userId, teamId);
-
-        for (const meetup of pendingMeetups) {
+        // One Huddle launches one meetup: the scheduled one closest to now. The speaker's
+        // other meetups of the day stay SCHEDULED until their own Huddle starts.
+        const meetup = await MeetupService.findMeetupToLaunchForSpeaker(userId, teamId);
+        if (meetup) {
           console.info(`Auto-launching scheduled meetup ${meetup.id} ('${meetup.title}') in channel ${meetup.channelId} because speaker ${userId} started a Huddle.`);
 
           const huddles = await findChannelHuddles(client, meetup.channelId);
           const activeHuddle = huddles.find((h) => h.isActive);
           const threadTs = activeHuddle ? activeHuddle.ts : undefined;
 
-          await launchMeetupInThread(client, meetup.id, threadTs);
-          await notifySpeakersOfAutoLaunch(client, meetup);
+          if (await launchMeetupInThread(client, meetup.id, threadTs)) {
+            await notifySpeakersOfAutoLaunch(client, meetup);
+          }
         }
       }
     } catch (err) {

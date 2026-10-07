@@ -15,6 +15,31 @@ describe("MeetupService calculations and parsing", () => {
     });
   });
 
+  describe("pickClosestToNow", () => {
+    const at = (h: number, m = 0) => new Date(`2026-10-07T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00Z`);
+
+    test("each Huddle captures only the meetup nearest to it", () => {
+      const day = [
+        { id: "morning", scheduledFor: at(9) },
+        { id: "noon", scheduledFor: at(12) },
+        { id: "afternoon", scheduledFor: at(16) },
+      ];
+      assert.strictEqual(MeetupService.pickClosestToNow(day, at(16, 10))?.id, "afternoon");
+      assert.strictEqual(MeetupService.pickClosestToNow(day, at(8, 45))?.id, "morning");
+    });
+
+    test("ignores meetups outside the ±20 minute capture window", () => {
+      const day = [{ id: "morning", scheduledFor: at(9) }];
+      assert.strictEqual(MeetupService.pickClosestToNow(day, at(9, 20))?.id, "morning");
+      assert.strictEqual(MeetupService.pickClosestToNow(day, at(9, 21)), undefined);
+      assert.strictEqual(MeetupService.pickClosestToNow(day, at(8, 39)), undefined);
+    });
+
+    test("returns undefined for an empty list", () => {
+      assert.strictEqual(MeetupService.pickClosestToNow([], at(10)), undefined);
+    });
+  });
+
   describe("formatSpeakerMentions", () => {
     test("formats single speaker mention", () => {
       const formatted = MeetupService.formatSpeakerMentions("U123");

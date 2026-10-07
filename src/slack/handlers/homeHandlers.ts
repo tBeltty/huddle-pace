@@ -1,3 +1,4 @@
+import { getScheduleContext, resolveZoneForUser } from "../utils/scheduleZone.js";
 import { App } from "@slack/bolt";
 import { MeetupService } from "../../services/meetupService.js";
 import { buildHomeTabView, buildGuideModal } from "../ui/homeTab.js";
@@ -15,15 +16,17 @@ export async function publishHomeTab(
   teamId?: string
 ): Promise<void> {
   try {
-    const [active, upcoming, stats] = await Promise.all([
+    const [active, upcoming, manualStart, zone, stats] = await Promise.all([
       MeetupService.getActiveMeetups(teamId),
       MeetupService.getUpcomingMeetups(teamId),
+      MeetupService.getManualStartMeetupsForTeam(teamId),
+      resolveZoneForUser(client, userId, teamId || "default"),
       MeetupService.getReportViewer(client, userId, teamId || "default").then((viewer) =>
         MeetupService.getPacingReportStats(30, teamId, viewer)
       ),
     ]);
 
-    const view = buildHomeTabView(active, upcoming, stats, userId);
+    const view = buildHomeTabView(active, upcoming, stats, userId, { manualStartMeetups: manualStart, zone });
     await client.views.publish({
       user_id: userId,
       view,
@@ -97,7 +100,9 @@ export function registerHomeHandlers(app: App) {
 
     try {
       const templates = await MeetupService.listTemplateOptions(teamId || "default", currentUserId).catch(() => []);
+      const scheduleContext = await getScheduleContext(client, currentUserId, teamId || "default");
       const modalView = buildScheduleModal({
+        ...scheduleContext,
         subtopicCount: 3,
         currentUserId,
         templates: templates,
@@ -190,6 +195,7 @@ export function registerHomeHandlers(app: App) {
           reminderTextEnabled: settings.reminderTextEnabled,
           reminderImageEnabled: settings.reminderImageEnabled,
           flexibilityMode: settings.flexibilityMode,
+          timezone: settings.timezone,
           managerUserIds: settings.managerUserIds,
           canEdit,
         }),

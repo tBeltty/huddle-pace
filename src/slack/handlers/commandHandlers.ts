@@ -1,3 +1,4 @@
+import { getScheduleContext } from "../utils/scheduleZone.js";
 import { App } from "@slack/bolt";
 import { buildScheduleModal } from "../ui/scheduleModal.js";
 import { buildSettingsModal } from "../ui/settingsModal.js";
@@ -6,7 +7,59 @@ import { MeetupService } from "../../services/meetupService.js";
 import { findChannelHuddles } from "../utils/huddleDiscovery.js";
 import { buildAppHomeMrkdwnLink } from "../utils/deepLinks.js";
 import { ensureBotInChannel } from "../utils/channelUtils.js";
+import { buildHuddleSelectionModal } from "../ui/huddleSelectModal.js";
+import type { SlackClient } from "../utils/slackClient.js";
 import { launchMeetupInThread } from "./actionHandlers.js";
+
+interface ManualStartCommand {
+  channel_id: string;
+  user_id: string;
+  team_id: string;
+  trigger_id: string;
+}
+
+/** Lists the channel's Manual start paces as "`m1` Title, `m2` Title". */
+async function describeManualStartPaces(channelId: string, teamId: string): Promise<string> {
+  const paces = await MeetupService.getManualStartMeetups(channelId, teamId);
+  if (paces.length === 0) return "Nothing is saved for manual start in this channel.";
+  return `Saved for manual start here (${paces.map((pace) => `\`${pace.manualStartCode}\` ${pace.title}`).join(", ")}).`;
+}
+
+/** `/pace start <code>`: starts a Manual start pace in this channel's active Huddle. */
+async function startManualStartPace(client: SlackClient, command: ManualStartCommand, code: string): Promise<void> {
+  const reply = (text: string) =>
+    client.chat.postEphemeral({ channel: command.channel_id, user: command.user_id, text });
+
+  const pace = await MeetupService.findManualStartMeetup(command.channel_id, code, command.team_id);
+  if (!pace) {
+    await reply(`ℹ️ No pace \`${code}\` in this channel. ${await describeManualStartPaces(command.channel_id, command.team_id)}`);
+    return;
+  }
+
+  if (!(await MeetupService.canUserStartMeetup(client, pace, command.user_id))) {
+    await reply(`⚠️ *Access Denied:* Only the speaker(s), the creator or a workspace manager can start *"${pace.title}"*.`);
+    return;
+  }
+
+  const activeHuddles = (await findChannelHuddles(client, command.channel_id)).filter((huddle) => huddle.isActive);
+  if (activeHuddles.length > 1) {
+    await client.views.open({
+      trigger_id: command.trigger_id,
+      view: buildHuddleSelectionModal(pace.id, pace.title, pace.channelId, activeHuddles),
+    });
+    return;
+  }
+
+  const huddleThreadTs = activeHuddles[0]?.ts;
+  const launched = await launchMeetupInThread(client, pace.id, huddleThreadTs);
+  if (!launched) {
+    await reply(`ℹ️ *"${pace.title}"* was already started.`);
+    return;
+  }
+
+  const location = huddleThreadTs ? "inside this live Huddle thread" : "in the channel feed";
+  await reply(`🛫 *Flight Initiated!* HuddlePace started *"${pace.title}"* (${pace.totalMinutes}m) ${location}.`);
+}
 
 export function registerCommandHandlers(app: App) {
   // Slash command: /pace
@@ -23,7 +76,7 @@ export function registerCommandHandlers(app: App) {
         await client.chat.postEphemeral({
           channel: command.channel_id,
           user: command.user_id,
-          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the interactive meetup scheduler\n• \`/pace start\` — Immediately launch the pending scheduled session in this channel/Huddle\n• \`/pace 15m [Title]\` — Instant takeoff! Starts a 15m live session right inside this Huddle/channel\n• \`/pace settings\` — Configure workspace reminders and flexibility preferences\n• \`/pace clear\` — Clean up your private DM conversation history with HuddlePace bot\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to see your personalized sessions.`,
+          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the interactive meetup scheduler\n• \`/pace start\` — Launch the scheduled session closest to now in this channel/Huddle\n• \`/pace start m1\` — Start a pace you saved for manual start (the code comes from the scheduling confirmation and App Home)\n• \`/pace 15m [Title]\` — Instant takeoff! Starts a 15m live session right inside this Huddle/channel\n• \`/pace settings\` — Configure workspace reminders and flexibility preferences\n• \`/pace clear\` — Clean up your private DM conversation history with HuddlePace bot\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to see your personalized sessions.`,
         });
         return;
       }
@@ -41,6 +94,7 @@ export function registerCommandHandlers(app: App) {
             reminderTextEnabled: settings.reminderTextEnabled,
             reminderImageEnabled: settings.reminderImageEnabled,
             flexibilityMode: settings.flexibilityMode,
+            timezone: settings.timezone,
             managerUserIds: settings.managerUserIds,
             canEdit,
           }),
@@ -103,12 +157,18 @@ export function registerCommandHandlers(app: App) {
       }
 
       if (subCommand === "start" || subCommand === "launch" || subCommand === "takeoff") {
-        const scheduled = await MeetupService.findPendingScheduledMeetup(command.channel_id, command.team_id);
+        const manualStartCode = parts[1]?.toLowerCase();
+        if (manualStartCode) {
+          await startManualStartPace(client, command, manualStartCode);
+          return;
+        }
+
+        const scheduled = await MeetupService.findPendingScheduledMeetup(command.channel_id, command.team_id, { anyTime: true });
         if (!scheduled) {
           await client.chat.postEphemeral({
             channel: command.channel_id,
             user: command.user_id,
-            text: `ℹ️ No pending scheduled meetups found for this channel. Type \`/pace 15m\` for instant takeoff, or \`/pace\` to schedule one.`,
+            text: `ℹ️ No scheduled pace is waiting for this Huddle right now. ${await describeManualStartPaces(command.channel_id, command.team_id)} Type \`/pace start <code>\` to start one, \`/pace 15m\` for instant takeoff, or \`/pace\` to schedule one.`,
           });
           return;
         }
@@ -242,10 +302,12 @@ export function registerCommandHandlers(app: App) {
       await ensureBotInChannel(client, command.channel_id, command.user_id);
       const huddles = await findChannelHuddles(client, command.channel_id);
       const templates = await MeetupService.listTemplateOptions(command.team_id || "default", command.user_id).catch(() => []);
+      const scheduleContext = await getScheduleContext(client, command.user_id, command.team_id || "default");
 
       await client.views.open({
         trigger_id: command.trigger_id,
         view: buildScheduleModal({
+          ...scheduleContext,
           templates: templates,
           channelId: command.channel_id,
           currentUserId: command.user_id,
@@ -268,9 +330,11 @@ export function registerCommandHandlers(app: App) {
         (shortcut as any).team?.id || "default",
         shortcut.user.id
       ).catch(() => []);
+      const scheduleContext = await getScheduleContext(client, shortcut.user.id, (shortcut as any).team?.id || "default");
       await client.views.open({
         trigger_id: shortcut.trigger_id,
         view: buildScheduleModal({
+          ...scheduleContext,
           subtopicCount: 3,
           currentUserId: shortcut.user.id,
           templates: templates,
