@@ -721,6 +721,18 @@ export class MeetupService {
     return moved;
   }
 
+  /**
+   * Cancels a pace that has not started. Conditional on the editable statuses so a pace that
+   * launched a moment ago is left alone. Frees its manual start code. Returns whether it moved.
+   */
+  static async cancelMeetup(id: string): Promise<boolean> {
+    const result = await prisma.meetup.updateMany({
+      where: { id, status: { in: ["SCHEDULED", "MANUAL_START", "MISSED"] } },
+      data: { status: "CANCELLED", manualStartCode: null },
+    });
+    return result.count === 1;
+  }
+
   /** Paces whose Huddle never started, newest first, for the App Home. */
   static async getMissedMeetups(teamId?: string) {
     return await prisma.meetup.findMany({

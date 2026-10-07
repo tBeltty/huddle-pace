@@ -33,6 +33,23 @@ export interface HomeTabOptions {
 /**
  * Builds the streamlined, minimalist App Home view.
  */
+/** Cancel button for a pace that has not started. Asks for confirmation. */
+function cancelPaceButton(meetupId: string): any {
+  return {
+    type: "button",
+    text: { type: "plain_text", text: "🗑️ Cancel", emoji: true },
+    style: "danger",
+    value: meetupId,
+    action_id: "cancel_scheduled_meetup_action",
+    confirm: {
+      title: { type: "plain_text", text: "Cancel this pace?" },
+      text: { type: "mrkdwn", text: "It leaves App Home and will not start." },
+      confirm: { type: "plain_text", text: "Yes, cancel" },
+      deny: { type: "plain_text", text: "Keep it" },
+    },
+  };
+}
+
 export function buildHomeTabView(
   activeMeetups: MeetupWithModules[],
   upcomingMeetups: MeetupWithModules[],
@@ -247,6 +264,7 @@ export function buildHomeTabView(
                     value: meetup.id,
                     action_id: "edit_scheduled_meetup_action",
                   },
+                  cancelPaceButton(meetup.id),
                 ],
               },
               { type: "divider" }
@@ -339,17 +357,22 @@ export function buildHomeTabView(
           type: "mrkdwn",
           text: `\`${meetup.manualStartCode}\` *${meetup.title}* (${formatMinutes(meetup.totalMinutes)})${whenLine(meetup)}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\nStart it from the Huddle with \`/pace start ${meetup.manualStartCode}\``,
         },
-        ...(canEdit
-          ? {
-              accessory: {
-                type: "button",
-                text: { type: "plain_text", text: "✏️ Edit", emoji: true },
-                value: meetup.id,
-                action_id: "edit_scheduled_meetup_action",
-              },
-            }
-          : {}),
       });
+      if (canEdit) {
+        blocks.push({
+          type: "actions",
+          block_id: `manual_meetup_${meetup.id}`,
+          elements: [
+            {
+              type: "button",
+              text: { type: "plain_text", text: "✏️ Edit", emoji: true },
+              value: meetup.id,
+              action_id: "edit_scheduled_meetup_action",
+            },
+            cancelPaceButton(meetup.id),
+          ],
+        });
+      }
       blocks.push({ type: "divider" });
     }
   }
@@ -381,6 +404,13 @@ export function buildHomeTabView(
             }
           : {}),
       });
+      if (canReschedule) {
+        blocks.push({
+          type: "actions",
+          block_id: `missed_meetup_${meetup.id}`,
+          elements: [cancelPaceButton(meetup.id)],
+        });
+      }
       blocks.push({ type: "divider" });
     }
   }
