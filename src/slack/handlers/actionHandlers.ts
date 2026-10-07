@@ -18,7 +18,6 @@ interface MissedMeetup {
   title: string;
   speakerUserId: string;
   scheduledFor: Date | null;
-  manualStartCode: string | null;
 }
 
 /**
@@ -56,18 +55,34 @@ export async function notifySpeakersOfAutoLaunch(client: any, meetup: any, botTo
 }
 
 /**
- * Privately DMs the speaker(s) that no Huddle started in a pace's capture window and that the
- * pace now waits for `/pace start <code>`.
+ * Privately DMs the speaker(s) that no Huddle started in a pace's capture window, with a
+ * button to pick a new time so detection watches for it again.
  */
 export async function notifySpeakersOfMissedHuddle(client: SlackClient, meetup: MissedMeetup, botToken?: string) {
   for (const speakerId of MeetupService.parseSpeakerIds(meetup.speakerUserId)) {
     try {
       const zone = await resolveZoneForUser(client, speakerId, meetup.teamId);
       const when = meetup.scheduledFor ? formatEventTime(meetup.scheduledFor, zone) : "its scheduled time";
+      const text = `⏳ No Huddle started in <#${meetup.channelId}> around ${when}, so *"${meetup.title}"* did not start. Pick a new time and HuddlePace will watch for a Huddle again.`;
       await client.chat.postMessage({
         token: botToken,
         channel: speakerId,
-        text: `⏳ No Huddle started in <#${meetup.channelId}> around ${when}, so *"${meetup.title}"* did not start. It is saved for manual start as \`${meetup.manualStartCode}\`. When its Huddle begins, type \`/pace start ${meetup.manualStartCode}\` in the channel.`,
+        text,
+        blocks: [
+          { type: "section", text: { type: "mrkdwn", text } },
+          {
+            type: "actions",
+            elements: [
+              {
+                type: "button",
+                text: { type: "plain_text", text: "🔁 Reschedule", emoji: true },
+                style: "primary",
+                value: meetup.id,
+                action_id: "edit_scheduled_meetup_action",
+              },
+            ],
+          },
+        ],
       });
     } catch (err) {
       console.warn(`Failed to send missed-Huddle DM to speaker ${speakerId} (meetupId=${meetup.id}):`, err);

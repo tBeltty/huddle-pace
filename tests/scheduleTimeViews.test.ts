@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { buildScheduleModal } from "../src/slack/ui/scheduleModal.js";
 import { buildScheduleConflictModal } from "../src/slack/ui/conflictModal.js";
 import { buildSettingsModal } from "../src/slack/ui/settingsModal.js";
+import { buildHomeTabView } from "../src/slack/ui/homeTab.js";
 
 const blocksOf = (view: { blocks?: unknown[] }) => (view.blocks ?? []) as Array<Record<string, any>>;
 const findInput = (view: { blocks?: unknown[] }, prefix: string) =>
@@ -107,5 +108,44 @@ describe("settings timezone selector", () => {
   test("read-only members see the active timezone", () => {
     const modal = buildSettingsModal({ reminderTextEnabled: true, reminderImageEnabled: false, timezone: "USER", canEdit: false });
     assert.match(JSON.stringify(modal.blocks), /My timezone/);
+  });
+});
+
+describe("App Home Missed and Manual start sections", () => {
+  const pace = {
+    id: "m_1",
+    title: "Standup Ventas",
+    totalMinutes: 30,
+    channelId: "C1",
+    speakerUserId: "U_SPEAKER",
+    startedAt: null,
+    scheduledFor: new Date("2026-10-07T17:00:00.000Z"),
+    manualStartCode: "m1",
+    status: "MISSED",
+    modules: [],
+  };
+  const text = (options: Parameters<typeof buildHomeTabView>[4], userId = "U_SPEAKER") =>
+    JSON.stringify(buildHomeTabView([], [], undefined, userId, options).blocks);
+
+  test("shows neither section when there is nothing to show", () => {
+    const home = text({});
+    assert.doesNotMatch(home, /Missed/);
+    assert.doesNotMatch(home, /Manual start/);
+  });
+
+  test("lists missed paces with their time and zone and a Reschedule button for speakers", () => {
+    const home = text({ missedMeetups: [pace], zone: "America/Los_Angeles" });
+    assert.match(home, /⏳ Missed/);
+    assert.match(home, /10:00 AM PT/);
+    assert.match(home, /Reschedule/);
+  });
+
+  test("other members see a missed pace without the Reschedule button", () => {
+    assert.doesNotMatch(text({ missedMeetups: [pace] }, "U_OTHER"), /Reschedule/);
+  });
+
+  test("lists manual start paces with the command to start them", () => {
+    const home = text({ manualStartMeetups: [{ ...pace, status: "MANUAL_START" }] });
+    assert.match(home, /\/pace start m1/);
   });
 });

@@ -23,6 +23,8 @@ interface MeetupWithModules {
 export interface HomeTabOptions {
   /** Paces saved for manual start, started with /pace start <code>. */
   manualStartMeetups?: MeetupWithModules[];
+  /** Paces whose Huddle never started. Speakers can reschedule them. */
+  missedMeetups?: MeetupWithModules[];
   /** Zone event times are shown in. */
   zone?: string;
 }
@@ -39,6 +41,7 @@ export function buildHomeTabView(
 ): View {
   const zone = options.zone ?? PT_ZONE;
   const manualStartMeetups = options.manualStartMeetups ?? [];
+  const missedMeetups = options.missedMeetups ?? [];
   const whenLine = (meetup: MeetupWithModules) =>
     meetup.scheduledFor ? `\n🕒 ${formatEventDateTime(meetup.scheduledFor, zone)}` : "";
 
@@ -109,7 +112,7 @@ export function buildHomeTabView(
     { type: "divider" },
   ];
 
-  const isCleanSlate = activeMeetups.length === 0 && upcomingMeetups.length === 0 && manualStartMeetups.length === 0;
+  const isCleanSlate = activeMeetups.length === 0 && upcomingMeetups.length === 0 && manualStartMeetups.length === 0 && missedMeetups.length === 0;
 
   if (isCleanSlate) {
     blocks.push(
@@ -338,6 +341,39 @@ export function buildHomeTabView(
               accessory: {
                 type: "button",
                 text: { type: "plain_text", text: "✏️ Edit", emoji: true },
+                value: meetup.id,
+                action_id: "edit_scheduled_meetup_action",
+              },
+            }
+          : {}),
+      });
+      blocks.push({ type: "divider" });
+    }
+  }
+
+  // 6. Missed: the Huddle never started in the capture window. Reschedule to watch again.
+  if (missedMeetups.length > 0) {
+    blocks.push({
+      type: "header",
+      text: { type: "plain_text", text: "⏳ Missed", emoji: true },
+    });
+    for (const meetup of missedMeetups) {
+      const speakers = MeetupService.formatSpeakerMentions(meetup.speakerUserId);
+      const canReschedule = currentUserId
+        ? MeetupService.parseSpeakerIds(meetup.speakerUserId).includes(currentUserId)
+        : false;
+      blocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*${meetup.title}* (${formatMinutes(meetup.totalMinutes)})${whenLine(meetup)}\nChannel: <#${meetup.channelId}> | Speakers: ${speakers}\nNo Huddle started in time. Pick a new time and HuddlePace watches again.`,
+        },
+        ...(canReschedule
+          ? {
+              accessory: {
+                type: "button",
+                text: { type: "plain_text", text: "🔁 Reschedule", emoji: true },
+                style: "primary",
                 value: meetup.id,
                 action_id: "edit_scheduled_meetup_action",
               },

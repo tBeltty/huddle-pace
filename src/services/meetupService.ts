@@ -572,15 +572,16 @@ export class MeetupService {
   }
 
   /**
-   * Edits a meetup that has not started yet. Replaces its modules and keeps its schedule slot.
-   * Returns null when the meetup is missing or no longer SCHEDULED.
+   * Edits a meetup that has not started yet (SCHEDULED, MANUAL_START or MISSED). Replaces its
+   * modules. A MISSED meetup saved with a new time goes back to SCHEDULED so detection watches
+   * for it again. Returns null when the meetup is missing or already started.
    */
   static async updateScheduledMeetup(id: string, data: Omit<CreateMeetupDTO, "teamId">) {
     const computedModules = this.calculateModuleAllocations(data.totalMinutes, data.modules);
 
     return await prisma.$transaction(async (tx) => {
       const claimed = await tx.meetup.updateMany({
-        where: { id, status: { in: ["SCHEDULED", "MANUAL_START"] } },
+        where: { id, status: { in: ["SCHEDULED", "MANUAL_START", "MISSED"] } },
         data: {
           title: data.title.trim(),
           ...(data.scheduledFor ? { scheduledFor: data.scheduledFor } : {}),
@@ -594,6 +595,10 @@ export class MeetupService {
         },
       });
       if (claimed.count === 0) return null;
+
+      if (data.scheduledFor) {
+        await tx.meetup.updateMany({ where: { id, status: "MISSED" }, data: { status: "SCHEDULED" } });
+      }
 
       await tx.meetupModule.deleteMany({ where: { meetupId: id } });
       await tx.meetupModule.createMany({
@@ -693,23 +698,37 @@ export class MeetupService {
   }
 
   /**
-   * Moves SCHEDULED meetups whose capture window closed without a Huddle to Manual start,
-   * one at a time so each gets its own code. Returns the meetups that moved.
+   * Marks SCHEDULED meetups whose capture window closed without a Huddle as MISSED. They leave
+   * automatic capture and wait for a new time (rescheduling puts them back to SCHEDULED).
+   * Returns the meetups that moved.
    */
-  static async moveMissedToManualStart(now: Date = new Date()) {
+  static async markMissedMeetups(now: Date = new Date()) {
     const cutoff = new Date(now.getTime() - this.CAPTURE_WINDOW_MINUTES * 60_000);
     const missed = await prisma.meetup.findMany({
       where: { status: "SCHEDULED", scheduledFor: { lt: cutoff } },
       orderBy: { scheduledFor: "asc" },
-      select: { id: true },
     });
 
     const moved = [];
-    for (const { id } of missed) {
-      const meetup = await this.moveToManualStart(id);
-      if (meetup) moved.push(meetup);
+    for (const meetup of missed) {
+      // Conditional on SCHEDULED so a launch claimed a moment ago is not overwritten.
+      const result = await prisma.meetup.updateMany({
+        where: { id: meetup.id, status: "SCHEDULED" },
+        data: { status: "MISSED" },
+      });
+      if (result.count === 1) moved.push({ ...meetup, status: "MISSED" });
     }
     return moved;
+  }
+
+  /** Paces whose Huddle never started, newest first, for the App Home. */
+  static async getMissedMeetups(teamId?: string) {
+    return await prisma.meetup.findMany({
+      where: { status: "MISSED", ...(teamId ? { teamId } : {}) },
+      orderBy: { scheduledFor: "desc" },
+      take: 10,
+      include: { modules: { orderBy: { orderIndex: "asc" } } },
+    });
   }
 
   /** Meetups waiting for `/pace start <code>` in a channel, oldest code first. */

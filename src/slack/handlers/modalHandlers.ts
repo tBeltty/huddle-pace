@@ -76,6 +76,11 @@ async function loadTemplateOptions(teamId: string | undefined, userId: string | 
   }
 }
 
+/** Paces that have not started and can still be edited. A MISSED pace is edited to reschedule it. */
+function isEditableStatus(status: string): boolean {
+  return status === "SCHEDULED" || status === "MANUAL_START" || status === "MISSED";
+}
+
 /** The date, time and zone fields of a modal state, so re-renders from a template keep them. */
 function scheduleSlice(state: Partial<ModalStateData>): Partial<ModalStateData> {
   return {
@@ -207,7 +212,7 @@ export function registerModalHandlers(app: App) {
       const userId = b.user?.id;
       const teamId = b.team?.id || b.user?.team_id || "default";
       const meetup = await MeetupService.getMeetupById(b.actions[0]?.value);
-      if (!meetup || meetup.teamId !== teamId || (meetup.status !== "SCHEDULED" && meetup.status !== "MANUAL_START")) return;
+      if (!meetup || meetup.teamId !== teamId || !isEditableStatus(meetup.status)) return;
       if (!MeetupService.parseSpeakerIds(meetup.speakerUserId).includes(userId)) return;
 
       const zone = await resolveZoneForUser(client, userId, teamId);
@@ -216,7 +221,11 @@ export function registerModalHandlers(app: App) {
       await client.views.open({
         trigger_id: b.trigger_id,
         view: buildScheduleModal({
-          ...scheduleContextFor(meetup.scheduledFor, zone),
+          // A missed pace's old time is in the past, so offer the next quarter hour instead
+          ...scheduleContextFor(meetup.status === "MISSED" ? null : meetup.scheduledFor, zone),
+          ...(meetup.status === "MISSED"
+            ? { scheduleNotice: "⏳ *This pace missed its Huddle.* Pick a new date and time and HuddlePace will watch for a Huddle again." }
+            : {}),
           editMeetupId: meetup.id,
           title: meetup.title,
           channelId: meetup.channelId,
@@ -408,7 +417,7 @@ export function registerModalHandlers(app: App) {
         await ack({ response_action: "errors", errors: { [titleBlock]: "Only the designated speaker(s) can edit this meetup." } });
         return;
       }
-      if (existing.status !== "SCHEDULED" && existing.status !== "MANUAL_START") {
+      if (!isEditableStatus(existing.status)) {
         await ack({ response_action: "errors", errors: { [titleBlock]: "This meetup already started and can no longer be edited." } });
         return;
       }
@@ -446,7 +455,7 @@ export function registerModalHandlers(app: App) {
     }
 
     // A pace that starts within the capture window of another would compete for the same Huddle
-    if (!existing || existing.status === "SCHEDULED") {
+    if (!existing || existing.status !== "MANUAL_START") {
       const conflict = await MeetupService.findScheduleConflict(validatedData.channelId, teamId, scheduledFor, editMeetupId);
       if (conflict?.scheduledFor) {
         const token = stashPendingSchedule<PendingSchedule>({
