@@ -37,7 +37,7 @@ HuddlePace requests only the minimum granular scopes required to coordinate meet
 | :--- | :--- | :--- |
 | `commands` | Bot | Registers the `/pace` slash command for scheduling and status checks. |
 | `chat:write` | Bot | Posts and updates the live ASCII/Unicode progress bar in the Huddle chat thread. |
-| `im:write` | Bot | Sends private pacing warnings and midpoint alerts directly to assigned speakers. |
+| `im:write` | Bot | Sends private pacing warnings when each module starts and with one minute left directly to assigned speakers. |
 | `channels:join` | Bot | Joins public channels automatically when an organizer schedules a meeting. |
 | `channels:history` | Bot | Scans channel message events solely to detect Huddle lifecycle boundaries (`room.has_ended: true`). |
 | `groups:history` | Bot | Detects Huddle start and completion events in private channels where the bot was explicitly invited. |
@@ -68,7 +68,7 @@ HuddlePace requests only the minimum granular scopes required to coordinate meet
    - Posts a final duration summary comparing scheduled versus actual time.
 
 5. **Speaker Pacing Alerts**:
-   - Private notifications sent directly to active presenters via Slack DM at midpoint and 1-minute remaining marks.
+   - Private notifications sent directly to active presenters via Slack DM when each module starts and with 1 minute remaining.
    - `⏭️ Next Module` action allows speakers who finish early to hand off remaining time to the next agenda item.
 
 6. **"Just Chatting" Wrap-Up Mode**:
