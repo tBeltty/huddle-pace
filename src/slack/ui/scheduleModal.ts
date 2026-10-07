@@ -47,6 +47,7 @@ export interface ModalStateData {
   customDuration?: string;
   reminderTextEnabled?: boolean;
   reminderImageEnabled?: boolean;
+  isPrivate?: boolean;
   templates?: ModalTemplateOption[];
   selectedTemplateId?: string;
   saveAsTemplate?: boolean;
@@ -180,6 +181,11 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       value: "reminder_image",
     });
   }
+
+  const privateOption = {
+    text: { type: "mrkdwn" as const, text: "*Private huddle* (excluded from workspace analytics)" },
+    value: "private_huddle",
+  };
 
   const blocks: any[] = [];
 
@@ -363,6 +369,22 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       hint: {
         type: "plain_text",
         text: "Dispatched once when ~16.7% time remains to wrap up action items.",
+      },
+    },
+    {
+      type: "input",
+      block_id: bid("private_huddle_block"),
+      optional: true,
+      label: { type: "plain_text", text: "Analytics Privacy" },
+      element: {
+        type: "checkboxes",
+        action_id: "private_huddle_checkbox",
+        options: [privateOption],
+        ...(initialState?.isPrivate ? { initial_options: [privateOption] } : {}),
+      },
+      hint: {
+        type: "plain_text",
+        text: "Private huddles only show in the analytics of their speakers and creator. The channel tracker works as usual.",
       },
     },
     {

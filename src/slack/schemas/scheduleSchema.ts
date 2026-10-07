@@ -23,6 +23,7 @@ export const scheduleModalInputSchema = z
     threadTs: z.string().nullable(),
     reminderTextEnabled: z.boolean().default(true),
     reminderImageEnabled: z.boolean().default(false),
+    isPrivate: z.boolean().default(false),
     modules: z
       .array(subtopicInputSchema)
       .min(1, "At least one subtopic is required."),

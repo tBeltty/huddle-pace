@@ -18,7 +18,9 @@ export async function publishHomeTab(
     const [active, upcoming, stats] = await Promise.all([
       MeetupService.getActiveMeetups(teamId),
       MeetupService.getUpcomingMeetups(teamId),
-      MeetupService.getPacingReportStats(30, teamId),
+      MeetupService.getReportViewer(client, userId, teamId || "default").then((viewer) =>
+        MeetupService.getPacingReportStats(30, teamId, viewer)
+      ),
     ]);
 
     const view = buildHomeTabView(active, upcoming, stats, userId);
@@ -123,7 +125,9 @@ export function registerHomeHandlers(app: App) {
     try {
       const [, stats] = await Promise.all([
         ack(),
-        MeetupService.getPacingReportStats(30, teamId),
+        MeetupService.getReportViewer(client, b.user?.id, teamId).then((viewer) =>
+          MeetupService.getPacingReportStats(30, teamId, viewer)
+        ),
       ]);
 
       await client.views.open({
@@ -225,7 +229,9 @@ export function registerHomeHandlers(app: App) {
     try {
       const [, stats] = await Promise.all([
         ack(),
-        MeetupService.getPacingReportStats(30, teamId),
+        MeetupService.getReportViewer(client, b.user?.id, teamId).then((viewer) =>
+          MeetupService.getPacingReportStats(30, teamId, viewer)
+        ),
         publishHomeTab(client, b.user?.id, teamId),
       ]);
 

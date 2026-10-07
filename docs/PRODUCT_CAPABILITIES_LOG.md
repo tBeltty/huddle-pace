@@ -4,6 +4,14 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-07] Analíticas Privadas por Defecto y Huddles Privados
+* **Visibilidad (`getPacingReportStats(days, teamId, viewer)`)**: administradores, owners y bot managers (`isUserWorkspaceManager`) ven el reporte del workspace (`scope: "workspace"`), sin huddles privados. El resto ve `scope: "personal"`: solo los meetups donde figura como speaker o como creador, privados incluidos. Sin `viewer` el servicio devuelve la vista del workspace, que es lo que usan las pruebas existentes.
+* **Esquema**: `Meetup.createdByUserId String?` y `Meetup.isPrivate Boolean @default(false)`, ambos aditivos (`prisma db push`). Los meetups anteriores no tienen creador y no se reconstruye; siguen visibles para sus speakers y para managers. Queda anotado en `CHANGELOG.md` como no retroactivo.
+* **Creación**: el modal, `/pace`, la mención `@HuddlePace` y la tarjeta de Huddle detectado guardan `createdByUserId`. La edición de un meetup programado permite cambiar `isPrivate` pero conserva el creador.
+* **UI**: checkbox "Private huddle" en el modal de agenda (`private_huddle_checkbox`). El tracker del canal no cambia. El reporte indica si es la vista personal o la del workspace. Las plantillas no guardan `isPrivate`.
+* **Puntos de entrada cubiertos**: botón Analytics, `nav_tab_analytics`, App Home y `/pace report|stats` resuelven el `viewer` con `getReportViewer`.
+* **Cobertura**: dos pruebas nuevas (manager sin privados; miembro con huddles propios, creados y como co-speaker).
+
 ## [2026-10-07] Releases y Changelog Solo del Producto Slack
 * **Decisión**: `CHANGELOG.md`, los tags y los GitHub Releases describen únicamente la app de Slack. El sitio web, el SEO, la documentación, los tests y las herramientas no generan versión, tag ni entrada de changelog; se registran aquí.
 * **Corrección del historial**: las versiones 1.5.0 a 1.10.2 eran todas de sitio web (páginas, SEO, fuentes, sitemap, 404) o de mantenimiento. Se borraron sus releases y tags de GitHub, se quitaron del changelog y `package.json` volvió a 1.4.0, el último release de producto. Los commits siguen en el historial de `main`; los SHA de cada tag retirado quedan en el mensaje del commit de esta decisión por si hiciera falta restaurar alguno.

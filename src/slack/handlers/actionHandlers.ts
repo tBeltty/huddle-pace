@@ -195,6 +195,7 @@ export function registerActionHandlers(app: App) {
         totalMinutes: minutes,
         channelId,
         speakerUserId: userId,
+        createdByUserId: userId,
         threadTs,
         teamId,
         modules,
