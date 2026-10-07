@@ -67,6 +67,7 @@ Any agent operating in this codebase must reference and respect the following co
   * **MINOR (`x.Y.0`)**: New major capabilities, interactive workflows, modal architectures, or new command subsystems. Use `pnpm version:minor`.
 * **Atomic Keep a Changelog Hygiene**:
   * Concurrently with any code change, create or update the release block in `CHANGELOG.md` following [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/).
+  * The release workflow publishes that block verbatim as the GitHub Release notes. Run the `no-ai-slop` pass and the [editorial standards](docs/guidelines/EDITORIAL_STANDARDS.md) on it **before** committing and tagging, and keep implementation detail in the Capabilities Log. `pnpm test` fails when an entry from 1.5.0 on breaks them.
   * Update footer comparison links (`[Unreleased]`, `[x.y.z]`) to maintain accurate GitHub diff links.
 * **Tag & Automated Release Deployment**:
   * Immediately after the CI/CD deploy run passes green (`✓`) on `main` and production smoke checks pass (`/healthz` 200 OK):

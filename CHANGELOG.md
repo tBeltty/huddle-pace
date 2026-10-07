@@ -7,136 +7,138 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-10-06
+
+### Added
+- A test fails when a changelog entry from 1.5.0 on uses banned words, bold-label colons, dashes or binary contrasts, so release notes are reviewed before they publish.
+
+### Changed
+- Rewrote the release notes for 1.5.0 to 1.10.0 in plain language. Implementation detail stays in the Product Capabilities Log.
+
 ## [1.10.0] - 2026-10-06
 
 ### Added
-- **404 Page**: Unknown paths answer `404` with a branded page (English, or Spanish under `/es/`) that sends `X-Robots-Tag: noindex`, `<meta name="robots" content="noindex, follow">` and `Cache-Control: no-store`, and links back to the home page and every guide. It is a catch-all route registered last; Bolt resolves its own Slack endpoints (`/slack/events`, install and OAuth callback) before custom routes, so they are unaffected.
-- **Sitemap `lastmod`**: Every sitemap URL carries a `<lastmod>`. Dates live in `src/web/pageDates.json` next to a content hash of each page (HTML file, meta block, rendered locale strings and FAQ strings). `pnpm page-dates` moves a page's date only when its hash changes, the release version is not part of the hash, and the test suite fails when the file is stale.
+- Unknown URLs return a 404 page in English or Spanish, marked `noindex` so search engines drop them. Slack's endpoints are not affected.
+- Every sitemap URL has a `lastmod` date that changes only when that page's content changes. Run `pnpm page-dates` after editing a page.
 
 ### Changed
-- **Cloudflare Web Analytics Loads After the Page**: Cloudflare was injecting its beacon (`beacon.min.js` plus a `cdn-cgi/rum` call) as a module script during page load. Lighthouse runs with only that script blocked moved mobile performance from 88-97 to 96-97 and median LCP from 2.89 s to 2.39 s; blocking the support widget changed nothing. HTML responses now carry `Cache-Control: no-transform`, which stops the injection, and every page loads the same beacon (same versioned URL, token and integrity hash) from its idle loader right after the `load` event. Analytics keep working; a visit that ends before the page finishes loading is no longer counted.
-- **AGENTS.md** documents the `pnpm page-dates` step in the verification protocol.
+- Cloudflare's analytics script loads after the page finishes loading, which shortens mobile load time. Analytics keep working. A visit that ends before the page finishes loading is no longer counted.
 
 ## [1.9.5] - 2026-10-06
 
 ### Fixed
-- **Main Landmark on Legal Pages**: `/privacy` and `/terms` (EN and ES) had no `<main>` region, which Lighthouse flagged as `landmark-one-main` (accessibility 98). Both now wrap their content in `<main id="main">` and have the skip link the other pages already had.
-- **Test Coverage**: A test checks that eight representative pages each expose exactly one `<main>` and a skip link.
+- `/privacy` and `/terms` have a main content region and a skip link, like every other page.
 
 ## [1.9.4] - 2026-10-06
 
 ### Changed
-- **Self-Hosted Fonts**: Plus Jakarta Sans (variable, 27 KB) and JetBrains Mono (variable, 31 KB), latin subset, are served from `/assets/` with `@font-face`, `font-display: swap` and `rel="preload"`. Pages no longer call `fonts.googleapis.com` or `fonts.gstatic.com`. Lighthouse runs showed mobile FCP and LCP tracking the arrival time of the Google font files exactly: 3.2 to 3.6 s when they arrived after about 1.7 s, 1.7 to 2.1 s when they arrived after about 0.7 s. Both fonts are under the SIL Open Font License.
-- **Font Caching**: `.woff2` files are served as `font/woff2` with `max-age=31536000, immutable`; their names carry the upstream version.
+- Fonts load from huddlepace.com instead of Google Fonts, so first paint no longer waits on a third-party server. In Lighthouse, mobile first paint went from as slow as 3.6 s to 2.1 s at most.
+- Font files are cached for a year.
 
 ### Fixed
-- **Home Navigation on Narrow Phones**: At 480 px and below the nav overflowed by 17 px, clipping the Slack button and touching the logo. The word "GitHub" is hidden there (the icon and its `aria-label` stay) so everything fits.
+- The home page menu fits phones 480 px wide or narrower. At that width the GitHub link shows only its icon.
 
 ## [1.9.3] - 2026-10-06
 
 ### Changed
-- **Hero Tag Copy**: The floating tag on the home hero now reads "Flight Pacer · Efficiency Crew" instead of "Flight Pacer · Vibecoder Crew". `docs/BRAND.md` notes that "Vibecoder Crew" stays as internal lore only.
+- The tag under the home hero image reads "Flight Pacer · Efficiency Crew".
 
 ## [1.9.2] - 2026-10-06
 
 ### Changed
-- **Responsive WebP Images**: The home hero image is served as `hero-vector-400.webp` and `hero-vector-800.webp` with `srcset` (JPEG fallback kept), the full-body Vector image as `vectorfull.webp` (38 KB instead of 322 KB), and the 96 px avatar as `avatar-96.webp` (2 KB instead of 17 KB). Lighthouse had estimated 392 KiB of image savings and the hero image was the LCP element.
+- Home page images load as WebP sized to the screen. The Vector hero is 17 KB on small screens and 55 KB on large ones, down from 102 KB. The full-body image is 38 KB, down from 322 KB.
 
 ### Fixed
-- **Scroll Reveal No Longer Fades Text In**: The entry animation on content pages only slides cards up. It used to start at `opacity: 0`, so Lighthouse and any renderer that does not scroll measured the card text at a 1.3:1 contrast ratio.
+- Cards on the content pages no longer start transparent, which made their text fail contrast checks until it scrolled into view.
 
 ## [1.9.1] - 2026-10-06
 
-### Fixed
-- **Legal Pages Metadata**: `/privacy` and `/terms` titles grew from 27 and 29 characters to 37 and 39 ("... | HuddlePace Slack App"), the Spanish privacy description dropped from 163 to 142 characters so Google stops truncating it, and both pages gained `og:image` size and alt text, the full Twitter card tags and `WebPage` plus `BreadcrumbList` structured data.
-- **Render-Blocking Fonts**: The Google Fonts stylesheet loads with `rel="preload"` and swaps to a stylesheet on load (with a `noscript` fallback). Lighthouse measured about 950 ms of render blocking from it and an LCP element render delay of 2.55 s on mobile.
-- **Support Widget Contrast**: The launcher button used white text on `#06b6d4` (2.42:1). It now uses `#0e7490` (5.12:1), which clears WCAG AA.
-
 ### Changed
-- **Versioned Assets Cache for a Year**: Asset URLs that carry `?v=` (the stylesheet) are served with `max-age=31536000, immutable`. Unversioned assets keep `max-age=3600, stale-while-revalidate=86400`.
+- Files requested with `?v=` in the URL are cached for a year.
+
+### Fixed
+- `/privacy` and `/terms` have longer titles, a Spanish privacy description within Google's 160 characters, social preview details and structured data.
+- The support button passes the WCAG AA contrast ratio (5.12:1, was 2.42:1).
+- The Google Fonts stylesheet no longer blocks first paint.
 
 ## [1.9.0] - 2026-10-06
 
-### Changed
-- **All Content Pages Redesigned**: The Slack Huddle timer, daily standup, engineering managers and agencies pages (EN and ES) now use the same landing layout as the retrospective page: hero with an example agenda card, segmented time split, module cards, flat problem list, setup steps with a mock of the Huddle thread, FAQ with its own `FAQPage` markup and a closing call to action. Each page has its own content and example (15 / 60 / 25 team sync, 15-minute standup, RFC and post-mortem splits, 40 / 40 / 20 client sync) and runs 570 to 680 words per language, up from about 150.
-- **Brand Rules Applied From the Start**: single-hue Telemetry Cyan ramp for splits, `tabular-nums` for timers and minutes, no reuse of semantic accent colors.
-
 ### Added
-- **Commands List and Prose Blocks**: `.cmd-list` for the `/pace` commands and `.lp-prose` for short statements, used by the Huddle timer and the agencies page.
-- **Test Coverage**: One test now checks all eight content URLs for the split bar, agenda card, `FAQPage` markup, resolved placeholders and a minimum word count.
+- The `/pace` command list and short statement blocks, used on the Huddle timer and client call pages.
+- One test covers all eight content URLs.
+
+### Changed
+- The Slack Huddle timer, daily standup, engineering managers and client call pages, in English and Spanish, use the same layout as the retrospective page. Each has its own example, steps and FAQ, and runs 570 to 680 words, up from about 150.
 
 ## [1.8.2] - 2026-10-06
 
 ### Changed
-- **Retrospective Page Follows the Brand Color Semantics**: The time-split bar and module cards use a single Telemetry Cyan ramp instead of cyan, amber and orange, which `docs/BRAND.md` reserves for the midpoint check and final-minute alerts. The "running now" dot is cyan instead of green.
-- **Calmer Layout**: The "goes off the rails" and tips sections are flat lists with hairline separators instead of eight bordered cards. The duplicated Next Module tip was removed because the thread notes and the FAQ already cover it.
-- **Tabular Numbers**: Timers, minutes and percentages on the page use `tabular-nums`, as the typography rules require.
-- **BRAND.md**: `--text-muted` is documented as `#8A9BB3` (the previous `#64748B` fails the 4.5:1 rule), and the accent-color and tabular-numbers rules now cover web content pages.
+- The retrospective time split uses one cyan color family. The brand guide reserves amber and orange for alerts. The "now running" dot is cyan instead of green.
+- The problem and tips sections are plain lists, and a duplicate tip is gone.
+- Timers and minutes use fixed-width digits.
+- `docs/BRAND.md` lists the muted text color as `#8A9BB3`, because the previous value failed the 4.5:1 contrast rule.
 
 ## [1.8.1] - 2026-10-06
 
 ### Fixed
-- **Retrospective Page Layout on Desktop**: The Huddle thread mock sat on the left with half the row empty. It now shares a two-column row with three short notes (live progress, private nudges, time that moves). The row stacks on narrow screens.
+- On desktop, the Huddle thread mock on the retrospective page sat beside an empty half row. It now sits beside three short notes and stacks on narrow screens.
 
 ## [1.8.0] - 2026-10-06
 
-### Changed
-- **Sprint Retrospective Page Redesigned**: `/sprint-retrospective-agenda` and `/es/agenda-retrospectiva-sprint` are now a full landing page instead of the legal-page template. It has a two-column hero with an example agenda card, a segmented 20/50/30 time bar, module cards that reflow with container queries, a "four ways a retro goes off the rails" section, three setup steps with a mock of the Huddle thread, facilitator tips, a four-question FAQ and a closing call to action. Copy grew from about 150 to about 640 words per language.
-
 ### Added
-- **Per-Page FAQ Structured Data**: A page can declare `__FAQ_JSON_LD:<prefix>__` and the server builds its `FAQPage` JSON-LD from the `<prefix>Faq<n>Q/A` locale keys, so markup and visible text cannot drift.
-- **Landing Components in `site.css`**: `.lp-*`, `.split-bar`, `.agenda-card`, `.mod-card`, `.step`, `.thread` and `.reveal`. Entry reveals use scroll-driven animation only where supported and when motion is allowed.
+- A page can build its FAQ structured data from its own locale strings.
+
+### Changed
+- The retrospective page is a full landing page with an example agenda card, a 20/50/30 time split, setup steps, a mock of the Huddle thread, facilitator tips, an FAQ and a closing call to action. It grew from about 150 to about 640 words per language.
 
 ## [1.7.1] - 2026-10-06
 
 ### Removed
-- **Duplicate Image**: Deleted `public/assets/vectorful.png`, a byte-identical copy of `vectorfull.png` that no page referenced.
+- `public/assets/vectorful.png`, a duplicate of `vectorfull.png` that no page used.
 
 ## [1.7.0] - 2026-10-06
 
 ### Added
-- **Three More Content Pages (EN and ES)**: a meeting timer for engineering managers (RFC and post-mortem splits), a client call timer for agencies (weekly sync split and Just Chatting mode) and a sprint retrospective agenda (20/50/30 split). All are in the sitemap, now 16 URLs.
-- **Cross-Linking**: Every content page ends with a "More guides" list linking to the others, with Spanish links resolving to Spanish pages.
+- Pages for engineering managers (RFC and post-mortem splits), agencies (weekly client sync and Just Chatting mode) and sprint retrospectives, in English and Spanish. The sitemap lists 16 URLs.
+- Each content page ends with links to the other guides.
 
 ### Changed
-- **Support Widget Loads Idle on Every Page**: The legal pages and the first two content pages still loaded the widget synchronously. They now use the same idle loader as the home page.
+- The support widget loads when the page is idle on every page.
 
 ## [1.6.2] - 2026-10-06
 
 ### Changed
-- **Privacy Policy Cookie Statement**: Removed the mention of the `huddlepace_lang` cookie, which the site no longer sets, and updated the "Last updated" date. The language is now defined by the page address.
+- The privacy policy no longer mentions the `huddlepace_lang` cookie, which the site stopped setting. Its last-updated date is October 6, 2026.
 
 ## [1.6.1] - 2026-10-06
 
 ### Fixed
-- **Stale Stylesheet at the Edge**: Pages link `/assets/site.css?v=<app version>`, so each release gets a fresh URL. Cloudflare had kept serving the previous `site.css` under its old `immutable` header, which left the skip link and FAQ unstyled.
+- Pages request `site.css` with the release version in the URL. Cloudflare had kept serving an old copy, which left the skip link and the FAQ unstyled.
 
 ## [1.6.0] - 2026-10-06
 
 ### Added
-- **Slack Huddle Timer Page**: `/slack-huddle-timer` and `/es/temporizador-huddle-slack` explain setup, what the team sees during a call, the real `/pace` commands, the zero-audio design and pricing.
-- **Daily Standup Timer Page**: `/daily-standup-timer-slack` and `/es/temporizador-daily-standup-slack` cover a 15 / 60 / 25 module split, private speaker nudges, templates and `/pace report`.
-- **FAQ on the Home Page**: Six visible questions in both languages, with `FAQPage` structured data generated from the same strings so the markup always matches the visible text.
-- **Page Structured Data**: Content pages carry `WebPage` and `BreadcrumbList` JSON-LD.
+- Pages for the Slack Huddle timer and the daily standup timer, in English and Spanish, with the real `/pace` commands.
+- A six-question FAQ on the home page, with structured data built from the same text as the visible answers.
+- Page and breadcrumb structured data on the content pages.
 
 ### Changed
-- **Sitemap and Footer**: The sitemap now lists 10 URLs. The Product footer column links to both new pages. Internal links on Spanish pages resolve to the matching Spanish URL.
-- **Pricing Copy**: Pages state that HuddlePace is in early access and free today, that pricing will be per workspace, and that today's features stay free.
+- The sitemap lists 10 URLs and the footer links to both guides. Spanish pages link to Spanish pages.
+- The pages say HuddlePace is in early access and free today, with future pricing per workspace and never per user.
 
 ## [1.5.0] - 2026-10-06
 
 ### Added
-- **Spanish Site on Its Own URLs**: `/es/`, `/es/privacy` and `/es/terms` serve the Spanish pages. Each page declares a self-referencing canonical, `hreflang` pairs (`en`, `es`, `x-default`) and `og:locale` tags, so Google can index both languages.
-- **`/sitemap.xml` and `/robots.txt`**: The sitemap lists all six pages with `hreflang` alternates. `robots.txt` declares the sitemap and blocks `/slack/` endpoints.
-- **Structured Data**: The home page JSON-LD is now an `Organization` + `WebSite` + `SoftwareApplication` graph (Spanish pages switch description and `inLanguage`).
-- **Accessibility and Semantics**: `<main>` landmark, skip link, visible `:focus-visible` outline.
+- Spanish pages at `/es/`, `/es/privacy` and `/es/terms`, each with its own address, canonical tag and `hreflang` pair, so Google can index both languages.
+- `/sitemap.xml` and `/robots.txt`.
+- Structured data for the organization, the website and the app.
+- A main content region, a skip link and a visible keyboard focus outline.
 
 ### Changed
-- **Language Is Decided by the URL**: `Accept-Language`, the `huddlepace_lang` cookie and browser-language auto-switching no longer change page content. The EN/ES switcher is a pair of crawlable links. Cached HTML no longer varies on `Cookie` and no longer sets one.
-- **Legacy URLs Redirect**: `/?lang=es` and `/?lang=en` 301 to `/es/` and `/`. `/es` and trailing-slash variants 301 to the canonical path.
-- **Meta Tags**: Removed ignored `title`/`keywords` meta tags, switched Twitter tags to `name=`, added `og:image` size and alt text.
-- **Performance**: Header and in-page avatars use a 96 px copy (17 KB instead of 619 KB). The support widget loads after the page is idle. Static assets use `max-age=3600, stale-while-revalidate=86400` instead of `immutable`, since file names carry no hash.
-- **Headings and Contrast**: Decorative `h4`/`h5` elements became paragraphs to keep a clean outline. `--text-muted` was lightened to pass WCAG AA contrast.
+- The URL sets the language. Browser language, cookies and `?lang=` no longer change the content, and `?lang=` redirects to the matching address.
+- Social tags are cleaner: unused meta tags removed, Twitter tags use `name=`, and the preview image has a size and alt text.
+- The header avatar is 17 KB instead of 619 KB.
+- Decorative headings became paragraphs, and muted text has higher contrast.
 
 ## [1.4.0] - 2026-10-06
 
@@ -223,7 +225,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.10.1...HEAD
+[1.10.1]: https://github.com/tBeltty/huddle-pace/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/tBeltty/huddle-pace/compare/v1.9.5...v1.10.0
 [1.9.5]: https://github.com/tBeltty/huddle-pace/compare/v1.9.4...v1.9.5
 [1.9.4]: https://github.com/tBeltty/huddle-pace/compare/v1.9.3...v1.9.4
