@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-10-07
+
+### Added
+- Group direct messages. Pick one as the target channel when you schedule a pace, and HuddlePace starts and concludes the pace from a Huddle in that conversation. The bot has to be a member of the group message, and it tells you when it is not.
+
 ## [1.8.2] - 2026-10-07
 
 ### Changed
@@ -153,7 +158,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.8.2...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/tBeltty/huddle-pace/compare/v1.8.2...v1.9.0
 [1.8.2]: https://github.com/tBeltty/huddle-pace/compare/v1.8.1...v1.8.2
 [1.8.1]: https://github.com/tBeltty/huddle-pace/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/tBeltty/huddle-pace/compare/v1.7.0...v1.8.0
