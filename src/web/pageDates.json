@@ -1,66 +1,74 @@
 {
   "/": {
-    "hash": "21d81e1df5a8b9bb",
+    "hash": "2742f381274e7469",
     "lastmod": "2026-10-07"
   },
   "/client-call-timer-slack": {
-    "hash": "d0a0a1d80dbf815f",
+    "hash": "f30c585a572fbd7e",
     "lastmod": "2026-10-07"
   },
   "/daily-standup-timer-slack": {
-    "hash": "1a70d0447ef3ebcd",
+    "hash": "d9afeb08ac000fdc",
     "lastmod": "2026-10-07"
   },
   "/engineering-managers-meeting-timer": {
-    "hash": "d91534e9b5009f01",
+    "hash": "c54510726b0321a7",
     "lastmod": "2026-10-07"
   },
   "/es/": {
-    "hash": "a49c29d83de7387c",
+    "hash": "742e16f7d241a691",
     "lastmod": "2026-10-07"
   },
   "/es/agenda-retrospectiva-sprint": {
-    "hash": "cf8b7fd2a72f933e",
+    "hash": "1c7c197c0062eb19",
     "lastmod": "2026-10-07"
   },
   "/es/privacy": {
-    "hash": "0b5eb471b25f798e",
+    "hash": "3a84f7f603b5219b",
+    "lastmod": "2026-10-07"
+  },
+  "/es/soporte": {
+    "hash": "bfa0a3f1c147c558",
     "lastmod": "2026-10-07"
   },
   "/es/temporizador-daily-standup-slack": {
-    "hash": "5a8a7994880ecc22",
+    "hash": "b3912cbb38fb3d59",
     "lastmod": "2026-10-07"
   },
   "/es/temporizador-huddle-slack": {
-    "hash": "1926ca2c5892441e",
+    "hash": "5ca81647d740666f",
     "lastmod": "2026-10-07"
   },
   "/es/temporizador-llamadas-clientes-slack": {
-    "hash": "5a13c3d05220aa0d",
+    "hash": "745ec14b346bb57c",
     "lastmod": "2026-10-07"
   },
   "/es/temporizador-reuniones-engineering-managers": {
-    "hash": "ecf033178b943b54",
+    "hash": "13ddbb99d079e202",
     "lastmod": "2026-10-07"
   },
   "/es/terms": {
-    "hash": "fcc274d85521a026",
+    "hash": "024ca312e08bd141",
     "lastmod": "2026-10-07"
   },
   "/privacy": {
-    "hash": "8eb27724bb02aa5b",
+    "hash": "02a7f4f04deb9aed",
     "lastmod": "2026-10-07"
   },
   "/slack-huddle-timer": {
-    "hash": "918ec28feac11807",
+    "hash": "3409232df8b5416d",
     "lastmod": "2026-10-07"
   },
   "/sprint-retrospective-agenda": {
-    "hash": "eb548a8beca72714",
+    "hash": "886b2838e3c1d262",
+    "lastmod": "2026-10-07"
+  },
+  "/support": {
+    "hash": "944cd66cd48f752b",
     "lastmod": "2026-10-07"
   },
   "/terms": {
-    "hash": "51684285b23eff3f",
+    "hash": "5ba0b7a6d4c3c167",
     "lastmod": "2026-10-07"
   }
 }
