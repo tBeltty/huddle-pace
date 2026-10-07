@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-10-07
+
+### Changed
+- The Missed notice goes to the person who created the pace, not to its speakers. Paces created before creators were recorded still notify their speakers.
+- The creator of a pace, its speakers and workspace managers can edit and reschedule it. Before, only speakers could.
+- App Home shows the Reschedule button to the creator of a missed pace.
+
 ## [1.8.0] - 2026-10-07
 
 ### Added
@@ -140,7 +147,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.8.1...HEAD
+[1.8.1]: https://github.com/tBeltty/huddle-pace/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/tBeltty/huddle-pace/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/tBeltty/huddle-pace/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/tBeltty/huddle-pace/compare/v1.5.0...v1.6.0

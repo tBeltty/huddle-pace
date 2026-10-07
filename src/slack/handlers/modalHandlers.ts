@@ -213,7 +213,7 @@ export function registerModalHandlers(app: App) {
       const teamId = b.team?.id || b.user?.team_id || "default";
       const meetup = await MeetupService.getMeetupById(b.actions[0]?.value);
       if (!meetup || meetup.teamId !== teamId || !isEditableStatus(meetup.status)) return;
-      if (!MeetupService.parseSpeakerIds(meetup.speakerUserId).includes(userId)) return;
+      if (!(await MeetupService.canUserManageMeetup(client, meetup, userId))) return;
 
       const zone = await resolveZoneForUser(client, userId, teamId);
 
@@ -413,8 +413,8 @@ export function registerModalHandlers(app: App) {
         await ack({ response_action: "errors", errors: { [titleBlock]: "This meetup no longer exists." } });
         return;
       }
-      if (!MeetupService.parseSpeakerIds(existing.speakerUserId).includes(userId)) {
-        await ack({ response_action: "errors", errors: { [titleBlock]: "Only the designated speaker(s) can edit this meetup." } });
+      if (!(await MeetupService.canUserManageMeetup(client, existing, userId))) {
+        await ack({ response_action: "errors", errors: { [titleBlock]: "Only the speaker(s), the creator or a workspace manager can edit this meetup." } });
         return;
       }
       if (!isEditableStatus(existing.status)) {

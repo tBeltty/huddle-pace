@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { MeetupService } from "../src/services/meetupService.js";
 import { prisma } from "../src/db/client.js";
+import { notifyCreatorOfMissedHuddle } from "../src/slack/handlers/actionHandlers.js";
 
 const teamId = `T_TEST_${randomUUID()}`;
 const channelId = "C_SCHED";
@@ -174,19 +175,57 @@ describe("scheduling conflicts and Manual start", () => {
     });
   });
 
-  describe("canUserStartMeetup", () => {
+  describe("canUserManageMeetup", () => {
     const pace = { speakerUserId: "U_A, U_B", createdByUserId: "U_CREATOR", teamId };
     const regularClient = { users: { info: async () => ({ ok: true, user: { is_admin: false } }) } };
     const adminClient = { users: { info: async () => ({ ok: true, user: { is_admin: true } }) } };
 
     test("speakers and the creator can start it", async () => {
-      assert.strictEqual(await MeetupService.canUserStartMeetup(regularClient, pace, "U_B"), true);
-      assert.strictEqual(await MeetupService.canUserStartMeetup(regularClient, pace, "U_CREATOR"), true);
+      assert.strictEqual(await MeetupService.canUserManageMeetup(regularClient, pace, "U_B"), true);
+      assert.strictEqual(await MeetupService.canUserManageMeetup(regularClient, pace, "U_CREATOR"), true);
     });
 
     test("workspace managers can start it, other members cannot", async () => {
-      assert.strictEqual(await MeetupService.canUserStartMeetup(adminClient, pace, "U_ADMIN"), true);
-      assert.strictEqual(await MeetupService.canUserStartMeetup(regularClient, pace, "U_STRANGER"), false);
+      assert.strictEqual(await MeetupService.canUserManageMeetup(adminClient, pace, "U_ADMIN"), true);
+      assert.strictEqual(await MeetupService.canUserManageMeetup(regularClient, pace, "U_STRANGER"), false);
+    });
+  });
+
+  describe("missed pace notice", () => {
+    const missedPace = {
+      id: "p_1",
+      teamId,
+      channelId: "C1",
+      title: "Standup Ventas",
+      speakerUserId: "U_A, U_B",
+      scheduledFor: at(0),
+      createdByUserId: "U_CREATOR" as string | null,
+    };
+    const sendTo = async (pace: typeof missedPace) => {
+      const channels: string[] = [];
+      const buttons: string[] = [];
+      const client = {
+        users: { info: async () => ({ ok: true, user: { tz: "America/Los_Angeles" } }) },
+        chat: {
+          postMessage: async (message: { channel: string; blocks: Array<{ elements?: Array<{ value: string }> }> }) => {
+            channels.push(message.channel);
+            buttons.push(message.blocks[1].elements?.[0].value ?? "");
+          },
+        },
+      };
+      await notifyCreatorOfMissedHuddle(client as never, pace);
+      return { channels, buttons };
+    };
+
+    test("goes to the creator only, not the speakers", async () => {
+      const { channels, buttons } = await sendTo(missedPace);
+      assert.deepStrictEqual(channels, ["U_CREATOR"]);
+      assert.deepStrictEqual(buttons, ["p_1"]);
+    });
+
+    test("falls back to the speakers when the pace has no recorded creator", async () => {
+      const { channels } = await sendTo({ ...missedPace, createdByUserId: null });
+      assert.deepStrictEqual(channels, ["U_A", "U_B"]);
     });
   });
 });

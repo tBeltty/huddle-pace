@@ -18,6 +18,7 @@ interface MissedMeetup {
   title: string;
   speakerUserId: string;
   scheduledFor: Date | null;
+  createdByUserId: string | null;
 }
 
 /**
@@ -55,18 +56,20 @@ export async function notifySpeakersOfAutoLaunch(client: any, meetup: any, botTo
 }
 
 /**
- * Privately DMs the speaker(s) that no Huddle started in a pace's capture window, with a
- * button to pick a new time so detection watches for it again.
+ * Privately DMs the person who created a pace that no Huddle started in its capture window,
+ * with a button to pick a new time. Paces created before creators were recorded have no
+ * creator, so their speakers get the notice instead.
  */
-export async function notifySpeakersOfMissedHuddle(client: SlackClient, meetup: MissedMeetup, botToken?: string) {
-  for (const speakerId of MeetupService.parseSpeakerIds(meetup.speakerUserId)) {
+export async function notifyCreatorOfMissedHuddle(client: SlackClient, meetup: MissedMeetup, botToken?: string) {
+  const recipients = meetup.createdByUserId ? [meetup.createdByUserId] : MeetupService.parseSpeakerIds(meetup.speakerUserId);
+  for (const recipientId of recipients) {
     try {
-      const zone = await resolveZoneForUser(client, speakerId, meetup.teamId);
+      const zone = await resolveZoneForUser(client, recipientId, meetup.teamId);
       const when = meetup.scheduledFor ? formatEventTime(meetup.scheduledFor, zone) : "its scheduled time";
       const text = `⏳ No Huddle started in <#${meetup.channelId}> around ${when}, so *"${meetup.title}"* did not start. Pick a new time and HuddlePace will watch for a Huddle again.`;
       await client.chat.postMessage({
         token: botToken,
-        channel: speakerId,
+        channel: recipientId,
         text,
         blocks: [
           { type: "section", text: { type: "mrkdwn", text } },
@@ -85,7 +88,7 @@ export async function notifySpeakersOfMissedHuddle(client: SlackClient, meetup: 
         ],
       });
     } catch (err) {
-      console.warn(`Failed to send missed-Huddle DM to speaker ${speakerId} (meetupId=${meetup.id}):`, err);
+      console.warn(`Failed to send missed-Huddle DM to ${recipientId} (meetupId=${meetup.id}):`, err);
     }
   }
 }

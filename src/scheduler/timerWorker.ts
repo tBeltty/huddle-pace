@@ -6,7 +6,7 @@ import { getBotTokenForTeam } from "../slack/oauth/installationStore.js";
 import { publishHomeTab } from "../slack/handlers/homeHandlers.js";
 import { formatMinutes } from "../utils/progressBar.js";
 import { findChannelHuddles, isHuddleEnded } from "../slack/utils/huddleDiscovery.js";
-import { launchMeetupInThread, notifySpeakersOfAutoLaunch, notifySpeakersOfMissedHuddle } from "../slack/handlers/actionHandlers.js";
+import { launchMeetupInThread, notifySpeakersOfAutoLaunch, notifyCreatorOfMissedHuddle } from "../slack/handlers/actionHandlers.js";
 
 export class TimerWorker {
   private timer: NodeJS.Timeout | null = null;
@@ -92,10 +92,17 @@ export class TimerWorker {
       try {
         const missed = await MeetupService.markMissedMeetups();
         const recentMilliseconds = 24 * 3_600_000;
+        const homesToRefresh = new Map<string, { userId: string; teamId: string }>();
         for (const meetup of missed) {
+          const owners = meetup.createdByUserId ? [meetup.createdByUserId] : MeetupService.parseSpeakerIds(meetup.speakerUserId);
+          for (const userId of owners) homesToRefresh.set(`${meetup.teamId}:${userId}`, { userId, teamId: meetup.teamId });
+
           if (!meetup.scheduledFor || Date.now() - meetup.scheduledFor.getTime() > recentMilliseconds) continue;
           const botToken = await getBotTokenForTeam(meetup.teamId);
-          await notifySpeakersOfMissedHuddle(this.app.client, meetup, botToken);
+          await notifyCreatorOfMissedHuddle(this.app.client, meetup, botToken);
+        }
+        for (const { userId, teamId } of homesToRefresh.values()) {
+          publishHomeTab(this.app.client, userId, teamId).catch(() => {});
         }
       } catch (missedErr) {
         console.warn("Error marking missed meetups in timer worker:", missedErr);

@@ -36,7 +36,7 @@ async function startManualStartPace(client: SlackClient, command: ManualStartCom
     return;
   }
 
-  if (!(await MeetupService.canUserStartMeetup(client, pace, command.user_id))) {
+  if (!(await MeetupService.canUserManageMeetup(client, pace, command.user_id))) {
     await reply(`⚠️ *Access Denied:* Only the speaker(s), the creator or a workspace manager can start *"${pace.title}"*.`);
     return;
   }
