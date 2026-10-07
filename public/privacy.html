@@ -104,7 +104,7 @@
     </section>
 
     <section class="legal-content">
-      <p class="legal-updated" data-i18n="privacyUpdated">Last updated: October 6, 2026</p>
+      <p class="legal-updated" data-i18n="privacyUpdated">Last updated: October 7, 2026</p>
 
       <section>
         <h2 data-i18n="privacyS1Title">1. Overview</h2>
@@ -119,14 +119,15 @@
           <li data-i18n="privacyS2Item2">Channel IDs where a session is scheduled or a Huddle is detected, so Vector can post and update the tracking card.</li>
           <li data-i18n="privacyS2Item3">User IDs of session organizers and assigned speakers, used only to verify who may start, transition, or conclude a session and to send them private DM reminders.</li>
           <li data-i18n="privacyS2Item4">Agenda structure you enter yourself: module names, percentage allocations, and total meeting duration.</li>
+          <li data-i18n="privacyS2Item5">Slack profile attributes: the time zone of the person who schedules a pace (when the workspace uses the "My timezone" setting) and whether a user is a workspace admin or owner, to decide who can manage paces. HuddlePace reads only these attributes. It stores neither profile names nor email addresses.</li>
         </ul>
         <p data-i18n="privacyS2Support"><strong>Support data.</strong> If you use the "Help" widget on this site or contact hello@huddlepace.com, we (via our support platform, the tBelt dashboard) collect the name, email address, and message content you choose to submit, solely to respond to your request.</p>
         <p data-i18n="privacyS2Technical"><strong>Technical data.</strong> This website does not store a language preference. The language is set by the page address (<code>/es/</code> for Spanish). We do not use advertising or cross-site tracking cookies.</p>
       </section>
 
       <section>
-        <h2 data-i18n="privacyS3Title">3. What We Never Collect</h2>
-        <p data-i18n="privacyS3Body">HuddlePace does not request Huddle audio, does not record calls, does not generate transcripts, and does not read channel messages. We only process the slash commands and interactive buttons triggered directly by your team. This architectural constraint is built directly into our codebase.</p>
+        <h2 data-i18n="privacyS3Title">3. What We Do Not Collect or Use</h2>
+        <p data-i18n="privacyS3Body">HuddlePace does not request Huddle audio, does not record calls and does not generate transcripts. To detect when a Huddle starts and ends, HuddlePace receives the messages posted in the channels and group messages where it has been added, and reads the Huddle start and end system messages in them. It does not use, store or index the content of any other message. Data that Slack delivers and HuddlePace does not use is ignored and not stored.</p>
       </section>
 
       <section>
