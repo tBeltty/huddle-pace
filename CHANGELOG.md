@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-07
+
+### Added
+- A "Share with workspace" checkbox next to "Save as template". Shared templates show up for every teammate in the template picker.
+
+### Changed
+- The template picker groups templates into "My templates" and "Shared by teammates". Templates stay private unless you share them.
+- Only the owner can delete or overwrite a shared template. Teammates can start sessions from it.
+
 ## [1.5.0] - 2026-10-07
 
 ### Added
@@ -104,7 +113,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/tBeltty/huddle-pace/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/tBeltty/huddle-pace/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/tBeltty/huddle-pace/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/tBeltty/huddle-pace/compare/v1.3.0...v1.3.1

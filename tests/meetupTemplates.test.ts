@@ -55,6 +55,23 @@ describe("Meetup templates (service)", () => {
     assert.equal(await MeetupService.deleteTemplate(mine.id, TEAM, "UOTHER"), false);
   });
 
+  test("shared templates reach the workspace, stay owner-only to delete, and never cross workspaces", async () => {
+    const shared = await MeetupService.saveTemplate({ ...baseTemplate, name: "Team Retro", isShared: true });
+    assert.equal(shared.isShared, true);
+
+    const teammate = await MeetupService.listTemplates(TEAM, "UOTHER");
+    assert.deepEqual(teammate.map((t) => t.name), ["Team Retro"]);
+    assert.equal((await MeetupService.getTemplate(shared.id, TEAM, "UOTHER"))?.id, shared.id);
+    assert.equal(await MeetupService.deleteTemplate(shared.id, TEAM, "UOTHER"), false);
+    assert.deepEqual(await MeetupService.listTemplates("other-team", "UOTHER"), []);
+
+    const options = await MeetupService.listTemplateOptions(TEAM, "UOTHER");
+    assert.deepEqual(options.map((o) => [o.name, o.isOwn, o.isShared]), [["Team Retro", false, true]]);
+
+    await MeetupService.saveTemplate({ ...baseTemplate, name: "Team Retro", isShared: false });
+    assert.deepEqual(await MeetupService.listTemplates(TEAM, "UOTHER"), []);
+  });
+
   test("owner can delete a template", async () => {
     const [mine] = await MeetupService.listTemplates(TEAM, OWNER);
     assert.equal(await MeetupService.deleteTemplate(mine.id, TEAM, OWNER), true);
@@ -71,7 +88,7 @@ describe("Schedule modal template UI", () => {
   });
 
   test("shows the picker, and a delete button only once one is selected", () => {
-    const templates = [{ id: "t1", name: "Weekly Sync" }];
+    const templates = [{ id: "t1", name: "Weekly Sync", isOwn: true, isShared: false }];
     const idle = blocksOf(buildScheduleModal({ subtopicCount: 3, templates })).find(
       (b) => b.block_id === "template_picker_block"
     );
@@ -82,6 +99,33 @@ describe("Schedule modal template UI", () => {
     );
     assert.equal(selected.elements[0].initial_option.value, "t1");
     assert.equal(selected.elements[1].action_id, "delete_template_action");
+  });
+
+  test("groups the picker and only lets owners delete the selected template", () => {
+    const templates = [
+      { id: "mine", name: "Mine", isOwn: true, isShared: true },
+      { id: "theirs", name: "Theirs", isOwn: false, isShared: true },
+    ];
+    const pick = (selectedTemplateId: string) =>
+      blocksOf(buildScheduleModal({ subtopicCount: 3, templates, selectedTemplateId })).find(
+        (b) => b.block_id === "template_picker_block"
+      );
+    const own = pick("mine");
+    assert.deepEqual(own.elements[0].option_groups.map((g: any) => g.label.text), ["My templates", "Shared by teammates"]);
+    assert.equal(own.elements[0].option_groups[0].options[0].text.text, "Mine · shared");
+    assert.equal(own.elements[1].action_id, "delete_template_action");
+    assert.equal(pick("theirs").elements.length, 1);
+  });
+
+  test("offers sharing next to saving and keeps both choices across view updates", () => {
+    const find = (state: any) =>
+      blocksOf(buildScheduleModal({ subtopicCount: 3, ...state })).find((b) => b.block_id === "save_template_block");
+    assert.deepEqual(find({}).element.options.map((o: any) => o.value), ["save_template", "share_template"]);
+    assert.equal(find({}).element.initial_options, undefined);
+    assert.deepEqual(
+      find({ saveAsTemplate: true, shareTemplate: true }).element.initial_options.map((o: any) => o.value),
+      ["save_template", "share_template"]
+    );
   });
 
   test("always offers the save-as-template checkbox", () => {

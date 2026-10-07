@@ -30,11 +30,14 @@ export interface SaveTemplateDTO {
   threadTs?: string | null;
   reminderTextEnabled: boolean;
   reminderImageEnabled: boolean;
+  isShared?: boolean;
   modules: SubtopicInput[];
 }
 
 export interface MeetupTemplateData {
   id: string;
+  ownerUserId: string;
+  isShared: boolean;
   name: string;
   channelId: string;
   speakerUserId: string;
@@ -353,6 +356,8 @@ export class MeetupService {
 
   private static toTemplateData(row: {
     id: string;
+    ownerUserId: string;
+    isShared: boolean;
     name: string;
     channelId: string;
     speakerUserId: string;
@@ -376,6 +381,8 @@ export class MeetupService {
     }
     return {
       id: row.id,
+      ownerUserId: row.ownerUserId,
+      isShared: row.isShared,
       name: row.name,
       channelId: row.channelId,
       speakerUserId: row.speakerUserId,
@@ -399,6 +406,7 @@ export class MeetupService {
       destination: this.templateDestination(data.threadTs),
       reminderTextEnabled: data.reminderTextEnabled,
       reminderImageEnabled: data.reminderImageEnabled,
+      isShared: data.isShared ?? false,
       modulesJson: JSON.stringify(data.modules.map((m) => ({ title: m.title.trim(), percentage: m.percentage }))),
     };
     const row = await prisma.meetupTemplate.upsert({
@@ -412,18 +420,34 @@ export class MeetupService {
   }
 
   /**
-   * Lists a user's templates, most recently updated first.
+   * Lists the templates a user can start from: their own plus those teammates shared
+   * with the workspace. Most recently updated first.
    */
-  static async listTemplates(teamId: string, ownerUserId: string): Promise<MeetupTemplateData[]> {
+  static async listTemplates(teamId: string, viewerUserId: string): Promise<MeetupTemplateData[]> {
     const rows = await prisma.meetupTemplate.findMany({
-      where: { teamId, ownerUserId },
+      where: { teamId, OR: [{ ownerUserId: viewerUserId }, { isShared: true }] },
       orderBy: { updatedAt: "desc" },
     });
     return rows.map((r) => this.toTemplateData(r));
   }
 
-  static async getTemplate(id: string, teamId: string, ownerUserId: string): Promise<MeetupTemplateData | null> {
-    const row = await prisma.meetupTemplate.findFirst({ where: { id, teamId, ownerUserId } });
+  /**
+   * Template picker entries for the schedule modal, flagged by whether the viewer owns them.
+   */
+  static async listTemplateOptions(teamId: string, viewerUserId: string) {
+    const templates = await this.listTemplates(teamId, viewerUserId);
+    return templates.map((t) => ({
+      id: t.id,
+      name: t.name,
+      isOwn: t.ownerUserId === viewerUserId,
+      isShared: t.isShared,
+    }));
+  }
+
+  static async getTemplate(id: string, teamId: string, viewerUserId: string): Promise<MeetupTemplateData | null> {
+    const row = await prisma.meetupTemplate.findFirst({
+      where: { id, teamId, OR: [{ ownerUserId: viewerUserId }, { isShared: true }] },
+    });
     return row ? this.toTemplateData(row) : null;
   }
 

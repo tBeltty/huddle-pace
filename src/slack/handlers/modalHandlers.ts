@@ -46,18 +46,22 @@ function readScheduleModalState(values: Record<string, any>, metadata: any): Par
     reminderTextEnabled: reminderValues.includes("reminder_text"),
     reminderImageEnabled: reminderValues.includes("reminder_image"),
     isPrivate: (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0,
-    saveAsTemplate: (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0,
+    saveAsTemplate: templateChoices(values).includes("save_template"),
+    shareTemplate: templateChoices(values).includes("share_template"),
     selectedTemplateId: getModalAction(values, "template_select")?.selected_option?.value,
     rev: metadata.rev,
     editMeetupId: metadata.meetupId,
   };
 }
 
+function templateChoices(values: Record<string, any>): string[] {
+  return (getModalAction(values, "save_template_checkbox")?.selected_options || []).map((o: any) => o.value);
+}
+
 async function loadTemplateOptions(teamId: string | undefined, userId: string | undefined): Promise<ModalTemplateOption[]> {
   if (!userId) return [];
   try {
-    const templates = await MeetupService.listTemplates(teamId || "default", userId);
-    return templates.map((t) => ({ id: t.id, name: t.name }));
+    return await MeetupService.listTemplateOptions(teamId || "default", userId);
   } catch (error) {
     console.warn("Could not load meetup templates:", error);
     return [];
@@ -323,7 +327,8 @@ export function registerModalHandlers(app: App) {
     const reminderTextEnabled = reminderValues.includes("reminder_text");
     const reminderImageEnabled = reminderValues.includes("reminder_image");
     const isPrivate = (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0;
-    const saveAsTemplate = (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0;
+    const saveAsTemplate = templateChoices(values).includes("save_template");
+    const shareTemplate = saveAsTemplate && templateChoices(values).includes("share_template");
 
     const rawModules = [];
     for (let i = 0; i < count; i++) {
@@ -471,9 +476,10 @@ export function registerModalHandlers(app: App) {
             threadTs: validatedData.threadTs,
             reminderTextEnabled: validatedData.reminderTextEnabled,
             reminderImageEnabled: validatedData.reminderImageEnabled,
+            isShared: shareTemplate,
             modules: validatedData.modules,
           });
-          templateNote = " Saved as a template.";
+          templateNote = shareTemplate ? " Saved as a template shared with the workspace." : " Saved to My templates.";
         } catch (templateError) {
           console.error("Meetup scheduled but template could not be saved:", templateError);
           templateNote = " The template could not be saved.";
