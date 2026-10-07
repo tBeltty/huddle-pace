@@ -4,6 +4,16 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-07] Gestor de Templates en App Home
+* **Entrada**: botón `Templates` (`open_templates_modal`) en la barra del Home. Slack no permite pestañas propias en App Home, así que abre un modal con dos vistas, "My templates" y "Community" (las compartidas por otros), con paginación de 12 filas para quedar lejos del tope de 100 bloques.
+* **Acciones por fila (`template_row_menu`, overflow)**: propias, Schedule, Edit, Share/Stop sharing y Delete con pantalla de confirmación; ajenas, Schedule y Duplicate. Los admins, owners y bot managers ven además Unpublish, y el rol se vuelve a comprobar en el servidor en cada acción, sin confiar en la marca guardada en la vista.
+* **Schedule desde una plantilla**: `views.push` del modal de agenda prefilado (`templateToModalState`). Con una plantilla ajena se conserva la agenda pero el speaker pasa a ser quien agenda y el canal queda libre, para no copiar speakers ni un canal privado del autor.
+* **Edición (`submit_edit_template_modal`)**: el modal de agenda en modo plantilla cambia el título por "Template Name", deja solo Huddle `auto`/`main` y quita hilo personalizado, privacidad y guardado. Al guardar refresca la lista de debajo con `previous_view_id`. Un nombre repetido del mismo dueño se rechaza.
+* **Servicio**: `updateTemplate`, `setTemplateShared`, `unpublishTemplate` (sin comprobar rol, lo hace quien llama) y `duplicateTemplate` (copia privada con nombre libre, `(copy)`, `(copy 2)`). Todas acotadas al `teamId`; las de edición y compartir, además, al dueño.
+* **Corrección**: guardar otra vez una plantilla con el mismo nombre ya no reescribe `isShared`. Antes la despublicaba en silencio.
+* **Modal de agenda**: se quitó la casilla "Share with workspace"; "Save as template" guarda siempre en privado.
+* **Cobertura**: 173 pruebas, con permisos de dueño y de otro workspace, moderación, duplicado, paginación, confirmación de borrado y el modo plantilla del modal.
+
 ## [2026-10-07] Plantillas Privadas o Compartidas con el Workspace
 * **Esquema**: `MeetupTemplate.isShared Boolean @default(false)`, aditivo. Todas las plantillas existentes siguen privadas.
 * **Servicio**: `listTemplates` y `getTemplate` devuelven las propias más las compartidas del mismo `teamId`; `deleteTemplate` y el `upsert` de `saveTemplate` siguen acotados al dueño (clave única `teamId + ownerUserId + name`), así que un compañero nunca sobrescribe ni borra una plantilla ajena. `listTemplateOptions` arma las entradas del selector con `isOwn` e `isShared`.

@@ -8,6 +8,7 @@ import {
   ModalStateData,
   ModalSubtopicState,
   ModalTemplateOption,
+  templateToModalState,
 } from "../ui/scheduleModal.js";
 import { findChannelHuddles, DetectedHuddle } from "../utils/huddleDiscovery.js";
 import { rebalanceAfterEdit, addRowKeepingTotal } from "../../utils/percentages.js";
@@ -46,16 +47,14 @@ function readScheduleModalState(values: Record<string, any>, metadata: any): Par
     reminderTextEnabled: reminderValues.includes("reminder_text"),
     reminderImageEnabled: reminderValues.includes("reminder_image"),
     isPrivate: (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0,
-    saveAsTemplate: templateChoices(values).includes("save_template"),
-    shareTemplate: templateChoices(values).includes("share_template"),
+    saveAsTemplate: (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0,
+    editTemplateId: metadata.templateId,
+    templateName: getModalAction(values, "template_name_input")?.value || "",
+    templateListState: metadata.templateListState,
     selectedTemplateId: getModalAction(values, "template_select")?.selected_option?.value,
     rev: metadata.rev,
     editMeetupId: metadata.meetupId,
   };
-}
-
-function templateChoices(values: Record<string, any>): string[] {
-  return (getModalAction(values, "save_template_checkbox")?.selected_options || []).map((o: any) => o.value);
 }
 
 async function loadTemplateOptions(teamId: string | undefined, userId: string | undefined): Promise<ModalTemplateOption[]> {
@@ -238,23 +237,11 @@ export function registerModalHandlers(app: App) {
       }
 
       const huddles = await findChannelHuddles(client, template.channelId);
-      const moduleCount = Math.min(MAX_SUBTOPICS, Math.max(1, template.modules.length));
 
       await client.views.update({
         view_id: b.view.id,
         view: buildScheduleModal({
-          title: template.name,
-          channelId: template.channelId,
-          speakerUserIds: MeetupService.parseSpeakerIds(template.speakerUserId),
-          duration: template.totalMinutes,
-          selectedHuddleChoice: template.destination,
-          subtopicCount: moduleCount,
-          customSubtopics: template.modules
-            .slice(0, MAX_SUBTOPICS)
-            .map((m) => ({ title: m.title, pct: String(m.percentage) })),
-          reminderTextEnabled: template.reminderTextEnabled,
-          reminderImageEnabled: template.reminderImageEnabled,
-          availableHuddles: huddles,
+          ...templateToModalState(template, userId, huddles),
           templates,
           selectedTemplateId: template.id,
           rev: Date.now().toString(36),
@@ -327,8 +314,7 @@ export function registerModalHandlers(app: App) {
     const reminderTextEnabled = reminderValues.includes("reminder_text");
     const reminderImageEnabled = reminderValues.includes("reminder_image");
     const isPrivate = (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0;
-    const saveAsTemplate = templateChoices(values).includes("save_template");
-    const shareTemplate = saveAsTemplate && templateChoices(values).includes("share_template");
+    const saveAsTemplate = (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0;
 
     const rawModules = [];
     for (let i = 0; i < count; i++) {
@@ -476,10 +462,9 @@ export function registerModalHandlers(app: App) {
             threadTs: validatedData.threadTs,
             reminderTextEnabled: validatedData.reminderTextEnabled,
             reminderImageEnabled: validatedData.reminderImageEnabled,
-            isShared: shareTemplate,
             modules: validatedData.modules,
           });
-          templateNote = shareTemplate ? " Saved as a template shared with the workspace." : " Saved to My templates.";
+          templateNote = " Saved to My templates.";
         } catch (templateError) {
           console.error("Meetup scheduled but template could not be saved:", templateError);
           templateNote = " The template could not be saved.";

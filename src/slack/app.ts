@@ -5,6 +5,7 @@ const require = createRequire(import.meta.url);
 const { version: APP_VERSION } = require("../../package.json") as { version: string };
 import { registerHomeHandlers } from "./handlers/homeHandlers.js";
 import { registerModalHandlers } from "./handlers/modalHandlers.js";
+import { registerTemplateHandlers } from "./handlers/templateHandlers.js";
 import { registerActionHandlers } from "./handlers/actionHandlers.js";
 import { registerCommandHandlers } from "./handlers/commandHandlers.js";
 import { registerHuddleHandlers } from "./handlers/huddleHandlers.js";
@@ -82,6 +83,7 @@ export function createSlackApp(): bolt.App {
   // Register all interactive listeners
   registerHomeHandlers(app);
   registerModalHandlers(app);
+  registerTemplateHandlers(app);
   registerActionHandlers(app);
   registerCommandHandlers(app);
   registerHuddleHandlers(app);
