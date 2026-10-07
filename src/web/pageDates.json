@@ -1,26 +1,26 @@
 {
   "/": {
-    "hash": "876f32dfbdcd4944",
+    "hash": "82786c48cb7c7c6e",
     "lastmod": "2026-10-07"
   },
   "/client-call-timer-slack": {
-    "hash": "13281138200eee75",
+    "hash": "f98a5ffa2ed4fb01",
     "lastmod": "2026-10-07"
   },
   "/daily-standup-timer-slack": {
-    "hash": "850b0abc435b0322",
+    "hash": "5475fc812e8007f7",
     "lastmod": "2026-10-07"
   },
   "/engineering-managers-meeting-timer": {
-    "hash": "8f0c1403a302bafe",
+    "hash": "0a6752c31ecee504",
     "lastmod": "2026-10-07"
   },
   "/es/": {
-    "hash": "7c146c988da3a3f9",
+    "hash": "c3ee7eb82ffd33d5",
     "lastmod": "2026-10-07"
   },
   "/es/agenda-retrospectiva-sprint": {
-    "hash": "30bad564161939cd",
+    "hash": "eb7480b3ce233985",
     "lastmod": "2026-10-07"
   },
   "/es/privacy": {
@@ -28,19 +28,19 @@
     "lastmod": "2026-10-07"
   },
   "/es/temporizador-daily-standup-slack": {
-    "hash": "d65a245be4aaa0e1",
+    "hash": "e26cbe8dd0a57494",
     "lastmod": "2026-10-07"
   },
   "/es/temporizador-huddle-slack": {
-    "hash": "2ef718dd9a72fcd7",
+    "hash": "553c035bac0d9cd2",
     "lastmod": "2026-10-07"
   },
   "/es/temporizador-llamadas-clientes-slack": {
-    "hash": "476f9540d7b97708",
+    "hash": "5dff329798bb4798",
     "lastmod": "2026-10-07"
   },
   "/es/temporizador-reuniones-engineering-managers": {
-    "hash": "1673b66706bea1b3",
+    "hash": "b278fca3fd9f42ce",
     "lastmod": "2026-10-07"
   },
   "/es/terms": {
@@ -52,11 +52,11 @@
     "lastmod": "2026-10-07"
   },
   "/slack-huddle-timer": {
-    "hash": "5d7858f285c1b594",
+    "hash": "9ea2906717ec2c17",
     "lastmod": "2026-10-07"
   },
   "/sprint-retrospective-agenda": {
-    "hash": "a62ee3e1f2454911",
+    "hash": "087b57b4ecc5efde",
     "lastmod": "2026-10-07"
   },
   "/terms": {

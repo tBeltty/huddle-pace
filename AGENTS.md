@@ -26,7 +26,10 @@ Any agent operating in this codebase must reference and respect the following co
    * **Release Process & Versioning**: [`docs/guidelines/RELEASE_PROCESS.md`](docs/guidelines/RELEASE_PROCESS.md)
 5. **[Advanced Writing Skills Suite](.agents/skills/)** (`.agents/skills/`):
    * Tracked skills for automated assistance: `no-ai-slop`, `text-humanizer`, `copywriting`, `copy-editing`, `proofreading`, `paragraph-structure`, `ogilvy`, `content-strategy`, `competitor-alternatives`, `slack-app-distribution`.
-6. **[Brand Identity & System Guide](docs/BRAND.md)** (`docs/BRAND.md`):
+6. **[Pace Guide for Tutorials & Support](docs/guides/PACE_GUIDE.md)** (`docs/guides/PACE_GUIDE.md`):
+   * **Purpose**: Verified reference of every way to create, start, run and reschedule a pace (App Home buttons and `/pace`), with exact UI strings, limits, permissions and a "what not to claim" list.
+   * **Rule**: Update it in the same change whenever a modal field, command, notification, state or permission changes. When writing instructions anywhere (web, README, help text), name both the click path and the command.
+7. **[Brand Identity & System Guide](docs/BRAND.md)** (`docs/BRAND.md`):
    * **Purpose**: Master source of truth for color palette (Aerospace Telemetry), typography, Vector mascot lore & generation prompts, wordmark, and visual assets.
    * **Rule**: Adhere to canonical hex tokens, character lore, and voice standards across all web, Slack, and marketing interfaces.
 

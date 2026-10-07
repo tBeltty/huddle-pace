@@ -90,7 +90,7 @@ HuddlePace requests only the minimum granular scopes required to coordinate meet
 
 | Action | Invocation | Description |
 | :--- | :--- | :--- |
-| **Schedule Modal** | `/pace` or Global Shortcut | Opens the interactive meetup scheduling modal. |
+| **Schedule Modal** | `/pace`, the **➕ Schedule Meetup** button in App Home, or the Schedule Meetup Global Shortcut | Opens the interactive meetup scheduling modal. All three open the same modal. |
 | **Channel Status** | `/pace status` | Displays active pacing sessions running in the current channel. |
 | **Pacing Report** | `/pace report [days]` | Shows timebox compliance and duration metrics (default: 30 days). |
 | **Start a Pace** | `/pace start` | Starts the scheduled pace closest to now in this channel. |
