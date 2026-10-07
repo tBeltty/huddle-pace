@@ -427,8 +427,8 @@ export function buildGuideModal(): ModalView {
         text: {
           type: "mrkdwn",
           text: "*Keep talks on schedule and respect everyone's time in 3 easy steps:*\n\n" +
-            "1️⃣ *Schedule with Modules:*\nClick *➕ Schedule Meetup* to divide your agenda into timed sections (e.g. Context 15%, Demo 60%, Q&A 25%).\n\n" +
-            "2️⃣ *Launch in a Slack Huddle:*\nWhen you join your Huddle, click *🚀 Start in Huddle* to attach a live progress tracker to the channel feed.\n\n" +
+            "1️⃣ *Schedule with Modules:*\nClick *➕ Schedule Meetup* (or type `/pace` in any channel), set the exact date and time, and divide your agenda into timed sections (e.g. Context 15%, Demo 60%, Q&A 25%).\n\n" +
+            "2️⃣ *Launch in a Slack Huddle:*\nOpen your Huddle within 20 minutes of the scheduled time and HuddlePace attaches a live progress tracker to the Huddle thread. You can also click *🚀 Start in Huddle* or type `/pace start`.\n\n" +
             "3️⃣ *Distraction-Free Pacing Alerts:*\nSpeakers receive private DM checkpoints as modules advance, preventing meeting drift without interrupting the conversation.",
         },
       },
@@ -445,7 +445,9 @@ export function buildGuideModal(): ModalView {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: "• `/pace` — Open the meetup scheduler in any channel\n" +
+          text: "• `/pace` — Open the meetup scheduler in any channel (same as *➕ Schedule Meetup*)\n" +
+            "• `/pace 15m` — Start a 15-minute session right away\n" +
+            "• `/pace start [code]` — Start the closest scheduled pace, or one saved for manual start\n" +
             "• `/pace status` — Check active sessions in the current channel\n" +
             "• `/pace report [days]` — View pacing compliance metrics (default: 30 days)\n" +
             "• `/pace help` — Show command reference and tips",
