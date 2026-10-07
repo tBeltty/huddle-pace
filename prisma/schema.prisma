@@ -23,7 +23,7 @@ model Meetup {
   manualStartCode  String? // m1, m2... per channel while status is MANUAL_START; started with /pace start <code>
   formalEndsAt     DateTime?
   endsAt           DateTime?
-  status           String         @default("SCHEDULED") // SCHEDULED, ACTIVE, JUST_CHATTING, PAUSED, COMPLETED, CANCELLED, MANUAL_START
+  status           String         @default("SCHEDULED") // SCHEDULED, ACTIVE, JUST_CHATTING, PAUSED, COMPLETED, CANCELLED, MANUAL_START, MISSED
   dmMessageRefs    String? // JSON array of {channel, ts} for speaker DM reminders, cleaned up on conclude
   reminderTextEnabled  Boolean        @default(true)
   reminderImageEnabled Boolean        @default(false)

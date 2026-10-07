@@ -107,17 +107,59 @@ describe("scheduling conflicts and Manual start", () => {
     });
   });
 
-  describe("moveMissedToManualStart", () => {
-    test("moves paces whose window closed and leaves the rest", async () => {
+  describe("missed paces", () => {
+    test("marks paces whose window closed as MISSED and leaves the rest", async () => {
       const now = at(60);
       const missed = await createPace({ channelId: "C_MISSED", scheduledFor: at(0) });
       const stillOpen = await createPace({ channelId: "C_MISSED", scheduledFor: at(45) });
 
-      const moved = await MeetupService.moveMissedToManualStart(now);
+      const moved = await MeetupService.markMissedMeetups(now);
       assert.ok(moved.some((meetup) => meetup.id === missed.id));
       assert.ok(!moved.some((meetup) => meetup.id === stillOpen.id));
+      assert.strictEqual((await MeetupService.getMeetupById(missed.id))?.status, "MISSED");
       assert.strictEqual((await MeetupService.getMeetupById(stillOpen.id))?.status, "SCHEDULED");
-      assert.strictEqual((await MeetupService.getMeetupById(missed.id))?.status, "MANUAL_START");
+    });
+
+    test("a missed pace gets no manual start code and is not capturable", async () => {
+      const pace = await createPace({ channelId: "C_MISSED_OUT", scheduledFor: at(0) });
+      await MeetupService.markMissedMeetups(at(60));
+      assert.strictEqual((await MeetupService.getMeetupById(pace.id))?.manualStartCode, null);
+      assert.strictEqual(await MeetupService.findPendingScheduledMeetup("C_MISSED_OUT", teamId, { anyTime: true }), null);
+      assert.strictEqual(await MeetupService.claimMeetupForLaunch(pace.id), null);
+    });
+
+    test("a missed pace does not block scheduling in its old slot", async () => {
+      await createPace({ channelId: "C_MISSED_FREE", scheduledFor: at(0) });
+      await MeetupService.markMissedMeetups(at(60));
+      assert.strictEqual(await MeetupService.findScheduleConflict("C_MISSED_FREE", teamId, at(0)), null);
+    });
+
+    test("rescheduling a missed pace puts it back to SCHEDULED at the new time", async () => {
+      const pace = await createPace({ channelId: "C_RESCHEDULE", scheduledFor: at(0) });
+      await MeetupService.markMissedMeetups(at(60));
+
+      const updated = await MeetupService.updateScheduledMeetup(pace.id, {
+        title: pace.title,
+        totalMinutes: pace.totalMinutes,
+        channelId: pace.channelId,
+        speakerUserId: pace.speakerUserId,
+        scheduledFor: at(180),
+        modules: [{ title: "Topic", percentage: 100 }],
+      });
+      assert.strictEqual(updated?.status, "SCHEDULED");
+      assert.strictEqual(updated?.scheduledFor?.getTime(), at(180).getTime());
+      assert.strictEqual(
+        (await MeetupService.findPendingScheduledMeetup("C_RESCHEDULE", teamId, { anyTime: true }))?.id,
+        pace.id
+      );
+    });
+
+    test("lists missed paces for the workspace, newest first", async () => {
+      const older = await createPace({ channelId: "C_LIST", scheduledFor: at(0) });
+      const newer = await createPace({ channelId: "C_LIST_B", scheduledFor: at(10) });
+      await MeetupService.markMissedMeetups(at(120));
+      const ids = (await MeetupService.getMissedMeetups(teamId)).map((meetup) => meetup.id);
+      assert.ok(ids.indexOf(newer.id) < ids.indexOf(older.id));
     });
   });
 

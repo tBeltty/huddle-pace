@@ -16,17 +16,18 @@ export async function publishHomeTab(
   teamId?: string
 ): Promise<void> {
   try {
-    const [active, upcoming, manualStart, zone, stats] = await Promise.all([
+    const [active, upcoming, manualStart, missed, zone, stats] = await Promise.all([
       MeetupService.getActiveMeetups(teamId),
       MeetupService.getUpcomingMeetups(teamId),
       MeetupService.getManualStartMeetupsForTeam(teamId),
+      MeetupService.getMissedMeetups(teamId),
       resolveZoneForUser(client, userId, teamId || "default"),
       MeetupService.getReportViewer(client, userId, teamId || "default").then((viewer) =>
         MeetupService.getPacingReportStats(30, teamId, viewer)
       ),
     ]);
 
-    const view = buildHomeTabView(active, upcoming, stats, userId, { manualStartMeetups: manualStart, zone });
+    const view = buildHomeTabView(active, upcoming, stats, userId, { manualStartMeetups: manualStart, missedMeetups: missed, zone });
     await client.views.publish({
       user_id: userId,
       view,

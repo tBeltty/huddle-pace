@@ -87,10 +87,10 @@ export class TimerWorker {
         console.warn("Error checking pending scheduled meetups in timer worker:", scheduledErr);
       }
 
-      // Paces whose window closed without a Huddle wait for /pace start instead of staying
-      // SCHEDULED forever. Only recent misses notify, so old backlog does not flood DMs.
+      // Paces whose window closed without a Huddle become MISSED instead of staying SCHEDULED
+      // forever, and wait for a new time. Only recent misses notify, so old backlog does not flood DMs.
       try {
-        const missed = await MeetupService.moveMissedToManualStart();
+        const missed = await MeetupService.markMissedMeetups();
         const recentMilliseconds = 24 * 3_600_000;
         for (const meetup of missed) {
           if (!meetup.scheduledFor || Date.now() - meetup.scheduledFor.getTime() > recentMilliseconds) continue;
@@ -98,7 +98,7 @@ export class TimerWorker {
           await notifySpeakersOfMissedHuddle(this.app.client, meetup, botToken);
         }
       } catch (missedErr) {
-        console.warn("Error moving missed meetups to manual start in timer worker:", missedErr);
+        console.warn("Error marking missed meetups in timer worker:", missedErr);
       }
 
       const activeMeetups = await MeetupService.getActiveMeetups();
