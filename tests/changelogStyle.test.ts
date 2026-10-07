@@ -50,6 +50,10 @@ describe("CHANGELOG release notes follow the editorial standards", () => {
       assert.doesNotMatch(body, /\*\*[^*\n]+\*\*\s*:/, "bold-label colon openers are colon reveals");
       assert.doesNotMatch(body, /\bnot (just|only)\b/i, "binary contrast");
       assert.doesNotMatch(body, /\bnot\b[^.\n]{0,40}\bbut\b/i, "binary contrast");
+      for (const line of body.split("\n").filter((l) => l.startsWith("- "))) {
+        const prose = line.replace(/`[^`]*`/g, "").replace(/\d+:\d+/g, "");
+        assert.doesNotMatch(prose, /:\s|:$/, `colon reveal in: ${line.slice(0, 70)}`);
+      }
     });
 
     test(`${version}: each bullet stays short enough to read as a release note`, () => {
