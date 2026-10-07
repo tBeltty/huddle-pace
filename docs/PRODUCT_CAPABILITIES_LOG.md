@@ -9,6 +9,11 @@
 * **Cambio**: la sección 3 pasa a "Lo que no recopilamos ni usamos": sin audio ni transcripciones, la app recibe los mensajes de los canales y grupos donde está añadida, lee solo los mensajes de sistema de Huddle y no usa, guarda ni indexa ningún otro contenido. Se añade a la sección 2 el uso de `users:read` (zona horaria y rol admin/owner, sin nombres ni correos). Fecha de actualización: 7 de octubre de 2026. Inglés y español.
 * **Verificado en el código**: el esquema de Prisma no guarda texto de mensajes; `users.info` solo lee `tz` y `is_admin`/`is_owner`; `users.list` solo identifica miembros no bot para refrescar el App Home.
 
+## [2026-10-07] Hint Corto de `/pace` (v1.10.2)
+* **Problema**: el `usage_hint` que Slack muestra al escribir `/pace` listaba cinco opciones (`[15m | start <code> | status | report | settings]`) y confundía.
+* **Cambio**: `manifest.json` pasa a `[15m | help]`. Los subcomandos siguen funcionando y `/pace help` los lista todos. El modal no cambia.
+* **Configuración**: el cambio se replica a mano en *Slash Commands* de la app en Slack (no se aplica con el despliegue).
+
 ## [2026-10-07] Membresía del Bot en Mensajes de Grupo (v1.10.1)
 * **Problema**: al agendar en un DM de grupo donde el bot ya estaba, `ensureBotInChannel` mostraba "HuddlePace needs an invite". `conversations.join` falla en un grupo y la comprobación de respaldo (`conversations.info`) exige `mpim:read`, que la app no pide, así que fallaba en silencio.
 * **Cambio**: tras el fallo de `join` e `info`, se hace `conversations.history` con `limit: 1`; si responde, el bot es miembro (cubre canales privados y grupos con los scopes de historial ya concedidos, sin reinstalación). El aviso nombra los dos casos (`/invite` en canal privado, añadir el bot en un grupo).

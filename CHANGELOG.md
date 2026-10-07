@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.2] - 2026-10-07
+
+### Changed
+- The hint Slack shows while you type `/pace` is shorter and lists only `15m` and `help`. The other commands still work and `/pace help` lists them all.
+
 ## [1.10.1] - 2026-10-07
 
 ### Fixed
@@ -168,7 +173,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.10.1...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.10.2...HEAD
+[1.10.2]: https://github.com/tBeltty/huddle-pace/compare/v1.10.1...v1.10.2
 [1.10.1]: https://github.com/tBeltty/huddle-pace/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/tBeltty/huddle-pace/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/tBeltty/huddle-pace/compare/v1.8.2...v1.9.0
