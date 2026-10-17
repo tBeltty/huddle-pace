@@ -72,6 +72,7 @@ export interface ModalStateData {
   templateListState?: unknown;
   rev?: string;
   editMeetupId?: string;
+  pacingMode?: "FREEFORM" | "STRUCTURED";
 }
 
 /**
@@ -92,6 +93,7 @@ export function templateToModalState(
     speakerUserIds: isOwn ? speakerIds : [viewerUserId],
     duration: template.totalMinutes,
     selectedHuddleChoice: template.destination,
+    pacingMode: template.pacingMode,
     subtopicCount: Math.min(MAX_SUBTOPICS, Math.max(1, template.modules.length)),
     customSubtopics: template.modules.slice(0, MAX_SUBTOPICS).map((m) => ({ title: m.title, pct: String(m.percentage) })),
     reminderTextEnabled: template.reminderTextEnabled,
@@ -504,108 +506,177 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "*📌 Agenda Modules & Time Budget (%) Allocation*\nAllocate percentage for each module. *Total must equal 100%*. Edit a % and press Enter to split the rest evenly across the other modules.",
+        text: "*Pacing Mode*\nChoose whether to track the session with a single countdown timer or an itemized agenda breakdown.",
       },
+    },
+    {
+      type: "actions",
+      block_id: bid("pacing_mode_actions_block"),
+      elements: [
+        {
+          type: "radio_buttons",
+          action_id: "pacing_mode_select",
+          initial_option:
+            (initialState?.pacingMode === "STRUCTURED")
+              ? {
+                  text: {
+                    type: "mrkdwn" as const,
+                    text: "*Structured Agenda* (break call into subtopics by %)",
+                  },
+                  value: "STRUCTURED",
+                }
+              : {
+                  text: {
+                    type: "mrkdwn" as const,
+                    text: "*Freeform Session* (single countdown for the whole session)",
+                  },
+                  value: "FREEFORM",
+                },
+          options: [
+            {
+              text: {
+                type: "mrkdwn" as const,
+                text: "*Freeform Session* (single countdown for the whole session)",
+              },
+              value: "FREEFORM",
+            },
+            {
+              text: {
+                type: "mrkdwn" as const,
+                text: "*Structured Agenda* (break call into subtopics by %)",
+              },
+              value: "STRUCTURED",
+            },
+          ],
+        },
+      ],
     }
   );
 
-  // Dynamically render subtopic rows
-  for (let i = 0; i < count; i++) {
-    const custom = initialState?.customSubtopics?.[i];
-    const defaultSuggestion = defaultPresets[i] || { title: `Subtopic #${i + 1} Name`, pct: "25" };
+  const isFreeform =
+    initialState?.pacingMode === "FREEFORM"
+      ? true
+      : initialState?.pacingMode === "STRUCTURED"
+      ? false
+      : (initialState?.customSubtopics && initialState.customSubtopics.length > 1)
+      ? false
+      : true;
 
-    const titlePlaceholder = defaultSuggestion.title;
-    const pctPlaceholder = defaultSuggestion.pct;
-
-    const titleElement: any = {
-      type: "plain_text_input",
-      action_id: `subtopic_title_input_${i}`,
-      placeholder: {
-        type: "plain_text",
-        text: titlePlaceholder,
-      },
-    };
-    if (custom?.title) {
-      titleElement.initial_value = custom.title;
-    }
-
-    const pctElement: any = {
-      type: "plain_text_input",
-      action_id: `subtopic_pct_input_${i}`,
-      placeholder: {
-        type: "plain_text",
-        text: pctPlaceholder,
-      },
-      dispatch_action_config: { trigger_actions_on: ["on_enter_pressed"] },
-    };
-    // The 3-row default split is real content (sums to 100), so it can be submitted as-is.
-    const pctValue = custom?.pct || (count === 3 ? defaultSuggestion.pct : "");
-    if (pctValue) {
-      pctElement.initial_value = pctValue;
-    }
-
-    blocks.push(
-      {
-        type: "input",
-        block_id: bid(`subtopic_title_${i}`),
-        element: titleElement,
-        label: {
-          type: "plain_text",
-          text: `Module ${i + 1} Topic`,
-        },
-      },
-      {
-        type: "input",
-        block_id: bid(`subtopic_pct_${i}`),
-        dispatch_action: true,
-        element: pctElement,
-        label: {
-          type: "plain_text",
-          text: `Module ${i + 1} Time Budget (%)`,
-        },
-      }
-    );
-  }
-
-  // Add More Subtopics Button (capped at MAX_SUBTOPICS to prevent Slack 100-block limit errors)
-  if (count < MAX_SUBTOPICS) {
+  if (isFreeform) {
     blocks.push({
-      type: "actions",
-      block_id: "add_row_actions",
-      elements: [
-        {
-          type: "button",
-          text: {
-            type: "plain_text",
-            text: "➕ Add Another Subtopic",
-            emoji: true,
-          },
-          action_id: "add_subtopic_row_action",
-          value: JSON.stringify({ subtopicCount: count + 1 }),
-        },
-      ],
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `⏱️ *Freeform Session*: A single countdown will track your total *${initialDuration.text.text}*. Pacing checkpoints will alert at the 1-minute wrap-up mark.`,
+      },
     });
   } else {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "*📌 Agenda Modules & Time Budget (%) Allocation*\nAllocate percentage for each module. *Total must equal 100%*. Edit a % and press Enter to split the rest evenly across the other modules.",
+      },
+    });
+
+    // Dynamically render subtopic rows
+    for (let i = 0; i < count; i++) {
+      const custom = initialState?.customSubtopics?.[i];
+      const defaultSuggestion = defaultPresets[i] || { title: `Subtopic #${i + 1} Name`, pct: "25" };
+
+      const titlePlaceholder = defaultSuggestion.title;
+      const pctPlaceholder = defaultSuggestion.pct;
+
+      const titleElement: any = {
+        type: "plain_text_input",
+        action_id: `subtopic_title_input_${i}`,
+        placeholder: {
+          type: "plain_text",
+          text: titlePlaceholder,
+        },
+      };
+      if (custom?.title) {
+        titleElement.initial_value = custom.title;
+      }
+
+      const pctElement: any = {
+        type: "plain_text_input",
+        action_id: `subtopic_pct_input_${i}`,
+        placeholder: {
+          type: "plain_text",
+          text: pctPlaceholder,
+        },
+        dispatch_action_config: { trigger_actions_on: ["on_enter_pressed"] },
+      };
+      // The 3-row default split is real content (sums to 100), so it can be submitted as-is.
+      const pctValue = custom?.pct || (count === 3 ? defaultSuggestion.pct : "");
+      if (pctValue) {
+        pctElement.initial_value = pctValue;
+      }
+
+      blocks.push(
+        {
+          type: "input",
+          block_id: bid(`subtopic_title_${i}`),
+          element: titleElement,
+          label: {
+            type: "plain_text",
+            text: `Module ${i + 1} Topic`,
+          },
+        },
+        {
+          type: "input",
+          block_id: bid(`subtopic_pct_${i}`),
+          dispatch_action: true,
+          element: pctElement,
+          label: {
+            type: "plain_text",
+            text: `Module ${i + 1} Time Budget (%)`,
+          },
+        }
+      );
+    }
+
+    // Add More Subtopics Button (capped at MAX_SUBTOPICS to prevent Slack 100-block limit errors)
+    if (count < MAX_SUBTOPICS) {
+      blocks.push({
+        type: "actions",
+        block_id: "add_row_actions",
+        elements: [
+          {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "➕ Add Another Subtopic",
+              emoji: true,
+            },
+            action_id: "add_subtopic_row_action",
+            value: JSON.stringify({ subtopicCount: count + 1 }),
+          },
+        ],
+      });
+    } else {
+      blocks.push({
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: "ℹ️ _Maximum of 10 agenda modules reached._",
+          },
+        ],
+      });
+    }
+
     blocks.push({
       type: "context",
       elements: [
         {
           type: "mrkdwn",
-          text: "ℹ️ _Maximum of 10 agenda modules reached._",
+          text: "💡 _Example: 15% intro + 60% talk + 25% Q&A = 100%._",
         },
       ],
     });
   }
-
-  blocks.push({
-    type: "context",
-    elements: [
-      {
-        type: "mrkdwn",
-        text: "💡 _Example: 15% intro + 60% talk + 25% Q&A = 100%._",
-      },
-    ],
-  });
 
   const saveOption = {
     text: { type: "mrkdwn" as const, text: "*Save as template* (reuse this setup for recurring calls)" },
@@ -666,6 +737,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         rev,
         templateId: initialState?.editTemplateId,
         templateListState: initialState?.templateListState,
+        pacingMode: isFreeform ? "FREEFORM" : "STRUCTURED",
       }),
       blocks: templateBlocks,
     };
@@ -693,6 +765,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       meetupId: initialState?.editMeetupId,
       zone,
       blocked: initialState?.blockedRange,
+      pacingMode: isFreeform ? "FREEFORM" : "STRUCTURED",
     }),
     blocks,
   };

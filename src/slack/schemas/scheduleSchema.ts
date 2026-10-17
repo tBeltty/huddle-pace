@@ -25,6 +25,7 @@ export const scheduleModalInputSchema = z
     reminderImageEnabled: z.boolean().default(false),
     reminderDmEnabled: z.boolean().default(false),
     isPrivate: z.boolean().default(false),
+    pacingMode: z.enum(["FREEFORM", "STRUCTURED"]).default("FREEFORM"),
     modules: z
       .array(subtopicInputSchema)
       .min(1, "At least one subtopic is required."),

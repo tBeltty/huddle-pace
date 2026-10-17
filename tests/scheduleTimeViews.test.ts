@@ -132,9 +132,26 @@ describe("settings timezone selector", () => {
     const initial = block?.element?.initial_options ?? [];
     assert.ok(initial.some((o: any) => o.value === "reminder_dm"));
   });
+
+  test("offers default_pacing_mode_select in editable settings", () => {
+    const modal = buildSettingsModal({
+      reminderTextEnabled: true,
+      reminderImageEnabled: false,
+      defaultPacingMode: "FREEFORM",
+      timezone: "PT",
+      canEdit: true,
+    });
+    const block = findInput(modal, "pacing_mode_settings_block");
+    assert.ok(block);
+    assert.strictEqual(block?.element?.action_id, "default_pacing_mode_select");
+    assert.strictEqual(block?.element?.initial_option?.value, "FREEFORM");
+    const options = block?.element?.options ?? [];
+    assert.ok(options.some((o: any) => o.value === "FREEFORM"));
+    assert.ok(options.some((o: any) => o.value === "STRUCTURED"));
+  });
 });
 
-describe("schedule modal reminder options", () => {
+describe("schedule modal reminder options and pacing modes", () => {
   test("defaults reminder_dm to unchecked and offers it in options", () => {
     const modal = buildScheduleModal({});
     const block = findInput(modal, "reminder_options_block");
@@ -143,6 +160,41 @@ describe("schedule modal reminder options", () => {
     const initial = block?.element?.initial_options ?? [];
     assert.strictEqual(initial.some((o: any) => o.value === "reminder_dm"), false);
     assert.strictEqual(initial.some((o: any) => o.value === "reminder_text"), true);
+  });
+
+  test("defaults pacing mode to FREEFORM and hides subtopics", () => {
+    const modal = buildScheduleModal({});
+    const actions = modal.blocks?.find((b: any) => b.block_id === "pacing_mode_actions_block");
+    assert.ok(actions);
+    const radio = actions.elements?.[0];
+    assert.strictEqual(radio?.action_id, "pacing_mode_select");
+    assert.strictEqual(radio?.initial_option?.value, "FREEFORM");
+
+    // Has Freeform explanation section
+    const hasFreeformSection = modal.blocks?.some(
+      (b: any) => b.type === "section" && b.text?.text?.includes("Freeform Session")
+    );
+    assert.strictEqual(hasFreeformSection, true);
+
+    // Has NO subtopic input blocks
+    const hasSubtopics = modal.blocks?.some(
+      (b: any) => typeof b.block_id === "string" && b.block_id.startsWith("subtopic_title_")
+    );
+    assert.strictEqual(hasSubtopics, false);
+  });
+
+  test("displays subtopic inputs when pacingMode is STRUCTURED", () => {
+    const modal = buildScheduleModal({ pacingMode: "STRUCTURED", subtopicCount: 3 });
+    const actions = modal.blocks?.find((b: any) => b.block_id === "pacing_mode_actions_block");
+    assert.ok(actions);
+    const radio = actions.elements?.[0];
+    assert.strictEqual(radio?.initial_option?.value, "STRUCTURED");
+
+    // Has subtopic input blocks
+    const hasSubtopics = modal.blocks?.some(
+      (b: any) => typeof b.block_id === "string" && b.block_id.startsWith("subtopic_title_")
+    );
+    assert.strictEqual(hasSubtopics, true);
   });
 
   test("preselects reminder_dm when reminderDmEnabled is true", () => {

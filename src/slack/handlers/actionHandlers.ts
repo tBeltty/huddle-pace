@@ -142,6 +142,7 @@ export async function launchMeetupInThread(
         currentModuleName: initialModule?.title || "Introduction",
         moduleRemainingMinutes: initialModule?.durationMinutes || meetup.totalMinutes,
         nextModuleName: nextModule?.title || null,
+        pacingMode: (meetup.pacingMode as any) || "FREEFORM",
       }),
     });
   } catch (err) {
@@ -348,6 +349,7 @@ export function registerActionHandlers(app: App) {
             moduleRemainingMinutes: currentStatus?.remainingMinutes || 0,
             nextModuleName: currentStatus?.nextModule ? currentStatus.nextModule.title : null,
             isOvertime: elapsedMinutes >= updated.totalMinutes,
+            pacingMode: (updated.pacingMode as any) || "FREEFORM",
           }),
         }).catch(() => {});
       }
@@ -527,6 +529,7 @@ export function registerActionHandlers(app: App) {
             moduleRemainingMinutes: currentMod?.remainingMinutes || additionalMin,
             nextModuleName: currentMod?.nextModule ? currentMod.nextModule.title : null,
             isOvertime: elapsedMinutes >= updated.totalMinutes,
+            pacingMode: (updated.pacingMode as any) || "FREEFORM",
           }),
         }).catch(() => {});
       }

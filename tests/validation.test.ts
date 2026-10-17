@@ -241,6 +241,63 @@ describe("Zod Runtime Validation Schemas", () => {
         );
       }
     });
+
+    test("defaults pacingMode to FREEFORM when unspecified", () => {
+      const result = scheduleModalInputSchema.safeParse(validPayload);
+      assert.strictEqual(result.success, true);
+      if (result.success) {
+        assert.strictEqual(result.data.pacingMode, "FREEFORM");
+      }
+    });
+
+    test("accepts pacingMode FREEFORM with single 100% module", () => {
+      const freeform = {
+        ...validPayload,
+        pacingMode: "FREEFORM",
+        modules: [{ title: "Sprint Sync", percentage: 100 }],
+      };
+      const result = scheduleModalInputSchema.safeParse(freeform);
+      assert.strictEqual(result.success, true);
+      if (result.success) {
+        assert.strictEqual(result.data.pacingMode, "FREEFORM");
+        assert.strictEqual(result.data.modules.length, 1);
+        assert.strictEqual(result.data.modules[0].percentage, 100);
+      }
+    });
+
+    test("enforces title requirement in FREEFORM mode (negative control)", () => {
+      const invalidFreeform = {
+        ...validPayload,
+        title: "   ",
+        pacingMode: "FREEFORM",
+        modules: [{ title: "Freeform Session", percentage: 100 }],
+      };
+      const result = scheduleModalInputSchema.safeParse(invalidFreeform);
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        assert.strictEqual(
+          result.error.issues.some((i) => i.path[0] === "title"),
+          true
+        );
+      }
+    });
+
+    test("accepts pacingMode STRUCTURED with multi-module agenda", () => {
+      const structured = {
+        ...validPayload,
+        pacingMode: "STRUCTURED",
+        modules: [
+          { title: "Intro", percentage: 20 },
+          { title: "Deep Dive", percentage: 60 },
+          { title: "Wrap-up", percentage: 20 },
+        ],
+      };
+      const result = scheduleModalInputSchema.safeParse(structured);
+      assert.strictEqual(result.success, true);
+      if (result.success) {
+        assert.strictEqual(result.data.pacingMode, "STRUCTURED");
+      }
+    });
   });
 
   describe("subtopicInputSchema", () => {

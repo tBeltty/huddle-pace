@@ -6,6 +6,7 @@ export interface ScheduleContext {
   zone: string;
   scheduleDate: string;
   scheduleTime: string;
+  pacingMode?: "FREEFORM" | "STRUCTURED";
 }
 
 /** Slack timezone of a user, or null when it cannot be read. */
@@ -27,17 +28,23 @@ export async function resolveZoneForUser(client: SlackClient, userId: string | u
 
 /** Zone plus a default date and time (next quarter hour) for a fresh schedule modal. */
 export async function getScheduleContext(client: SlackClient, userId: string | undefined, teamId = "default"): Promise<ScheduleContext> {
-  const zone = await resolveZoneForUser(client, userId, teamId);
+  const settings = await MeetupService.getWorkspaceSettings(teamId);
+  const userZone = settings.timezone === "USER" && userId ? await fetchUserZone(client, userId) : null;
+  const zone = resolveSchedulingZone(settings.timezone, userZone);
   const { date, time } = nextQuarterHour(new Date(), zone);
-  return { zone, scheduleDate: date, scheduleTime: time };
+  return { zone, scheduleDate: date, scheduleTime: time, pacingMode: settings.defaultPacingMode };
 }
 
 /** Date and time of an existing meetup as the modal shows them in `zone`. */
-export function scheduleContextFor(scheduledFor: Date | null | undefined, zone: string): ScheduleContext {
+export function scheduleContextFor(
+  scheduledFor: Date | null | undefined,
+  zone: string,
+  pacingMode?: "FREEFORM" | "STRUCTURED"
+): ScheduleContext {
   if (!scheduledFor) {
     const { date, time } = nextQuarterHour(new Date(), zone);
-    return { zone, scheduleDate: date, scheduleTime: time };
+    return { zone, scheduleDate: date, scheduleTime: time, pacingMode };
   }
   const { date, time } = zonedParts(scheduledFor, zone);
-  return { zone, scheduleDate: date, scheduleTime: time };
+  return { zone, scheduleDate: date, scheduleTime: time, pacingMode };
 }

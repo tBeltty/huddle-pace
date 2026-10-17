@@ -167,13 +167,24 @@ export function registerTemplateHandlers(app: App) {
     const destination = getModalAction(values, "huddle_select")?.selected_option?.value === "main" ? "main" : "auto";
     const reminders = (getModalAction(values, "schedule_reminder_checkboxes")?.selected_options || []).map((o: any) => o.value);
 
+    const pacingModeAction = getModalAction(values, "pacing_mode_select")?.selected_option?.value;
+    const pacingMode: "FREEFORM" | "STRUCTURED" =
+      (pacingModeAction || metadata.pacingMode) === "STRUCTURED" ? "STRUCTURED" : "FREEFORM";
+
     const rawModules = [];
-    for (let i = 0; i < count; i++) {
-      const parsed = Number(getModalAction(values, `subtopic_pct_input_${i}`)?.value);
+    if (pacingMode === "FREEFORM") {
       rawModules.push({
-        title: getModalAction(values, `subtopic_title_input_${i}`)?.value || "",
-        percentage: isNaN(parsed) ? -1 : parsed,
+        title: name || "Freeform Session",
+        percentage: 100,
       });
+    } else {
+      for (let i = 0; i < count; i++) {
+        const parsed = Number(getModalAction(values, `subtopic_pct_input_${i}`)?.value);
+        rawModules.push({
+          title: getModalAction(values, `subtopic_title_input_${i}`)?.value || "",
+          percentage: isNaN(parsed) ? -1 : parsed,
+        });
+      }
     }
 
     const result = scheduleModalInputSchema.safeParse({
@@ -185,6 +196,7 @@ export function registerTemplateHandlers(app: App) {
       reminderTextEnabled: reminders.includes("reminder_text"),
       reminderImageEnabled: reminders.includes("reminder_image"),
       reminderDmEnabled: reminders.includes("reminder_dm"),
+      pacingMode,
       modules: rawModules,
     });
 
@@ -222,6 +234,7 @@ export function registerTemplateHandlers(app: App) {
       reminderTextEnabled: data.reminderTextEnabled,
       reminderImageEnabled: data.reminderImageEnabled,
       reminderDmEnabled: data.reminderDmEnabled,
+      pacingMode: data.pacingMode,
       modules: data.modules,
     });
 

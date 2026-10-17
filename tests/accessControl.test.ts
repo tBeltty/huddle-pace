@@ -32,7 +32,7 @@ describe("Access Control & UI Resilience", () => {
     });
 
     test("includes add_row_actions button when count < MAX_SUBTOPICS", () => {
-      const modal = buildScheduleModal({ subtopicCount: 3 });
+      const modal = buildScheduleModal({ subtopicCount: 3, pacingMode: "STRUCTURED" });
       const hasAddButton = modal.blocks?.some(
         (b: any) => b.block_id === "add_row_actions"
       );
@@ -40,7 +40,7 @@ describe("Access Control & UI Resilience", () => {
     });
 
     test("hides add_row_actions button when count >= MAX_SUBTOPICS", () => {
-      const modal = buildScheduleModal({ subtopicCount: 10 });
+      const modal = buildScheduleModal({ subtopicCount: 10, pacingMode: "STRUCTURED" });
       const hasAddButton = modal.blocks?.some(
         (b: any) => b.block_id === "add_row_actions"
       );

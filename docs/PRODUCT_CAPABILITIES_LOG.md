@@ -4,6 +4,14 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-17] Modo de Sesión Libre (Freeform Session) y Ajuste de Ritmo por Defecto (v1.13.0)
+* **Modo de ritmo en modal de agendar y plantillas**: selector entre **Freeform Session (Single Timebox)** y **Structured Agenda (Itemized Topics)**. En modo libre se elimina la necesidad de desglosar subtemas con porcentajes, asignando un único cronómetro del 100% con la duración seleccionada (hasta 120 minutos).
+* **Título obligatorio**: tanto en modo libre como estructurado, el nombre o título de la sesión sigue siendo un campo obligatorio para mantener la claridad en reportes y trackers.
+* **Ajuste configurable en el workspace**: nueva opción en Settings (`defaultPacingMode`, por defecto `FREEFORM`) para que los equipos decidan si prefieren sesiones libres por defecto o la agenda estructurada tradicional.
+* **Lanzamiento rápido `/pace 15m`**: las sesiones instantáneas arrancan directamente como Freeform Session al 100%, eliminando la división artificial en 3 subtemas genéricos.
+* **Tracker en vivo simplificado**: en sesiones libres, el tracker omite la sección *Next Up* y los botones de cambio de módulo, mostrando el conteo regresivo simple de la sesión completa.
+* **Esquema de base de datos**: añadido `pacingMode String @default("FREEFORM")` en `Meetup` y `MeetupTemplate`, y `defaultPacingMode String @default("FREEFORM")` en `WorkspaceSettings`.
+
 ## [2026-10-17] DMs Silenciados por Defecto al Detectar Huddle y Filtro Estricto de Huddles Activos (v1.12.2)
 * **Silenciamiento de DMs al inicio**: eliminado el mensaje directo de bienvenida que se enviaba incondicionalmente a los speakers al iniciar un pace. Si la casilla *Send reminders via DM* está desactivada, el bot no envía ningún DM en absoluto durante la detección ni el inicio de la llamada.
 * **Filtro de Huddles activos**: el selector de destino en el modal de agendar y en la selección manual excluye los Huddles que ya concluyeron y solo muestra llamadas actualmente activas (`🟢 Active Huddle`).
