@@ -10,6 +10,7 @@ import { buildHuddleSelectionModal } from "../ui/huddleSelectModal.js";
 import { ensureBotInChannel } from "../utils/channelUtils.js";
 import { publishHomeTab } from "./homeHandlers.js";
 import { buildAppHomeDeepLink } from "../utils/deepLinks.js";
+import { formatModuleStartingText } from "../../utils/pacingMessages.js";
 
 interface MissedMeetup {
   id: string;
@@ -340,7 +341,7 @@ export function registerActionHandlers(app: App) {
 
       // 2. Notify about the transition
       if (currentStatus?.module) {
-        const transitionNotice = `⏭️ *Advanced to Next Module:* Switched to "*${currentStatus.module.title}*" (${currentStatus.module.durationMinutes}m allocated).`;
+        const transitionNotice = formatModuleStartingText(currentStatus.module.title, currentStatus.module.durationMinutes);
         if (updated.reminderDmEnabled) {
           const speakerIds = MeetupService.parseSpeakerIds(updated.speakerUserId);
           for (const spkId of speakerIds) {

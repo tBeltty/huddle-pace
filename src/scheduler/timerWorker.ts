@@ -7,6 +7,7 @@ import { publishHomeTab } from "../slack/handlers/homeHandlers.js";
 import { formatMinutes } from "../utils/progressBar.js";
 import { findChannelHuddles, isHuddleEnded } from "../slack/utils/huddleDiscovery.js";
 import { launchMeetupInThread, notifySpeakersOfAutoLaunch, notifyCreatorOfMissedHuddle } from "../slack/handlers/actionHandlers.js";
+import { formatOneMinuteWarningText, formatModuleStartingText } from "../utils/pacingMessages.js";
 
 export class TimerWorker {
   private timer: NodeJS.Timeout | null = null;
@@ -261,9 +262,7 @@ export class TimerWorker {
         if (status && status.module && status.remainingMinutes <= 1 && !this.moduleWarningsSent.has(status.module.id)) {
           this.moduleWarningsSent.add(status.module.id);
           const nextMod = status.nextModule;
-          const warningText = nextMod
-            ? `⏱️ *1 Minute Remaining:* Wrapping up "*${status.module.title}*". Start rounding out your points; next up is "*${nextMod.title}*" (${nextMod.durationMinutes}m).`
-            : `⏱️ *1 Minute Remaining:* Wrapping up final module "*${status.module.title}*". Prepare for open Q&A or conclusion.`;
+          const warningText = formatOneMinuteWarningText(status.module.title, nextMod);
 
           const reminderDmEnabled = (meetup as any).reminderDmEnabled ?? false;
           if (reminderDmEnabled) {
@@ -306,19 +305,9 @@ export class TimerWorker {
           }
         }
 
-        // 4. Natural Vector Speaker Transition / Takeoff
+        // 4. Module Start / Transition
         if (status && status.module && !status.module.isNotified) {
-          const isTakeoff = status.module.startOffsetMin === 0;
-          let messageText: string;
-
-          if (isTakeoff) {
-            messageText = `🛫 *Cleared for Takeoff!* Starting with module "*${status.module.title}*" (${status.module.durationMinutes}m allocated). I'll keep an eye on pacing so you can focus on the talk.`;
-          } else {
-            // Find preceding module
-            const prevModule = meetup.modules.find((m) => m.endOffsetMin === status.module.startOffsetMin);
-            const prevTitle = prevModule ? prevModule.title : "Previous Module";
-            messageText = `🧭 *Module Transition:* Time is up for "*${prevTitle}*". Move to "*${status.module.title}*" (${status.module.durationMinutes}m allocated) to keep our flight path on schedule.`;
-          }
+          const messageText = formatModuleStartingText(status.module.title, status.module.durationMinutes);
 
           const reminderDmEnabled = (meetup as any).reminderDmEnabled ?? false;
           if (reminderDmEnabled) {
