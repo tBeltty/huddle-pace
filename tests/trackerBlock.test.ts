@@ -65,7 +65,7 @@ describe("Live Tracker Block Kit Generation", () => {
     assert.ok(alertBlock.text.text.includes("Core Topic"));
   });
 
-  test("renders overtime holding pattern alert when session is overtime", () => {
+  test("renders Extra Time alert when session is overtime", () => {
     const blocks = buildLiveTrackerBlocks({
       meetupId: "meetup-123",
       title: "Sprint Planning",
@@ -78,8 +78,8 @@ describe("Live Tracker Block Kit Generation", () => {
       isOvertime: true,
     });
 
-    assert.ok(blocks[1].text.text.includes("Session Overtime"));
-    assert.ok(blocks[2].text.text.includes("Holding Pattern (Overtime)"));
+    assert.ok(blocks[1].text.text.includes("Extra Time"));
+    assert.ok(blocks[2].text.text.includes("Scheduled time complete (15m). Wrap up or switch to Just Chatting."));
   });
 
   test("renders Just Chatting layout when session is in casual chat mode", () => {
