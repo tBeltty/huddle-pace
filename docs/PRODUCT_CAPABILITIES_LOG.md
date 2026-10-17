@@ -4,6 +4,11 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-17] Mensajes de Ritmo y Transición Más Breves y Concisos (v1.12.1)
+* **Reducción de longitud**: simplificados los avisos de 1 minuto restante y de inicio de módulo para evitar mensajes verbosos en el hilo del Huddle y en los DMs a speakers.
+* **Formato de aviso de 1 minuto**: `:stopwatch: 1 Minute Remaining: Wrapping up "[Módulo]".` seguido de `next up is "[Siguiente]" ([X]m).` (o solo el aviso de cierre para el módulo final).
+* **Formato de inicio de módulo**: unificado en `:compass: Starting "[Módulo]" ([X]m)` tanto en el despegue inicial, en las transiciones automáticas por temporizador y en el avance manual con el botón de siguiente módulo.
+
 ## [2026-10-17] Recordatorios de Ritmo Conmutables entre DM y Chat del Huddle (v1.12.0)
 * **Funcionalidad**: nueva opción para decidir cómo se entregan los avisos de despegue, cambios de módulo y avisos de 1 minuto restante durante el Huddle.
 * **Por defecto desactivado**: los avisos por DM a speakers vienen apagados por defecto al agendar o guardar plantillas. En su lugar, el bot publica las alertas directamente en el chat del hilo del Huddle usando bloques de contexto discretos, manteniendo la misma elegancia visual del recordatorio de fin de sesión.
