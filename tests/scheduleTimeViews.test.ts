@@ -148,6 +148,19 @@ describe("settings timezone selector", () => {
     const options = block?.element?.options ?? [];
     assert.ok(options.some((o: any) => o.value === "FREEFORM"));
     assert.ok(options.some((o: any) => o.value === "STRUCTURED"));
+    assert.ok(options.some((o: any) => o.value === "OPEN_ENDED"));
+  });
+
+  test("read-only settings displays Open Stopwatch when defaultPacingMode is OPEN_ENDED", () => {
+    const modal = buildSettingsModal({
+      reminderTextEnabled: true,
+      reminderImageEnabled: false,
+      defaultPacingMode: "OPEN_ENDED",
+      timezone: "PT",
+      canEdit: false,
+    });
+    const content = JSON.stringify(modal);
+    assert.ok(content.includes("*Open Stopwatch*"));
   });
 });
 
@@ -195,6 +208,31 @@ describe("schedule modal reminder options and pacing modes", () => {
       (b: any) => typeof b.block_id === "string" && b.block_id.startsWith("subtopic_title_")
     );
     assert.strictEqual(hasSubtopics, true);
+  });
+
+  test("omits duration input and subtopics when pacingMode is OPEN_ENDED", () => {
+    const modal = buildScheduleModal({ pacingMode: "OPEN_ENDED" });
+    const actions = modal.blocks?.find((b: any) => b.block_id === "pacing_mode_actions_block");
+    assert.ok(actions);
+    const radio = actions.elements?.[0];
+    assert.strictEqual(radio?.initial_option?.value, "OPEN_ENDED");
+
+    // Duration input block is omitted in favor of untimed section note
+    const hasDurationInput = modal.blocks?.some(
+      (b: any) => b.block_id === "duration_block"
+    );
+    assert.strictEqual(hasDurationInput, false);
+
+    const hasUntimedDurationSection = modal.blocks?.some(
+      (b: any) => b.type === "section" && b.text?.text?.includes("Open Stopwatch (Untimed)")
+    );
+    assert.strictEqual(hasUntimedDurationSection, true);
+
+    // Has NO subtopic input blocks
+    const hasSubtopics = modal.blocks?.some(
+      (b: any) => typeof b.block_id === "string" && b.block_id.startsWith("subtopic_title_")
+    );
+    assert.strictEqual(hasSubtopics, false);
   });
 
   test("preselects reminder_dm when reminderDmEnabled is true", () => {

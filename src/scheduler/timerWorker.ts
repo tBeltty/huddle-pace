@@ -207,10 +207,11 @@ export class TimerWorker {
           elapsedMinutes = Math.floor((now - new Date(meetup.startedAt).getTime()) / (60 * 1000));
         }
 
+        const isOpenEnded = (meetup as any).pacingMode === "OPEN_ENDED";
         const status = MeetupService.getCurrentModule(meetup);
-        if (!status && !isChatting) continue;
+        if (!status && !isChatting && !isOpenEnded) continue;
 
-        const isOvertime = elapsedMinutes >= meetup.totalMinutes;
+        const isOvertime = isOpenEnded ? false : elapsedMinutes >= meetup.totalMinutes;
 
         // 1. Update the live in-channel tracker message
         try {
@@ -220,6 +221,8 @@ export class TimerWorker {
             ts: meetup.trackerMessageTs,
             text: isChatting
               ? `☕ Just Chatting: ${meetup.title} (+${chattingElapsedMinutes}m)`
+              : isOpenEnded
+              ? `⏱️ Open Stopwatch: ${meetup.title} (${elapsedMinutes}m elapsed)`
               : `⏱️ Meetup Progress: ${meetup.title} (${elapsedMinutes}/${meetup.totalMinutes}m)`,
             blocks: buildLiveTrackerBlocks({
               meetupId: meetup.id,
@@ -227,7 +230,7 @@ export class TimerWorker {
               totalMinutes: meetup.totalMinutes,
               speakerUserId: meetup.speakerUserId,
               elapsedMinutes,
-              currentModuleName: status?.module?.title || "Casual Chat",
+              currentModuleName: status?.module?.title || "Open Session",
               moduleRemainingMinutes: status?.remainingMinutes || 0,
               nextModuleName: status?.nextModule ? status.nextModule.title : null,
               isOvertime,
@@ -256,8 +259,8 @@ export class TimerWorker {
           publishHomeTab(this.app.client, spkId, meetup.teamId).catch(() => {});
         }
 
-        // If in Just Chatting mode, skip pacing DMs and formal exit ramp
-        if (isChatting) continue;
+        // If in Just Chatting mode or Open Stopwatch mode, skip pacing DMs and formal exit ramp
+        if (isChatting || isOpenEnded) continue;
 
         // 3. 1-Minute Early Warning
         if (status && status.module && status.remainingMinutes <= 1 && !this.moduleWarningsSent.has(status.module.id)) {

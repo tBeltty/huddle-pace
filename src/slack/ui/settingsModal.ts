@@ -5,7 +5,7 @@ export interface SettingsModalOptions {
   reminderTextEnabled: boolean;
   reminderImageEnabled: boolean;
   reminderDmEnabled?: boolean;
-  defaultPacingMode?: "FREEFORM" | "STRUCTURED";
+  defaultPacingMode?: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED";
   flexibilityMode?: "STRICT" | "STANDARD" | "RELAXED";
   managerUserIds?: string[];
   /** "PT" (default), "USER" or an IANA zone id. */
@@ -113,7 +113,11 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
             }\n• *Speaker DM reminders:* ${
               options.reminderDmEnabled ? "*Active*" : "*Disabled*"
             }\n• *Default pacing mode:* ${
-              options.defaultPacingMode === "STRUCTURED" ? "*Structured Agenda*" : "*Freeform Session*"
+              options.defaultPacingMode === "STRUCTURED"
+                ? "*Structured Agenda*"
+                : options.defaultPacingMode === "OPEN_ENDED"
+                ? "*Open Stopwatch*"
+                : "*Freeform Session*"
             }`,
           },
         },
@@ -297,6 +301,11 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
                   text: { type: "plain_text", text: "Structured Agenda (Topic breakdown by %)" },
                   value: "STRUCTURED",
                 }
+              : options.defaultPacingMode === "OPEN_ENDED"
+              ? {
+                  text: { type: "plain_text", text: "Open Stopwatch (Untimed session)" },
+                  value: "OPEN_ENDED",
+                }
               : {
                   text: { type: "plain_text", text: "Freeform Session (Single countdown timer)" },
                   value: "FREEFORM",
@@ -316,11 +325,18 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
               },
               value: "STRUCTURED",
             },
+            {
+              text: {
+                type: "plain_text",
+                text: "Open Stopwatch (Untimed session)",
+              },
+              value: "OPEN_ENDED",
+            },
           ],
         },
         hint: {
           type: "plain_text",
-          text: "Schedulers can switch between Freeform and Structured when creating a meetup.",
+          text: "Schedulers can switch between Freeform, Structured, and Open Stopwatch when creating a meetup.",
         },
       },
       {

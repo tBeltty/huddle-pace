@@ -76,7 +76,7 @@ export function registerCommandHandlers(app: App) {
         await client.chat.postEphemeral({
           channel: command.channel_id,
           user: command.user_id,
-          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the interactive meetup scheduler (same as the Schedule Meetup button in App Home)\n• \`/pace start\` — Launch the scheduled session closest to now in this channel/Huddle\n• \`/pace start m1\` — Start a pace you saved for manual start (the code comes from the scheduling confirmation and App Home)\n• \`/pace 15m [Title]\` — Instant takeoff! Starts a 15m live session right inside this Huddle/channel\n• \`/pace settings\` — Configure workspace reminders and flexibility preferences\n• \`/pace clear\` — Clean up your private DM conversation history with HuddlePace bot\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to schedule, edit and start sessions with buttons, no commands needed.`,
+          text: `ℹ️ *HuddlePace Commands:*\n• \`/pace\` — Open the interactive meetup scheduler (same as the Schedule Meetup button in App Home)\n• \`/pace start\` — Launch the scheduled session closest to now in this channel/Huddle\n• \`/pace start m1\` — Start a pace you saved for manual start (the code comes from the scheduling confirmation and App Home)\n• \`/pace 15m [Title]\` — Instant takeoff! Starts a 15m live session right inside this Huddle/channel\n• \`/pace open [Title]\` — Open stopwatch! Starts an untimed session with live elapsed timer\n• \`/pace settings\` — Configure workspace reminders and flexibility preferences\n• \`/pace clear\` — Clean up your private DM conversation history with HuddlePace bot\n• \`/pace status\` — Check active meetups in this channel\n• \`/pace report [days]\` — View pacing & timebox compliance report (default: 30 days)\n• \`/pace help\` — Show this help message\n\n🏠 Open your ${homeLink} to schedule, edit and start sessions with buttons, no commands needed.`,
         });
         return;
       }
@@ -242,6 +242,48 @@ export function registerCommandHandlers(app: App) {
           channel: command.channel_id,
           user: command.user_id,
           text: `🔴 *Active Sessions in this channel:*\n${list}`,
+        });
+        return;
+      }
+
+      // Check for Open Stopwatch launch syntax: e.g. "/pace open", "/pace open Bug Triage", "/pace untimed"
+      const openMatch = rawText.match(/^(?:open|untimed)(?:\s+(.*))?$/i);
+      if (openMatch) {
+        const customTitle = openMatch[1]?.trim();
+
+        // Ensure bot is in the channel
+        await ensureBotInChannel(client, command.channel_id, command.user_id);
+
+        const explicitThreadTs = (command as any).thread_ts || (command as any).threadTs;
+        const huddles = await findChannelHuddles(client, command.channel_id);
+        const activeHuddle = huddles.find((h) => h.isActive);
+        const threadTs = explicitThreadTs || (activeHuddle ? activeHuddle.ts : undefined);
+
+        const defaultTitle = activeHuddle?.roomName
+          ? `Huddle: ${activeHuddle.roomName}`
+          : "Huddle Sync";
+        const title = customTitle || defaultTitle;
+        const modules = [{ title, percentage: 100 }];
+
+        const newMeetup = await MeetupService.createMeetup({
+          title,
+          totalMinutes: 0,
+          channelId: command.channel_id,
+          speakerUserId: command.user_id,
+          createdByUserId: command.user_id,
+          threadTs,
+          teamId: command.team_id,
+          pacingMode: "OPEN_ENDED",
+          modules,
+        });
+
+        await launchMeetupInThread(client, newMeetup.id, threadTs);
+
+        const locationText = threadTs ? "inside this live Huddle thread" : "in the channel feed";
+        await client.chat.postEphemeral({
+          channel: command.channel_id,
+          user: command.user_id,
+          text: `⏱️ *Open Stopwatch Initiated!* HuddlePace bot is now tracking *"${title}"* (untimed session) ${locationText}.\nRunning until the call concludes or you finish manually.`,
         });
         return;
       }

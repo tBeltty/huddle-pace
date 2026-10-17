@@ -28,7 +28,7 @@ model Meetup {
   reminderTextEnabled  Boolean        @default(true)
   reminderImageEnabled Boolean        @default(false)
   reminderDmEnabled    Boolean        @default(false)
-  pacingMode           String         @default("FREEFORM") // FREEFORM, STRUCTURED
+  pacingMode           String         @default("FREEFORM") // FREEFORM, STRUCTURED, OPEN_ENDED
   modules          MeetupModule[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
@@ -43,7 +43,7 @@ model WorkspaceSettings {
   reminderTextEnabled  Boolean  @default(true)
   reminderImageEnabled Boolean  @default(false)
   reminderDmEnabled    Boolean  @default(false)
-  defaultPacingMode    String   @default("FREEFORM") // FREEFORM, STRUCTURED
+  defaultPacingMode    String   @default("FREEFORM") // FREEFORM, STRUCTURED, OPEN_ENDED
   flexibilityMode      String   @default("STANDARD") // STRICT, STANDARD, RELAXED
   timezone             String   @default("PT") // PT, USER (scheduler's own Slack timezone) or an IANA zone id
   managerUserIds       String?  // Comma-separated Slack user IDs with delegated Bot Manager access
@@ -99,7 +99,7 @@ model MeetupTemplate {
   reminderTextEnabled  Boolean  @default(true)
   reminderImageEnabled Boolean  @default(false)
   reminderDmEnabled    Boolean  @default(false)
-  pacingMode           String   @default("FREEFORM") // FREEFORM, STRUCTURED
+  pacingMode           String   @default("FREEFORM") // FREEFORM, STRUCTURED, OPEN_ENDED
   modulesJson          String // JSON array of {title, percentage}
   isShared             Boolean  @default(false) // Visible to every member of the workspace; only the owner can edit or delete
   createdAt            DateTime @default(now())

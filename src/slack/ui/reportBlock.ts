@@ -77,11 +77,25 @@ export function buildPacingReportBlocks(stats: PacingReportStats, days = 30): an
         ? ` | ☕ Chatting: *${session.chattingDurationMin}m*`
         : "";
 
+      let statusLine: string;
+      if (session.isOpenEnded || session.totalBudgetMin === 0) {
+        statusLine = `*${session.title}*  •  ⏱️ Untimed\nSpeakers: ${session.speakerMentions}\nFormal Duration: *${session.formalDurationMin}m* (Open Stopwatch)${chatText}`;
+      } else {
+        const statusIcon = session.isWithinGrace
+          ? "⏳ Flexible"
+          : session.isOnTime
+          ? "✅ On Time"
+          : "⚠️ Overtime";
+        const diff = session.formalDurationMin - session.totalBudgetMin;
+        const diffText = diff > 0 ? `+${diff}m` : `${diff}m`;
+        statusLine = `*${session.title}*  •  ${statusIcon} (${diffText})\nSpeakers: ${session.speakerMentions}\nFormal Duration: *${session.formalDurationMin}m* (Budget: ${session.totalBudgetMin}m)${chatText}`;
+      }
+
       blocks.push({
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*${session.title}*  •  ${statusIcon} (${diffText})\nSpeakers: ${session.speakerMentions}\nFormal Duration: *${session.formalDurationMin}m* (Budget: ${session.totalBudgetMin}m)${chatText}`,
+          text: statusLine,
         },
       });
     }

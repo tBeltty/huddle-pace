@@ -162,17 +162,29 @@ export function registerTemplateHandlers(app: App) {
 
     const name = (getModalAction(values, "template_name_input")?.value || "").trim();
     const channelId = getModalAction(values, "channel_select")?.selected_conversation || "";
-    const totalMinutes = parseInt(getModalAction(values, "duration_select")?.selected_option?.value || "60", 10);
+    const pacingModeAction = getModalAction(values, "pacing_mode_select")?.selected_option?.value;
+    const pacingMode: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED" =
+      (pacingModeAction || metadata.pacingMode) === "STRUCTURED"
+        ? "STRUCTURED"
+        : (pacingModeAction || metadata.pacingMode) === "OPEN_ENDED"
+        ? "OPEN_ENDED"
+        : "FREEFORM";
+
+    const totalMinutes =
+      pacingMode === "OPEN_ENDED"
+        ? 0
+        : parseInt(getModalAction(values, "duration_select")?.selected_option?.value || "60", 10);
     const speakers: string[] = getModalAction(values, "speaker_select")?.selected_users || [];
     const destination = getModalAction(values, "huddle_select")?.selected_option?.value === "main" ? "main" : "auto";
     const reminders = (getModalAction(values, "schedule_reminder_checkboxes")?.selected_options || []).map((o: any) => o.value);
 
-    const pacingModeAction = getModalAction(values, "pacing_mode_select")?.selected_option?.value;
-    const pacingMode: "FREEFORM" | "STRUCTURED" =
-      (pacingModeAction || metadata.pacingMode) === "STRUCTURED" ? "STRUCTURED" : "FREEFORM";
-
     const rawModules = [];
-    if (pacingMode === "FREEFORM") {
+    if (pacingMode === "OPEN_ENDED") {
+      rawModules.push({
+        title: name || "Open Session",
+        percentage: 100,
+      });
+    } else if (pacingMode === "FREEFORM") {
       rawModules.push({
         title: name || "Freeform Session",
         percentage: 100,

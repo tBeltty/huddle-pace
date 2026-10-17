@@ -6,7 +6,7 @@ export interface ScheduleContext {
   zone: string;
   scheduleDate: string;
   scheduleTime: string;
-  pacingMode?: "FREEFORM" | "STRUCTURED";
+  pacingMode?: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED";
 }
 
 /** Slack timezone of a user, or null when it cannot be read. */
@@ -39,7 +39,7 @@ export async function getScheduleContext(client: SlackClient, userId: string | u
 export function scheduleContextFor(
   scheduledFor: Date | null | undefined,
   zone: string,
-  pacingMode?: "FREEFORM" | "STRUCTURED"
+  pacingMode?: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED"
 ): ScheduleContext {
   if (!scheduledFor) {
     const { date, time } = nextQuarterHour(new Date(), zone);

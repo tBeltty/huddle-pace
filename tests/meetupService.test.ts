@@ -422,6 +422,56 @@ describe("MeetupService calculations and parsing", () => {
       assert.strictEqual(session.isWithinGrace, false);
       assert.strictEqual(session.graceMinutes, 0);
     });
+
+    test("OPEN_ENDED sessions do not count against or in complianceRate", async () => {
+      const teamId = "T_OPEN_ENDED_" + Date.now();
+      const { prisma } = await import("../src/db/client.js");
+
+      // 1 on-time meetup (20m out of 30m)
+      const onTime = await MeetupService.createMeetup({
+        title: "On-time Sync",
+        totalMinutes: 30,
+        channelId: "C_TEST",
+        speakerUserId: "U_A",
+        teamId,
+        modules: [{ title: "Topic", percentage: 100 }],
+      });
+      const t1Start = new Date(Date.now() - 20 * 60 * 1000);
+      const t1End = new Date();
+      await prisma.meetup.update({
+        where: { id: onTime.id },
+        data: { status: "COMPLETED", startedAt: t1Start, formalEndsAt: t1End, endsAt: t1End },
+      });
+
+      // 1 open-ended meetup running for 90m (no budget)
+      const openSession = await MeetupService.createMeetup({
+        title: "Untimed Mob Session",
+        totalMinutes: 0,
+        channelId: "C_TEST",
+        speakerUserId: "U_B",
+        teamId,
+        pacingMode: "OPEN_ENDED",
+        modules: [{ title: "Untimed Mob Session", percentage: 100 }],
+      });
+      const t2Start = new Date(Date.now() - 90 * 60 * 1000);
+      const t2End = new Date();
+      await prisma.meetup.update({
+        where: { id: openSession.id },
+        data: { status: "COMPLETED", startedAt: t2Start, formalEndsAt: t2End, endsAt: t2End },
+      });
+
+      const stats = await MeetupService.getPacingReportStats(30, teamId);
+      // Only the timed session is counted in complianceRate: 1/1 = 100%
+      assert.strictEqual(stats.totalSessions, 1);
+      assert.strictEqual(stats.completedOnTime, 1);
+      assert.strictEqual(stats.complianceRate, 100);
+
+      const openItem = stats.recentSessions.find((s) => s.id === openSession.id);
+      assert.ok(openItem);
+      assert.strictEqual(openItem.isOpenEnded, true);
+      assert.strictEqual(openItem.totalBudgetMin, 0);
+      assert.strictEqual(openItem.formalDurationMin, 90);
+    });
   });
   describe("analytics privacy", () => {
     async function completed(teamId: string, speaker: string, creator: string | null, isPrivate: boolean) {
