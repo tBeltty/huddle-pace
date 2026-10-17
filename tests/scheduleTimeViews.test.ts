@@ -151,6 +151,19 @@ describe("schedule modal reminder options", () => {
     const initial = block?.element?.initial_options ?? [];
     assert.strictEqual(initial.some((o: any) => o.value === "reminder_dm"), true);
   });
+
+  test("only lists active huddles and filters out ended huddles", () => {
+    const modal = buildScheduleModal({
+      availableHuddles: [
+        { ts: "1726000100.000100", isActive: true, roomName: "Active Standup", timeFormatted: "10:00" },
+        { ts: "1726000200.000200", isActive: false, roomName: "Past Call", timeFormatted: "09:00" },
+      ],
+    });
+    const block = findInput(modal, "huddle_select_block");
+    const options = block?.element?.options ?? [];
+    assert.strictEqual(options.some((o: any) => o.value === "huddle_1726000100.000100"), true);
+    assert.strictEqual(options.some((o: any) => o.value === "huddle_1726000200.000200"), false);
+  });
 });
 
 describe("App Home Missed and Manual start sections", () => {

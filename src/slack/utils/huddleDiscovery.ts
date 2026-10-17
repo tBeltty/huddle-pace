@@ -9,11 +9,17 @@ export interface DetectedHuddle {
 
 /**
  * Checks if a Slack message represents a Huddle call (English, Spanish, French, German, or raw JSON).
+ * Normal user conversations mentioning "huddle" or bot messages are rejected.
  */
 export function isHuddleMessage(msg: any): boolean {
   if (!msg) return false;
-  const rawSubtype = (msg.subtype || "").toLowerCase();
 
+  // Bot messages, app messages, and HuddlePace notifications are never Slack Huddle system roots
+  if (msg.bot_id || msg.app_id || msg.subtype === "bot_message") {
+    return false;
+  }
+
+  const rawSubtype = (msg.subtype || "").toLowerCase();
   if (
     rawSubtype === "huddle_thread" ||
     rawSubtype === "sh_room_created" ||
@@ -25,17 +31,30 @@ export function isHuddleMessage(msg: any): boolean {
   }
 
   const rawText = (msg.text || "").toLowerCase();
-  if (
-    rawText.includes("huddle") ||
-    rawText.includes("started a call") ||
-    rawText.includes("inició una llamada")
-  ) {
+
+  // Explicit Huddle start, join, or status action phrases in various languages
+  const huddleActionPatterns = [
+    /\b(?:started|inici(?:ó|ado)|commencé|begonnen)\s+(?:a\s+|un\s+)?(?:huddle|call|llamada)\b/i,
+    /\b(?:joined|se\s+uni[oó])\s+(?:the\s+|al\s+)?huddle\b/i,
+    /\b(?:huddle|call|llamada)\s+(?:started|inici(?:ó|ado)|begonnen|commencé)\b/i,
+    /\b(?:huddle|call|llamada)\s+(?:ended|finaliz(?:ó|ado)|termin(?:ó|ado)|beendet|terminé)\b/i,
+    /\b(?:ended|finaliz(?:ó|ado)|termin(?:ó|ado))\s+(?:a\s+|the\s+|un\s+|el\s+)?(?:huddle|call|llamada)\b/i,
+    /\bhuddle\s+is\s+live\b/i,
+  ];
+
+  if (huddleActionPatterns.some((pattern) => pattern.test(rawText))) {
     return true;
   }
 
   try {
     const rawJson = JSON.stringify(msg).toLowerCase();
-    if (rawJson.includes("huddle_thread") || rawJson.includes('"room":') || rawJson.includes("huddle")) {
+    if (
+      rawJson.includes('"subtype":"huddle_thread"') ||
+      rawJson.includes('"subtype":"sh_room_created"') ||
+      rawJson.includes('"subtype":"channel_huddle"') ||
+      rawJson.includes('"room":') ||
+      rawJson.includes("huddle is live")
+    ) {
       return true;
     }
   } catch {}
@@ -50,6 +69,7 @@ export function isHuddleEnded(msg: any): boolean {
   if (!msg) return false;
   if (msg.room?.has_ended === true) return true;
   if (msg.room?.date_end != null && msg.room.date_end > 0) return true;
+  if (msg.room?.participant_history && (!msg.room.participants || msg.room.participants.length === 0)) return true;
 
   const rawText = (msg.text || "").toLowerCase();
   const endedKeywords = [
@@ -67,11 +87,25 @@ export function isHuddleEnded(msg: any): boolean {
     "huddle beendet",
   ];
 
-  return endedKeywords.some((kw) => rawText.includes(kw));
+  if (endedKeywords.some((kw) => rawText.includes(kw))) {
+    return true;
+  }
+
+  try {
+    const rawJson = JSON.stringify(msg).toLowerCase();
+    if (
+      rawJson.includes('"has_ended":true') ||
+      (rawJson.includes('"date_end":') && !rawJson.includes('"date_end":0') && !rawJson.includes('"date_end":null'))
+    ) {
+      return true;
+    }
+  } catch {}
+
+  return false;
 }
 
 /**
- * Scans recent channel history for active and recent Huddle calls.
+ * Scans recent channel history for active Huddle calls.
  * Automatically ensures bot is joined to public channels to prevent not_in_channel errors.
  */
 export async function findChannelHuddles(client: any, channelId: string, token?: string): Promise<DetectedHuddle[]> {
@@ -93,28 +127,37 @@ export async function findChannelHuddles(client: any, channelId: string, token?:
 
     if (!res.messages) return [];
 
-    const huddles: DetectedHuddle[] = [];
-    const seenTs = new Set<string>();
-
+    // Group messages by Huddle thread root
+    const threadMap = new Map<string, any[]>();
     for (const msg of res.messages) {
       if (!isHuddleMessage(msg)) continue;
-
-      // Identify the Huddle thread root (even if msg is an in-huddle reply)
       const rootTs = msg.thread_ts || msg.ts;
-      if (seenTs.has(rootTs)) continue;
-      seenTs.add(rootTs);
+      const list = threadMap.get(rootTs) || [];
+      list.push(msg);
+      threadMap.set(rootTs, list);
+    }
 
-      const hasEnded = isHuddleEnded(msg);
-      const creator = msg.room?.created_by || msg.user || "";
+    const huddles: DetectedHuddle[] = [];
+    const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    for (const [rootTs, messages] of threadMap.entries()) {
+      const rootMsg = messages.find((m) => m.ts === rootTs) || messages[messages.length - 1];
+
+      // Check if ANY message in this thread indicates the Huddle ended
+      const hasEnded = messages.some((m) => isHuddleEnded(m));
+
       const timestampMs = parseFloat(rootTs) * 1000;
       const startedAt = !isNaN(timestampMs) ? new Date(timestampMs) : undefined;
+
+      const creator = rootMsg.room?.created_by || rootMsg.user || "";
       const timeFormatted = startedAt
         ? startedAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
         : "recent";
 
-      let roomName = msg.room?.name || "";
-      if (!roomName && msg.text) {
-        const textMatch = msg.text.match(/(?:started a huddle|inici(?:ó|ado) un huddle)(?::\s*(.+))?/i);
+      let roomName = rootMsg.room?.name || "";
+      if (!roomName && rootMsg.text) {
+        const textMatch = rootMsg.text.match(/(?:started a huddle|inici(?:ó|ado) un huddle)(?::\s*(.+))?/i);
         if (textMatch && textMatch[1]) {
           roomName = textMatch[1].trim();
         }
@@ -149,4 +192,3 @@ export async function findActiveHuddleThread(client: any, channelId: string, tok
   const active = huddles.filter((h) => h.isActive);
   return active.length > 0 ? active[0].ts : null;
 }
-
