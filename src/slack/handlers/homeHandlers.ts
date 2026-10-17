@@ -195,6 +195,7 @@ export function registerHomeHandlers(app: App) {
           teamId,
           reminderTextEnabled: settings.reminderTextEnabled,
           reminderImageEnabled: settings.reminderImageEnabled,
+          reminderDmEnabled: settings.reminderDmEnabled,
           flexibilityMode: settings.flexibilityMode,
           timezone: settings.timezone,
           managerUserIds: settings.managerUserIds,

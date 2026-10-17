@@ -184,6 +184,7 @@ export function registerTemplateHandlers(app: App) {
       threadTs: destination,
       reminderTextEnabled: reminders.includes("reminder_text"),
       reminderImageEnabled: reminders.includes("reminder_image"),
+      reminderDmEnabled: reminders.includes("reminder_dm"),
       modules: rawModules,
     });
 
@@ -220,6 +221,7 @@ export function registerTemplateHandlers(app: App) {
       threadTs: destination,
       reminderTextEnabled: data.reminderTextEnabled,
       reminderImageEnabled: data.reminderImageEnabled,
+      reminderDmEnabled: data.reminderDmEnabled,
       modules: data.modules,
     });
 

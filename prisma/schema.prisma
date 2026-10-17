@@ -27,6 +27,7 @@ model Meetup {
   dmMessageRefs    String? // JSON array of {channel, ts} for speaker DM reminders, cleaned up on conclude
   reminderTextEnabled  Boolean        @default(true)
   reminderImageEnabled Boolean        @default(false)
+  reminderDmEnabled    Boolean        @default(false)
   modules          MeetupModule[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
@@ -40,6 +41,7 @@ model WorkspaceSettings {
   teamId               String   @unique
   reminderTextEnabled  Boolean  @default(true)
   reminderImageEnabled Boolean  @default(false)
+  reminderDmEnabled    Boolean  @default(false)
   flexibilityMode      String   @default("STANDARD") // STRICT, STANDARD, RELAXED
   timezone             String   @default("PT") // PT, USER (scheduler's own Slack timezone) or an IANA zone id
   managerUserIds       String?  // Comma-separated Slack user IDs with delegated Bot Manager access
@@ -94,6 +96,7 @@ model MeetupTemplate {
   destination          String   @default("auto") // auto, main (specific Huddle threads are never reusable)
   reminderTextEnabled  Boolean  @default(true)
   reminderImageEnabled Boolean  @default(false)
+  reminderDmEnabled    Boolean  @default(false)
   modulesJson          String // JSON array of {title, percentage}
   isShared             Boolean  @default(false) // Visible to every member of the workspace; only the owner can edit or delete
   createdAt            DateTime @default(now())

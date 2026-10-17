@@ -4,6 +4,13 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-17] Recordatorios de Ritmo Conmutables entre DM y Chat del Huddle (v1.12.0)
+* **Funcionalidad**: nueva opción para decidir cómo se entregan los avisos de despegue, cambios de módulo y avisos de 1 minuto restante durante el Huddle.
+* **Por defecto desactivado**: los avisos por DM a speakers vienen apagados por defecto al agendar o guardar plantillas. En su lugar, el bot publica las alertas directamente en el chat del hilo del Huddle usando bloques de contexto discretos, manteniendo la misma elegancia visual del recordatorio de fin de sesión.
+* **Opcional por DM**: al activar la casilla *Send reminders via DM* en el modal de agendar, plantillas o ajustes del workspace, las alertas se envían como mensajes directos privados a los speakers y se limpian automáticamente al concluir la llamada.
+* **Esquema de base de datos**: añadido `reminderDmEnabled Boolean @default(false)` a los modelos `Meetup`, `MeetupTemplate` y `WorkspaceSettings` de Prisma.
+* **Ajustes del workspace**: la configuración global incluye la casilla de recordatorios por DM para definir el comportamiento por defecto de las sesiones del equipo.
+
 ## [2026-10-07] Política de Privacidad Alineada con los Scopes de Historial
 * **Problema**: la sección 3 decía "no lee los mensajes de tus canales", pero `channels:history`, `groups:history` y `mpim:history` hacen que la app reciba los mensajes de los canales donde está y lea los de sistema de Huddle (`isHuddleMessage` también marca cualquier mensaje que contenga "huddle"). Las guías del Marketplace exigen declarar los datos que se reciben y no se usan, y someten los scopes `*:history` a revisión reforzada.
 * **Cambio**: la sección 3 pasa a "Lo que no recopilamos ni usamos": sin audio ni transcripciones, la app recibe los mensajes de los canales y grupos donde está añadida, lee solo los mensajes de sistema de Huddle y no usa, guarda ni indexa ningún otro contenido. Se añade a la sección 2 el uso de `users:read` (zona horaria y rol admin/owner, sin nombres ni correos). Fecha de actualización: 7 de octubre de 2026. Inglés y español.

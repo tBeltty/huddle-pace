@@ -120,6 +120,17 @@ describe("Zod Runtime Validation Schemas", () => {
     test("passes with 100% timebox and valid parameters", () => {
       const result = scheduleModalInputSchema.safeParse(validPayload);
       assert.strictEqual(result.success, true);
+      if (result.success) {
+        assert.strictEqual(result.data.reminderDmEnabled, false);
+      }
+    });
+
+    test("accepts reminderDmEnabled toggle", () => {
+      const result = scheduleModalInputSchema.safeParse({ ...validPayload, reminderDmEnabled: true });
+      assert.strictEqual(result.success, true);
+      if (result.success) {
+        assert.strictEqual(result.data.reminderDmEnabled, true);
+      }
     });
 
     test("fails when percentages sum to less than 100% (negative control)", () => {

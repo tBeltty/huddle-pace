@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-10-17
+
+### Added
+- A toggle for direct message reminders when you schedule a pace, save a template or open Settings. When left off, module transitions and the one-minute warning post as quiet context notes directly in the Huddle thread. Checking the box sends them as private messages to speakers instead.
+
 ## [1.11.0] - 2026-10-07
 
 ### Added
@@ -178,7 +183,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/tBeltty/huddle-pace/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/tBeltty/huddle-pace/compare/v1.10.2...v1.11.0
 [1.10.2]: https://github.com/tBeltty/huddle-pace/compare/v1.10.1...v1.10.2
 [1.10.1]: https://github.com/tBeltty/huddle-pace/compare/v1.10.0...v1.10.1

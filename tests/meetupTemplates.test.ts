@@ -191,6 +191,7 @@ describe("Editing scheduled meetups", () => {
       threadTs: "main",
       reminderTextEnabled: false,
       reminderImageEnabled: true,
+      reminderDmEnabled: true,
       modules: [
         { title: "A", percentage: 20 },
         { title: "B", percentage: 30 },
@@ -200,6 +201,7 @@ describe("Editing scheduled meetups", () => {
     assert.equal(updated?.title, "Renamed");
     assert.equal(updated?.threadTs, "main");
     assert.equal(updated?.reminderImageEnabled, true);
+    assert.equal(updated?.reminderDmEnabled, true);
     assert.deepEqual(updated?.modules.map((x) => [x.title, x.durationMinutes, x.orderIndex]), [
       ["A", 6, 0],
       ["B", 9, 1],

@@ -72,6 +72,7 @@ async function saveTemplateNote(request: ScheduleRequest): Promise<string> {
       threadTs: validatedData.threadTs,
       reminderTextEnabled: validatedData.reminderTextEnabled,
       reminderImageEnabled: validatedData.reminderImageEnabled,
+      reminderDmEnabled: validatedData.reminderDmEnabled,
       modules: validatedData.modules,
     });
     return " Saved to My templates.";
@@ -101,6 +102,7 @@ export async function createScheduledMeetup(request: ScheduleRequest): Promise<v
       manualStart,
       reminderTextEnabled: validatedData.reminderTextEnabled,
       reminderImageEnabled: validatedData.reminderImageEnabled,
+      reminderDmEnabled: validatedData.reminderDmEnabled,
       modules: validatedData.modules,
     });
 
@@ -139,6 +141,7 @@ export async function updateScheduledMeetup(request: EditScheduleRequest): Promi
       scheduledFor,
       reminderTextEnabled: validatedData.reminderTextEnabled,
       reminderImageEnabled: validatedData.reminderImageEnabled,
+      reminderDmEnabled: validatedData.reminderDmEnabled,
       isPrivate: validatedData.isPrivate,
       modules: validatedData.modules,
     });
