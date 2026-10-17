@@ -21,7 +21,7 @@ export interface CreateMeetupDTO {
   reminderTextEnabled?: boolean;
   reminderImageEnabled?: boolean;
   reminderDmEnabled?: boolean;
-  pacingMode?: "FREEFORM" | "STRUCTURED";
+  pacingMode?: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED";
   modules: SubtopicInput[];
 }
 
@@ -36,7 +36,7 @@ export interface SaveTemplateDTO {
   reminderTextEnabled: boolean;
   reminderImageEnabled: boolean;
   reminderDmEnabled?: boolean;
-  pacingMode?: "FREEFORM" | "STRUCTURED";
+  pacingMode?: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED";
   isShared?: boolean;
   modules: SubtopicInput[];
 }
@@ -53,7 +53,7 @@ export interface MeetupTemplateData {
   reminderTextEnabled: boolean;
   reminderImageEnabled: boolean;
   reminderDmEnabled: boolean;
-  pacingMode: "FREEFORM" | "STRUCTURED";
+  pacingMode: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED";
   modules: SubtopicInput[];
 }
 
@@ -81,6 +81,7 @@ export interface PacingReportStats {
     isOnTime: boolean;
     isWithinGrace?: boolean;
     graceMinutes?: number;
+    isOpenEnded?: boolean;
     date: Date;
   }>;
 }
@@ -175,7 +176,7 @@ export class MeetupService {
     reminderTextEnabled: boolean;
     reminderImageEnabled: boolean;
     reminderDmEnabled: boolean;
-    defaultPacingMode: "FREEFORM" | "STRUCTURED";
+    defaultPacingMode: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED";
     flexibilityMode: "STRICT" | "STANDARD" | "RELAXED";
     managerUserIds: string[];
     timezone: string;
@@ -192,8 +193,12 @@ export class MeetupService {
               .filter(Boolean)
           : [];
 
-        const defaultPacingMode: "FREEFORM" | "STRUCTURED" =
-          settings.defaultPacingMode === "STRUCTURED" ? "STRUCTURED" : "FREEFORM";
+        const defaultPacingMode: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED" =
+          settings.defaultPacingMode === "STRUCTURED"
+            ? "STRUCTURED"
+            : settings.defaultPacingMode === "OPEN_ENDED"
+            ? "OPEN_ENDED"
+            : "FREEFORM";
 
         return {
           reminderTextEnabled: settings.reminderTextEnabled,
@@ -228,7 +233,7 @@ export class MeetupService {
       reminderTextEnabled?: boolean;
       reminderImageEnabled?: boolean;
       reminderDmEnabled?: boolean;
-      defaultPacingMode?: "FREEFORM" | "STRUCTURED";
+      defaultPacingMode?: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED";
       flexibilityMode?: "STRICT" | "STANDARD" | "RELAXED";
       managerUserIds?: string[] | string | null;
       timezone?: string;
@@ -444,7 +449,7 @@ export class MeetupService {
       reminderTextEnabled: row.reminderTextEnabled,
       reminderImageEnabled: row.reminderImageEnabled,
       reminderDmEnabled: row.reminderDmEnabled ?? false,
-      pacingMode: row.pacingMode === "STRUCTURED" ? "STRUCTURED" : "FREEFORM",
+      pacingMode: row.pacingMode === "STRUCTURED" ? "STRUCTURED" : row.pacingMode === "OPEN_ENDED" ? "OPEN_ENDED" : "FREEFORM",
       modules,
     };
   }
@@ -1207,6 +1212,7 @@ export class MeetupService {
           )
         : rows;
 
+    let timedSessionsCount = 0;
     let completedOnTime = 0;
     let totalFormalMinutes = 0;
     let totalChattingMinutes = 0;
@@ -1220,14 +1226,31 @@ export class MeetupService {
 
       const formalDurationMin = Math.max(1, Math.round((formalEnded - started) / (60 * 1000)));
       const chattingDurationMin = Math.max(0, Math.round((ended - formalEnded) / (60 * 1000)));
+      totalFormalMinutes += formalDurationMin;
+      totalChattingMinutes += chattingDurationMin;
+
+      const isOpenEnded = (m as any).pacingMode === "OPEN_ENDED";
+      if (isOpenEnded) {
+        return {
+          id: m.id,
+          title: m.title,
+          speakerMentions: this.formatSpeakerMentions(m.speakerUserId),
+          totalBudgetMin: 0,
+          formalDurationMin,
+          chattingDurationMin,
+          isOnTime: true,
+          isOpenEnded: true,
+          date: m.startedAt || m.createdAt,
+        };
+      }
+
+      timedSessionsCount++;
       const graceMinutes = this.calculateGraceMinutes(m.totalMinutes, wsSettings.flexibilityMode);
       const isStrictOnTime = formalDurationMin <= m.totalMinutes;
       const isWithinGrace = graceMinutes > 0 && !isStrictOnTime && formalDurationMin <= (m.totalMinutes + graceMinutes);
       const isOnTime = isStrictOnTime || isWithinGrace;
 
       if (isOnTime) completedOnTime++;
-      totalFormalMinutes += formalDurationMin;
-      totalChattingMinutes += chattingDurationMin;
 
       return {
         id: m.id,
@@ -1239,11 +1262,12 @@ export class MeetupService {
         isOnTime,
         isWithinGrace,
         graceMinutes,
+        isOpenEnded: false,
         date: m.startedAt || m.createdAt,
       };
     });
 
-    const totalSessions = completed.length;
+    const totalSessions = timedSessionsCount;
     const complianceRate = totalSessions > 0 ? Math.round((completedOnTime / totalSessions) * 100) : 100;
     const totalMinutesSpent = totalFormalMinutes + totalChattingMinutes;
 

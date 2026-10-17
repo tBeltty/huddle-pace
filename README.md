@@ -86,16 +86,37 @@ HuddlePace requests only the minimum granular scopes required to coordinate meet
 
 ---
 
+## Pacing Modes & Meeting Intentionality
+
+HuddlePace supports three distinct pacing modes designed for different types of collaborative work:
+
+1. **Structured Agenda (Itemized Topics)**:
+   - **Best For**: Sprint demos, formal architecture reviews, multi-speaker presentations, and complex technical syncs where specific topics require dedicated time limits.
+   - **How It Works**: Divides total time across 1 to 10 subtopics summing to 100%. Provides module transition alerts, a 1-minute warning before each segment ends, and a `Next Module` button for presenters who finish early.
+
+2. **Freeform Session (Single Timebox)**:
+   - **Best For**: Daily standups, quick team syncs, or timeboxed brainstorms with a firm end time where micromanaging subtopics adds unnecessary overhead.
+   - **How It Works**: Runs a single countdown timer across the full call duration (up to 120m). Sends a wrap-up checkpoint with 1 minute remaining and marks overtime if the meeting exceeds its budget.
+
+3. **Open Stopwatch (Untimed Session)**:
+   - **Best For**: Collaborative pair programming, mob debugging, incident investigations, open office hours, or casual discussion where the team wants live time awareness in the thread without pressure.
+   - **How It Works**: Displays a continuous elapsed timer (`18m elapsed`) that runs until the call concludes in Slack or a participant clicks `Conclude Meetup`. Sends no countdown alerts, no 1-minute warnings, and has no overtime alarms.
+   - **Zero-Pressure Analytics Guarantee**: Open Stopwatch sessions are **completely excluded** from the team's Timebox Compliance rate. Their elapsed minutes are logged under total meeting time, but they never penalize or distort on-time compliance metrics.
+
+---
+
 ## Slack Commands & Shortcuts
 
 | Action | Invocation | Description |
 | :--- | :--- | :--- |
 | **Schedule Modal** | `/pace`, the **➕ Schedule Meetup** button in App Home, or the Schedule Meetup Global Shortcut | Opens the interactive meetup scheduling modal. All three open the same modal. |
+| **Fast Takeoff** | `/pace 15m [Title]` | Launches a 15-minute Freeform Session directly in the current Huddle. |
+| **Open Stopwatch** | `/pace open [Title]` | Launches an untimed Open Stopwatch session directly in the current Huddle. |
 | **Channel Status** | `/pace status` | Displays active pacing sessions running in the current channel. |
 | **Pacing Report** | `/pace report [days]` | Shows timebox compliance and duration metrics (default: 30 days). |
 | **Start a Pace** | `/pace start` | Starts the scheduled pace closest to now in this channel. |
 | **Manual Start** | `/pace start <code>` | Starts a pace saved for manual start (`m1`, `m2`...) in this channel's active Huddle. |
-| **Settings** | `/pace settings` | Reminder defaults, grace buffer, scheduling timezone and bot managers. |
+| **Settings** | `/pace settings` | Reminder defaults, default pacing mode, grace buffer, scheduling timezone and bot managers. |
 | **Clear Bot DMs** | `/pace clear` | Deletes historical pacing alerts and direct messages sent by the bot. |
 | **Help Guide** | `/pace help` | Displays command syntax and operational hints. |
 | **App Home Tab** | Click `HuddlePace` under Apps | Opens the visual workspace dashboard, schedule modal, and stats. |

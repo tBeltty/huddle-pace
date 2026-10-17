@@ -72,7 +72,7 @@ export interface ModalStateData {
   templateListState?: unknown;
   rev?: string;
   editMeetupId?: string;
-  pacingMode?: "FREEFORM" | "STRUCTURED";
+  pacingMode?: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED";
 }
 
 /**
@@ -249,6 +249,19 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     value: "private_huddle",
   };
 
+  const resolvedPacingMode: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED" =
+    initialState?.pacingMode === "OPEN_ENDED"
+      ? "OPEN_ENDED"
+      : initialState?.pacingMode === "STRUCTURED"
+      ? "STRUCTURED"
+      : initialState?.pacingMode === "FREEFORM"
+      ? "FREEFORM"
+      : (initialState?.customSubtopics && initialState.customSubtopics.length > 1)
+      ? "STRUCTURED"
+      : "FREEFORM";
+  const isOpenEnded = resolvedPacingMode === "OPEN_ENDED";
+  const isFreeform = resolvedPacingMode === "FREEFORM";
+
   const blocks: any[] = [];
 
   const isEdit = !!initialState?.editMeetupId;
@@ -424,24 +437,36 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         text: "Custom Thread Link / TS (Optional)",
       },
     },
-    {
-      type: "input",
-      block_id: bid("duration_block"),
-      element: {
-        type: "static_select",
-        action_id: "duration_select",
-        placeholder: {
-          type: "plain_text",
-          text: "Select duration",
-        },
-        initial_option: initialDuration,
-        options: durationOptions,
-      },
-      label: {
-        type: "plain_text",
-        text: "Duration",
-      },
-    },
+    ...(isOpenEnded
+      ? [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: "*Duration*\n⏱️ *Open Stopwatch (Untimed)* — Runs without a scheduled time limit until the Huddle ends or you finish manually.",
+            },
+          },
+        ]
+      : [
+          {
+            type: "input",
+            block_id: bid("duration_block"),
+            element: {
+              type: "static_select",
+              action_id: "duration_select",
+              placeholder: {
+                type: "plain_text",
+                text: "Select duration",
+              },
+              initial_option: initialDuration,
+              options: durationOptions,
+            },
+            label: {
+              type: "plain_text",
+              text: "Duration",
+            },
+          },
+        ]),
     {
       type: "input",
       block_id: bid("reminder_options_block"),
@@ -506,7 +531,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "*Pacing Mode*\nChoose whether to track the session with a single countdown timer or an itemized agenda breakdown.",
+        text: "*Pacing Mode*\nChoose whether to track the session with a single countdown timer, an itemized agenda breakdown, or an open-ended stopwatch.",
       },
     },
     {
@@ -517,13 +542,21 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
           type: "radio_buttons",
           action_id: "pacing_mode_select",
           initial_option:
-            (initialState?.pacingMode === "STRUCTURED")
+            resolvedPacingMode === "STRUCTURED"
               ? {
                   text: {
                     type: "mrkdwn" as const,
                     text: "*Structured Agenda* (break call into subtopics by %)",
                   },
                   value: "STRUCTURED",
+                }
+              : resolvedPacingMode === "OPEN_ENDED"
+              ? {
+                  text: {
+                    type: "mrkdwn" as const,
+                    text: "*Open Stopwatch* (untimed session, runs until concluded)",
+                  },
+                  value: "OPEN_ENDED",
                 }
               : {
                   text: {
@@ -547,22 +580,28 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
               },
               value: "STRUCTURED",
             },
+            {
+              text: {
+                type: "mrkdwn" as const,
+                text: "*Open Stopwatch* (untimed session, runs until concluded)",
+              },
+              value: "OPEN_ENDED",
+            },
           ],
         },
       ],
     }
   );
 
-  const isFreeform =
-    initialState?.pacingMode === "FREEFORM"
-      ? true
-      : initialState?.pacingMode === "STRUCTURED"
-      ? false
-      : (initialState?.customSubtopics && initialState.customSubtopics.length > 1)
-      ? false
-      : true;
-
-  if (isFreeform) {
+  if (isOpenEnded) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "⏱️ *Open Stopwatch*: No subtopic breakdown or countdown. Pacing updates in thread every 30 seconds with total elapsed time.",
+      },
+    });
+  } else if (isFreeform) {
     blocks.push({
       type: "section",
       text: {
@@ -737,7 +776,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         rev,
         templateId: initialState?.editTemplateId,
         templateListState: initialState?.templateListState,
-        pacingMode: isFreeform ? "FREEFORM" : "STRUCTURED",
+        pacingMode: resolvedPacingMode,
       }),
       blocks: templateBlocks,
     };
@@ -765,7 +804,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       meetupId: initialState?.editMeetupId,
       zone,
       blocked: initialState?.blockedRange,
-      pacingMode: isFreeform ? "FREEFORM" : "STRUCTURED",
+      pacingMode: resolvedPacingMode,
     }),
     blocks,
   };

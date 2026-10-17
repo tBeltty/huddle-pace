@@ -298,6 +298,39 @@ describe("Zod Runtime Validation Schemas", () => {
         assert.strictEqual(result.data.pacingMode, "STRUCTURED");
       }
     });
+
+    test("accepts pacingMode OPEN_ENDED with totalMinutes: 0 and single 100% module", () => {
+      const openEnded = {
+        ...validPayload,
+        totalMinutes: 0,
+        pacingMode: "OPEN_ENDED",
+        modules: [{ title: "Open Brainstorming", percentage: 100 }],
+      };
+      const result = scheduleModalInputSchema.safeParse(openEnded);
+      assert.strictEqual(result.success, true);
+      if (result.success) {
+        assert.strictEqual(result.data.pacingMode, "OPEN_ENDED");
+        assert.strictEqual(result.data.totalMinutes, 0);
+      }
+    });
+
+    test("enforces title requirement in OPEN_ENDED mode (negative control)", () => {
+      const invalidOpenEnded = {
+        ...validPayload,
+        title: "   ",
+        totalMinutes: 0,
+        pacingMode: "OPEN_ENDED",
+        modules: [{ title: "Open Session", percentage: 100 }],
+      };
+      const result = scheduleModalInputSchema.safeParse(invalidOpenEnded);
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        assert.strictEqual(
+          result.error.issues.some((i) => i.path[0] === "title"),
+          true
+        );
+      }
+    });
   });
 
   describe("subtopicInputSchema", () => {

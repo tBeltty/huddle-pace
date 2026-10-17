@@ -18,19 +18,26 @@ export const scheduleModalInputSchema = z
     totalMinutes: z
       .number({ invalid_type_error: "Duration must be a positive number." })
       .int("Duration must be a whole number.")
-      .positive("Duration must be a positive number."),
+      .min(0, "Duration must be a positive number."),
     speakerUserId: z.string().min(1, "Speaker is required."),
     threadTs: z.string().nullable(),
     reminderTextEnabled: z.boolean().default(true),
     reminderImageEnabled: z.boolean().default(false),
     reminderDmEnabled: z.boolean().default(false),
     isPrivate: z.boolean().default(false),
-    pacingMode: z.enum(["FREEFORM", "STRUCTURED"]).default("FREEFORM"),
+    pacingMode: z.enum(["FREEFORM", "STRUCTURED", "OPEN_ENDED"]).default("FREEFORM"),
     modules: z
       .array(subtopicInputSchema)
       .min(1, "At least one subtopic is required."),
   })
   .superRefine((data, ctx) => {
+    if (data.pacingMode !== "OPEN_ENDED" && data.totalMinutes <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Duration must be a positive number.",
+        path: ["totalMinutes"],
+      });
+    }
     const total = data.modules.reduce((sum, m) => sum + m.percentage, 0);
     if (total !== 100) {
       const lastIndex = Math.max(0, data.modules.length - 1);

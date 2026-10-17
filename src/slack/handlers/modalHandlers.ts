@@ -48,7 +48,10 @@ function readScheduleModalState(values: Record<string, any>, metadata: any): Par
     title: getModalAction(values, "title_input")?.value || "",
     channelId: getModalAction(values, "channel_select")?.selected_conversation || metadata.channelId,
     speakerUserIds: getModalAction(values, "speaker_select")?.selected_users || [],
-    duration: parseInt(getModalAction(values, "duration_select")?.selected_option?.value || "60", 10),
+    duration:
+      (getModalAction(values, "pacing_mode_select")?.selected_option?.value || metadata.pacingMode) === "OPEN_ENDED"
+        ? 0
+        : parseInt(getModalAction(values, "duration_select")?.selected_option?.value || "60", 10),
     selectedHuddleChoice: getModalAction(values, "huddle_select")?.selected_option?.value,
     customThreadTs: getModalAction(values, "custom_thread_input")?.value || "",
     subtopicCount: count,
@@ -57,7 +60,12 @@ function readScheduleModalState(values: Record<string, any>, metadata: any): Par
     reminderImageEnabled: reminderValues.includes("reminder_image"),
     reminderDmEnabled: reminderValues.includes("reminder_dm"),
     isPrivate: (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0,
-    pacingMode: (getModalAction(values, "pacing_mode_select")?.selected_option?.value || metadata.pacingMode) === "STRUCTURED" ? "STRUCTURED" : "FREEFORM",
+    pacingMode:
+      (getModalAction(values, "pacing_mode_select")?.selected_option?.value || metadata.pacingMode) === "STRUCTURED"
+        ? "STRUCTURED"
+        : (getModalAction(values, "pacing_mode_select")?.selected_option?.value || metadata.pacingMode) === "OPEN_ENDED"
+        ? "OPEN_ENDED"
+        : "FREEFORM",
     saveAsTemplate: (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0,
     editTemplateId: metadata.templateId,
     templateName: getModalAction(values, "template_name_input")?.value || "",
@@ -371,7 +379,19 @@ export function registerModalHandlers(app: App) {
 
     const title = getModalAction(values, "title_input")?.value || "";
     const channelId = getModalAction(values, "channel_select")?.selected_conversation || "";
-    const totalMinutes = parseInt(getModalAction(values, "duration_select")?.selected_option?.value || "60", 10);
+
+    const pacingModeAction = getModalAction(values, "pacing_mode_select")?.selected_option?.value;
+    const pacingMode: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED" =
+      (pacingModeAction || metadata.pacingMode) === "STRUCTURED"
+        ? "STRUCTURED"
+        : (pacingModeAction || metadata.pacingMode) === "OPEN_ENDED"
+        ? "OPEN_ENDED"
+        : "FREEFORM";
+
+    const totalMinutes =
+      pacingMode === "OPEN_ENDED"
+        ? 0
+        : parseInt(getModalAction(values, "duration_select")?.selected_option?.value || "60", 10);
 
     // Multi-speaker selection support
     const selectedSpeakers: string[] = getModalAction(values, "speaker_select")?.selected_users || [];
@@ -405,12 +425,13 @@ export function registerModalHandlers(app: App) {
     const isPrivate = (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0;
     const saveAsTemplate = (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0;
 
-    const pacingModeAction = getModalAction(values, "pacing_mode_select")?.selected_option?.value;
-    const pacingMode: "FREEFORM" | "STRUCTURED" =
-      (pacingModeAction || metadata.pacingMode) === "STRUCTURED" ? "STRUCTURED" : "FREEFORM";
-
     const rawModules = [];
-    if (pacingMode === "FREEFORM") {
+    if (pacingMode === "OPEN_ENDED") {
+      rawModules.push({
+        title: title || "Open Session",
+        percentage: 100,
+      });
+    } else if (pacingMode === "FREEFORM") {
       rawModules.push({
         title: title || "Freeform Session",
         percentage: 100,
@@ -687,8 +708,12 @@ export function registerModalHandlers(app: App) {
       const reminderDmEnabled = reminderValues.includes("reminder_dm");
 
       const pacingModeVal = values.pacing_mode_settings_block?.default_pacing_mode_select?.selected_option?.value;
-      const defaultPacingMode: "FREEFORM" | "STRUCTURED" =
-        pacingModeVal === "STRUCTURED" ? "STRUCTURED" : "FREEFORM";
+      const defaultPacingMode: "FREEFORM" | "STRUCTURED" | "OPEN_ENDED" =
+        pacingModeVal === "STRUCTURED"
+          ? "STRUCTURED"
+          : pacingModeVal === "OPEN_ENDED"
+          ? "OPEN_ENDED"
+          : "FREEFORM";
 
       const flexMode = values.flexibility_settings_block?.flexibility_mode_select?.selected_option?.value as any;
       const flexibilityMode = flexMode === "STRICT" || flexMode === "RELAXED" ? flexMode : "STANDARD";

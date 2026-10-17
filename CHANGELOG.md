@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-10-17
+
+### Added
+- Open Stopwatch mode when scheduling a pace or editing a template. It displays an elapsed timer without a fixed duration until the Huddle ends or someone concludes it.
+- Fast launch with `/pace open` or `/pace untimed` to start an untimed session immediately.
+- A workspace setting to default new paces to Open Stopwatch.
+
+### Changed
+- Untimed Open Stopwatch sessions stay out of timebox compliance percentages in reports and App Home so open discussions never lower team compliance rates.
+- The live tracker hides countdown meters, upcoming topic indicators, and next-module controls during untimed sessions.
+
 ## [1.13.0] - 2026-10-17
 
 ### Added
@@ -204,7 +215,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.13.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.14.0...HEAD
+[1.14.0]: https://github.com/tBeltty/huddle-pace/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/tBeltty/huddle-pace/compare/v1.12.2...v1.13.0
 [1.12.2]: https://github.com/tBeltty/huddle-pace/compare/v1.12.1...v1.12.2
 [1.12.1]: https://github.com/tBeltty/huddle-pace/compare/v1.12.0...v1.12.1

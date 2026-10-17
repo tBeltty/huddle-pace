@@ -4,6 +4,15 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-17] Modo Cronómetro Abierto (Open Stopwatch) y Exclusión de Analíticas Sin Presión (v1.14.0)
+* **Modo cronómetro abierto sin límite programado**: nuevo modo de ritmo **Open Stopwatch (Untimed)** seleccionable en el modal de agendar y en el editor de plantillas junto a Freeform Session y Structured Agenda.
+* **Cronómetro ascendente en hilo**: en lugar de una cuenta regresiva con barra de progreso, muestra el tiempo transcurrido en vivo (`Xm elapsed`) hasta que la llamada de Slack concluye de forma natural o un speaker pulsa Conclude Meetup.
+* **Sin alertas de cierre ni presión de tiempo**: omite el aviso de 1 minuto restante, las alertas de tiempo extra y las rampas de salida, adaptándose a sesiones de mob programming, brainstorming o hackatones libres.
+* **Exclusión de analíticas sin presión**: las sesiones abiertas se excluyen estrictamente del cálculo de porcentaje de cumplimiento en `/pace report` y en el App Home, permitiendo a los equipos colaborar sin penalizar las métricas de puntualidad del workspace.
+* **Comandos de lanzamiento rápido**: soporte para `/pace open [Título]` y `/pace untimed [Título]` para iniciar al instante una sesión libre sin límite de tiempo.
+* **Ajuste global de workspace**: `OPEN_ENDED` configurable como modo por defecto en los ajustes del workspace (`WorkspaceSettings.defaultPacingMode`).
+* **Documentación de intencionalidad**: añadido en README y en la guía de ritmo el desglose del propósito, casos de uso recomendados y comportamiento de cada uno de los tres modos de ritmo.
+
 ## [2026-10-17] Modo de Sesión Libre (Freeform Session) y Ajuste de Ritmo por Defecto (v1.13.0)
 * **Modo de ritmo en modal de agendar y plantillas**: selector entre **Freeform Session (Single Timebox)** y **Structured Agenda (Itemized Topics)**. En modo libre se elimina la necesidad de desglosar subtemas con porcentajes, asignando un único cronómetro del 100% con la duración seleccionada (hasta 120 minutos).
 * **Título obligatorio**: tanto en modo libre como estructurado, el nombre o título de la sesión sigue siendo un campo obligatorio para mantener la claridad en reportes y trackers.

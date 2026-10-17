@@ -138,4 +138,41 @@ describe("Live Tracker Block Kit Generation", () => {
     assert.strictEqual(actions.elements[0].action_id, "switch_to_chatting_action");
     assert.strictEqual(actions.elements[1].action_id, "conclude_meetup_action");
   });
+
+  test("renders Open Stopwatch layout with elapsed time, no progress bar, and no Next Module button", () => {
+    const blocks = buildLiveTrackerBlocks({
+      meetupId: "meetup-999",
+      title: "Open Brainstorming",
+      totalMinutes: 0,
+      speakerUserId: "U_BOB",
+      elapsedMinutes: 24,
+      currentModuleName: "Open Session",
+      moduleRemainingMinutes: 0,
+      nextModuleName: null,
+      pacingMode: "OPEN_ENDED",
+    });
+
+    assert.strictEqual(blocks[0].text.text, "⏱️ Open Brainstorming (Open Stopwatch)");
+    assert.ok(blocks[1].text.text.includes("Open Stopwatch Session"));
+    assert.ok(blocks[1].text.text.includes("24m elapsed"));
+    assert.ok(blocks[1].text.text.includes("Untimed meeting"));
+
+    const fieldsSection = blocks.find((b: any) => b.fields && b.fields.length === 2);
+    assert.ok(fieldsSection);
+    assert.ok(fieldsSection.fields[0].text.includes("<@U_BOB>"));
+    assert.ok(fieldsSection.fields[1].text.includes("*Pacing Mode*"));
+    assert.ok(fieldsSection.fields[1].text.includes("Open Stopwatch"));
+    assert.ok(fieldsSection.fields[1].text.includes("runs until concluded"));
+
+    const hasNextUp = blocks.some(
+      (b: any) => b.type === "context" && b.elements?.some((el: any) => el.text?.includes("Next Up"))
+    );
+    assert.strictEqual(hasNextUp, false);
+
+    const actions = blocks.find((b: any) => b.type === "actions");
+    assert.ok(actions);
+    assert.strictEqual(actions.elements.length, 2);
+    assert.strictEqual(actions.elements[0].action_id, "switch_to_chatting_action");
+    assert.strictEqual(actions.elements[1].action_id, "conclude_meetup_action");
+  });
 });
