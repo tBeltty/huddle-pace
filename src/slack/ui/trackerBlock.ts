@@ -186,7 +186,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
     ];
   }
 
-  const statusBadge = data.isOvertime ? "🔴 *Session Overtime*" : "🟢 *Pacing On Track*";
+  const statusBadge = data.isOvertime ? "🟠 *Extra Time*" : "🟢 *Pacing On Track*";
   const nextModuleDisplay = data.nextModuleName
     ? `*${data.nextModuleName}*`
     : "_Final Segment / Wrap-up_";
@@ -194,7 +194,7 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
   // Determine dynamic Vector Flight Companion check
   let companionAlert: string;
   if (data.isOvertime) {
-    companionAlert = `> 🔴 *Holding Pattern (Overtime):* Meeting has exceeded the ${data.totalMinutes}m scheduled budget. Conclude or switch to casual chat.`;
+    companionAlert = `> Scheduled time complete (${data.totalMinutes}m). Wrap up or switch to Just Chatting.`;
   } else if (data.moduleRemainingMinutes <= 1 && data.nextModuleName) {
     companionAlert = `> ⏱️ *1-Minute Warning:* Wrapping up *${data.currentModuleName}*. Transitioning next to *${data.nextModuleName}*.`;
   } else if (remainingMinutes <= 2) {

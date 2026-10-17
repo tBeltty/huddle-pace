@@ -4,6 +4,11 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-17] Reducción de Alarmismo en Tiempo Adicional (Extra Time) (v1.14.1)
+* **Etiqueta Extra Time des-alarmizada**: el indicador de estado al cumplirse el tiempo programado pasa de `🔴 Session Overtime` a `🟠 Extra Time`, reduciendo la sensación de urgencia punitiva.
+* **Mensaje de contexto directo y cooperativo**: la cita de acompañamiento elimina el término alarmista *"Holding Pattern"* y el emoji repetido, simplificándose a `Scheduled time complete (Xm). Wrap up or switch to Just Chatting.`
+* **Consistencia en simulador web**: el simulador interactivo de la página pública actualiza su visualización para reflejar el estado Extra Time y el mensaje de cierre sin alertas redundantes.
+
 ## [2026-10-17] Modo Cronómetro Abierto (Open Stopwatch) y Exclusión de Analíticas Sin Presión (v1.14.0)
 * **Modo cronómetro abierto sin límite programado**: nuevo modo de ritmo **Open Stopwatch (Untimed)** seleccionable en el modal de agendar y en el editor de plantillas junto a Freeform Session y Structured Agenda.
 * **Cronómetro ascendente en hilo**: en lugar de una cuenta regresiva con barra de progreso, muestra el tiempo transcurrido en vivo (`Xm elapsed`) hasta que la llamada de Slack concluye de forma natural o un speaker pulsa Conclude Meetup.

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.1] - 2026-10-17
+
+### Changed
+- The live tracker status badge uses Extra Time instead of Session Overtime and switches to an amber badge.
+- The overtime companion alert drops the alarmist holding pattern label and redundant circle icon, reminding speakers to conclude or switch to Just Chatting.
+
 ## [1.14.0] - 2026-10-17
 
 ### Added
@@ -215,7 +221,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.14.0...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.14.1...HEAD
+[1.14.1]: https://github.com/tBeltty/huddle-pace/compare/v1.14.0...v1.14.1
 [1.14.0]: https://github.com/tBeltty/huddle-pace/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/tBeltty/huddle-pace/compare/v1.12.2...v1.13.0
 [1.12.2]: https://github.com/tBeltty/huddle-pace/compare/v1.12.1...v1.12.2
