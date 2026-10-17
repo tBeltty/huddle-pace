@@ -21,6 +21,7 @@ export interface CreateMeetupDTO {
   reminderTextEnabled?: boolean;
   reminderImageEnabled?: boolean;
   reminderDmEnabled?: boolean;
+  pacingMode?: "FREEFORM" | "STRUCTURED";
   modules: SubtopicInput[];
 }
 
@@ -35,6 +36,7 @@ export interface SaveTemplateDTO {
   reminderTextEnabled: boolean;
   reminderImageEnabled: boolean;
   reminderDmEnabled?: boolean;
+  pacingMode?: "FREEFORM" | "STRUCTURED";
   isShared?: boolean;
   modules: SubtopicInput[];
 }
@@ -51,6 +53,7 @@ export interface MeetupTemplateData {
   reminderTextEnabled: boolean;
   reminderImageEnabled: boolean;
   reminderDmEnabled: boolean;
+  pacingMode: "FREEFORM" | "STRUCTURED";
   modules: SubtopicInput[];
 }
 
@@ -172,6 +175,7 @@ export class MeetupService {
     reminderTextEnabled: boolean;
     reminderImageEnabled: boolean;
     reminderDmEnabled: boolean;
+    defaultPacingMode: "FREEFORM" | "STRUCTURED";
     flexibilityMode: "STRICT" | "STANDARD" | "RELAXED";
     managerUserIds: string[];
     timezone: string;
@@ -188,10 +192,14 @@ export class MeetupService {
               .filter(Boolean)
           : [];
 
+        const defaultPacingMode: "FREEFORM" | "STRUCTURED" =
+          settings.defaultPacingMode === "STRUCTURED" ? "STRUCTURED" : "FREEFORM";
+
         return {
           reminderTextEnabled: settings.reminderTextEnabled,
           reminderImageEnabled: settings.reminderImageEnabled,
           reminderDmEnabled: settings.reminderDmEnabled ?? false,
+          defaultPacingMode,
           flexibilityMode: (settings.flexibilityMode as any) || "STANDARD",
           managerUserIds: managers,
           timezone: normalizeTimezoneSetting(settings.timezone),
@@ -204,6 +212,7 @@ export class MeetupService {
       reminderTextEnabled: true,
       reminderImageEnabled: false,
       reminderDmEnabled: false,
+      defaultPacingMode: "FREEFORM",
       flexibilityMode: "STANDARD",
       managerUserIds: [],
       timezone: "PT",
@@ -219,6 +228,7 @@ export class MeetupService {
       reminderTextEnabled?: boolean;
       reminderImageEnabled?: boolean;
       reminderDmEnabled?: boolean;
+      defaultPacingMode?: "FREEFORM" | "STRUCTURED";
       flexibilityMode?: "STRICT" | "STANDARD" | "RELAXED";
       managerUserIds?: string[] | string | null;
       timezone?: string;
@@ -241,6 +251,7 @@ export class MeetupService {
         ...(settings.reminderTextEnabled !== undefined ? { reminderTextEnabled: settings.reminderTextEnabled } : {}),
         ...(settings.reminderImageEnabled !== undefined ? { reminderImageEnabled: settings.reminderImageEnabled } : {}),
         ...(settings.reminderDmEnabled !== undefined ? { reminderDmEnabled: settings.reminderDmEnabled } : {}),
+        ...(settings.defaultPacingMode !== undefined ? { defaultPacingMode: settings.defaultPacingMode } : {}),
         ...(settings.flexibilityMode !== undefined ? { flexibilityMode: settings.flexibilityMode } : {}),
         ...(settings.timezone !== undefined ? { timezone: normalizeTimezoneSetting(settings.timezone) } : {}),
         ...(normalizedManagers !== undefined ? { managerUserIds: normalizedManagers || null } : {}),
@@ -250,6 +261,7 @@ export class MeetupService {
         reminderTextEnabled: settings.reminderTextEnabled ?? true,
         reminderImageEnabled: settings.reminderImageEnabled ?? false,
         reminderDmEnabled: settings.reminderDmEnabled ?? false,
+        defaultPacingMode: settings.defaultPacingMode || "FREEFORM",
         flexibilityMode: settings.flexibilityMode || "STANDARD",
         timezone: normalizeTimezoneSetting(settings.timezone),
         managerUserIds: normalizedManagers || null,
@@ -346,12 +358,14 @@ export class MeetupService {
     let textEnabled = data.reminderTextEnabled;
     let imageEnabled = data.reminderImageEnabled;
     let dmEnabled = data.reminderDmEnabled;
+    let pacingMode = data.pacingMode;
 
-    if (textEnabled === undefined || imageEnabled === undefined || dmEnabled === undefined) {
+    if (textEnabled === undefined || imageEnabled === undefined || dmEnabled === undefined || pacingMode === undefined) {
       const wsSettings = await this.getWorkspaceSettings(data.teamId || "default");
       if (textEnabled === undefined) textEnabled = wsSettings.reminderTextEnabled;
       if (imageEnabled === undefined) imageEnabled = wsSettings.reminderImageEnabled;
       if (dmEnabled === undefined) dmEnabled = wsSettings.reminderDmEnabled;
+      if (pacingMode === undefined) pacingMode = wsSettings.defaultPacingMode;
     }
 
     return await prisma.meetup.create({
@@ -370,6 +384,7 @@ export class MeetupService {
         reminderTextEnabled: textEnabled,
         reminderImageEnabled: imageEnabled,
         reminderDmEnabled: dmEnabled,
+        pacingMode: pacingMode || "FREEFORM",
         modules: {
           create: computedModules,
         },
@@ -402,6 +417,7 @@ export class MeetupService {
     reminderTextEnabled: boolean;
     reminderImageEnabled: boolean;
     reminderDmEnabled?: boolean;
+    pacingMode?: string;
     modulesJson: string;
   }): MeetupTemplateData {
     let modules: SubtopicInput[] = [];
@@ -428,6 +444,7 @@ export class MeetupService {
       reminderTextEnabled: row.reminderTextEnabled,
       reminderImageEnabled: row.reminderImageEnabled,
       reminderDmEnabled: row.reminderDmEnabled ?? false,
+      pacingMode: row.pacingMode === "STRUCTURED" ? "STRUCTURED" : "FREEFORM",
       modules,
     };
   }
@@ -445,6 +462,7 @@ export class MeetupService {
       reminderTextEnabled: data.reminderTextEnabled,
       reminderImageEnabled: data.reminderImageEnabled,
       reminderDmEnabled: data.reminderDmEnabled ?? false,
+      pacingMode: data.pacingMode || "FREEFORM",
       modulesJson: JSON.stringify(data.modules.map((m) => ({ title: m.title.trim(), percentage: m.percentage }))),
     };
     // Overwriting a template by name must not change who can see it unless the caller says so.
@@ -488,6 +506,7 @@ export class MeetupService {
         reminderTextEnabled: data.reminderTextEnabled,
         reminderImageEnabled: data.reminderImageEnabled,
         reminderDmEnabled: data.reminderDmEnabled ?? false,
+        ...(data.pacingMode !== undefined ? { pacingMode: data.pacingMode } : {}),
         modulesJson: JSON.stringify(data.modules.map((m) => ({ title: m.title.trim(), percentage: m.percentage }))),
       },
     });
@@ -610,6 +629,7 @@ export class MeetupService {
           reminderTextEnabled: data.reminderTextEnabled ?? true,
           reminderImageEnabled: data.reminderImageEnabled ?? false,
           reminderDmEnabled: data.reminderDmEnabled ?? false,
+          ...(data.pacingMode !== undefined ? { pacingMode: data.pacingMode } : {}),
         },
       });
       if (claimed.count === 0) return null;

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-10-17
+
+### Added
+- Freeform Session mode when scheduling a pace or saving a template. It runs a single countdown without topic percentage splits.
+- A workspace setting to choose whether new paces default to Freeform Session or Structured Agenda.
+
+### Changed
+- Fast launch with `/pace 15m` starts a Freeform Session at full duration instead of dividing the time into three placeholder topics.
+- The live tracker hides the upcoming topic line and next-module controls during freeform sessions.
+
 ## [1.12.2] - 2026-10-17
 
 ### Fixed
@@ -194,7 +204,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.12.2...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/tBeltty/huddle-pace/compare/v1.12.2...v1.13.0
 [1.12.2]: https://github.com/tBeltty/huddle-pace/compare/v1.12.1...v1.12.2
 [1.12.1]: https://github.com/tBeltty/huddle-pace/compare/v1.12.0...v1.12.1
 [1.12.0]: https://github.com/tBeltty/huddle-pace/compare/v1.11.0...v1.12.0

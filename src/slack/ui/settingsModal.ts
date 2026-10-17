@@ -5,6 +5,7 @@ export interface SettingsModalOptions {
   reminderTextEnabled: boolean;
   reminderImageEnabled: boolean;
   reminderDmEnabled?: boolean;
+  defaultPacingMode?: "FREEFORM" | "STRUCTURED";
   flexibilityMode?: "STRICT" | "STANDARD" | "RELAXED";
   managerUserIds?: string[];
   /** "PT" (default), "USER" or an IANA zone id. */
@@ -111,6 +112,8 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
               options.reminderImageEnabled ? "*Active*" : "*Disabled*"
             }\n• *Speaker DM reminders:* ${
               options.reminderDmEnabled ? "*Active*" : "*Disabled*"
+            }\n• *Default pacing mode:* ${
+              options.defaultPacingMode === "STRUCTURED" ? "*Structured Agenda*" : "*Freeform Session*"
             }`,
           },
         },
@@ -262,6 +265,62 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
         hint: {
           type: "plain_text",
           text: "By default, pacing checkpoints post directly to the Huddle thread.",
+        },
+      },
+      {
+        type: "divider",
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*Default Pacing Mode*\nChoose whether new meetups start with a single shared countdown or a structured agenda with subtopics.",
+        },
+      },
+      {
+        type: "input",
+        block_id: "pacing_mode_settings_block",
+        label: {
+          type: "plain_text",
+          text: "Default Pacing Mode",
+        },
+        element: {
+          type: "static_select",
+          action_id: "default_pacing_mode_select",
+          placeholder: {
+            type: "plain_text",
+            text: "Select default pacing mode",
+          },
+          initial_option:
+            options.defaultPacingMode === "STRUCTURED"
+              ? {
+                  text: { type: "plain_text", text: "Structured Agenda (Topic breakdown by %)" },
+                  value: "STRUCTURED",
+                }
+              : {
+                  text: { type: "plain_text", text: "Freeform Session (Single countdown timer)" },
+                  value: "FREEFORM",
+                },
+          options: [
+            {
+              text: {
+                type: "plain_text",
+                text: "Freeform Session (Single countdown timer)",
+              },
+              value: "FREEFORM",
+            },
+            {
+              text: {
+                type: "plain_text",
+                text: "Structured Agenda (Topic breakdown by %)",
+              },
+              value: "STRUCTURED",
+            },
+          ],
+        },
+        hint: {
+          type: "plain_text",
+          text: "Schedulers can switch between Freeform and Structured when creating a meetup.",
         },
       },
       {

@@ -100,4 +100,42 @@ describe("Live Tracker Block Kit Generation", () => {
     assert.ok(blocks[1].text.text.includes("Casual Chat Mode Active"));
     assert.ok(blocks[2].fields[1].text.includes("5m"));
   });
+
+  test("renders Freeform Session layout with Pacing Mode field and omits Next Up and Next Module button", () => {
+    const blocks = buildLiveTrackerBlocks({
+      meetupId: "meetup-freeform",
+      title: "Design Review",
+      totalMinutes: 30,
+      speakerUserId: "U_ALICE",
+      elapsedMinutes: 10,
+      currentModuleName: "Design Review",
+      moduleRemainingMinutes: 20,
+      nextModuleName: null,
+      pacingMode: "FREEFORM",
+    });
+
+    // Header
+    assert.strictEqual(blocks[0].text.text, "Design Review");
+
+    // Fields: Speaker and Pacing Mode (no Active Module)
+    const fieldsSection = blocks.find((b: any) => b.fields && b.fields.length === 2);
+    assert.ok(fieldsSection);
+    assert.ok(fieldsSection.fields[0].text.includes("<@U_ALICE>"));
+    assert.ok(fieldsSection.fields[1].text.includes("*Pacing Mode*"));
+    assert.ok(fieldsSection.fields[1].text.includes("Freeform Session"));
+    assert.ok(fieldsSection.fields[1].text.includes("20m remaining"));
+
+    // Ensure Next Up context line is omitted
+    const hasNextUp = blocks.some(
+      (b: any) => b.type === "context" && b.elements?.some((el: any) => el.text?.includes("Next Up"))
+    );
+    assert.strictEqual(hasNextUp, false);
+
+    // Actions block: Just Chatting and Conclude only (no Next Module)
+    const actions = blocks.find((b: any) => b.type === "actions");
+    assert.ok(actions);
+    assert.strictEqual(actions.elements.length, 2);
+    assert.strictEqual(actions.elements[0].action_id, "switch_to_chatting_action");
+    assert.strictEqual(actions.elements[1].action_id, "conclude_meetup_action");
+  });
 });

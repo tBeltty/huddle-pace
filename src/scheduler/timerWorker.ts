@@ -233,6 +233,7 @@ export class TimerWorker {
               isOvertime,
               isChatting,
               chattingElapsedMinutes,
+              pacingMode: (meetup.pacingMode as any) || "FREEFORM",
             }),
           });
         } catch (err: any) {

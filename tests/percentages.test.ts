@@ -53,7 +53,7 @@ describe("addRowKeepingTotal", () => {
 describe("schedule modal % fields", () => {
   const pctBlocks = (view: any) => view.blocks.filter((b: any) => b.element?.action_id?.startsWith("subtopic_pct_input_"));
   test("default 3 rows are real values summing to 100 and dispatch on Enter", () => {
-    const blocks = pctBlocks(buildScheduleModal({ subtopicCount: 3 }));
+    const blocks = pctBlocks(buildScheduleModal({ subtopicCount: 3, pacingMode: "STRUCTURED" }));
     assert.deepEqual(blocks.map((b: any) => b.element.initial_value), ["15", "60", "25"]);
     assert.ok(blocks.every((b: any) => b.dispatch_action === true));
     assert.ok(blocks.every((b: any) => b.element.dispatch_action_config.trigger_actions_on[0] === "on_enter_pressed"));

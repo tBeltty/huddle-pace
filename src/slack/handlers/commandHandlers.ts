@@ -94,6 +94,7 @@ export function registerCommandHandlers(app: App) {
             reminderTextEnabled: settings.reminderTextEnabled,
             reminderImageEnabled: settings.reminderImageEnabled,
             reminderDmEnabled: settings.reminderDmEnabled,
+            defaultPacingMode: settings.defaultPacingMode,
             flexibilityMode: settings.flexibilityMode,
             timezone: settings.timezone,
             managerUserIds: settings.managerUserIds,
@@ -268,12 +269,7 @@ export function registerCommandHandlers(app: App) {
             : "Huddle Sync";
           const title = customTitle || defaultTitle;
 
-          // Default 3-stage flight plan: 20% Intro, 60% Core, 20% Wrap-up
-          const modules = [
-            { title: "Context & Intro", percentage: 20 },
-            { title: "Core Topic", percentage: 60 },
-            { title: "Wrap-up & Next Steps", percentage: 20 },
-          ];
+          const modules = [{ title, percentage: 100 }];
 
           const newMeetup = await MeetupService.createMeetup({
             title,
@@ -283,6 +279,7 @@ export function registerCommandHandlers(app: App) {
             createdByUserId: command.user_id,
             threadTs,
             teamId: command.team_id,
+            pacingMode: "FREEFORM",
             modules,
           });
 
@@ -290,8 +287,8 @@ export function registerCommandHandlers(app: App) {
 
           const locationText = threadTs ? "inside this live Huddle thread" : "in the channel feed";
           const pacingNotice = newMeetup.reminderDmEnabled
-            ? "I will provide private pacing checkpoints as you progress through each module."
-            : "I will provide pacing checkpoints in the thread as you progress through each module.";
+            ? "I will provide private pacing checkpoints as you approach the finish line."
+            : "I will provide pacing checkpoints in the thread as you approach the finish line.";
           await client.chat.postEphemeral({
             channel: command.channel_id,
             user: command.user_id,

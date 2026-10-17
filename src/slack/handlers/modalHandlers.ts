@@ -57,6 +57,7 @@ function readScheduleModalState(values: Record<string, any>, metadata: any): Par
     reminderImageEnabled: reminderValues.includes("reminder_image"),
     reminderDmEnabled: reminderValues.includes("reminder_dm"),
     isPrivate: (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0,
+    pacingMode: (getModalAction(values, "pacing_mode_select")?.selected_option?.value || metadata.pacingMode) === "STRUCTURED" ? "STRUCTURED" : "FREEFORM",
     saveAsTemplate: (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0,
     editTemplateId: metadata.templateId,
     templateName: getModalAction(values, "template_name_input")?.value || "",
@@ -118,6 +119,34 @@ export function registerModalHandlers(app: App) {
       });
     } catch (error) {
       console.error("Error refreshing huddles for channel in modal:", error);
+    }
+  });
+
+  // Action: Toggle between Freeform Session and Structured Agenda in modal
+  app.action("pacing_mode_select", async ({ ack, body, client }) => {
+    await ack();
+    try {
+      const b = body as any;
+      const metadata = JSON.parse(b.view.private_metadata || "{}");
+      const selectedMode = b.actions[0]?.selected_option?.value as "FREEFORM" | "STRUCTURED";
+      const state = readScheduleModalState(b.view.state.values, metadata);
+      let huddles: DetectedHuddle[] = [];
+      if (state.channelId) {
+        huddles = await findChannelHuddles(client, state.channelId);
+      }
+      const templates = await loadTemplateOptions(b.team?.id || b.user?.team_id, b.user?.id);
+
+      await client.views.update({
+        view_id: b.view.id,
+        view: buildScheduleModal({
+          ...state,
+          pacingMode: selectedMode,
+          availableHuddles: huddles,
+          templates,
+        }),
+      });
+    } catch (error) {
+      console.error("Error toggling pacing mode in modal:", error);
     }
   });
 
@@ -240,6 +269,7 @@ export function registerModalHandlers(app: App) {
           reminderImageEnabled: meetup.reminderImageEnabled,
           reminderDmEnabled: meetup.reminderDmEnabled,
           isPrivate: meetup.isPrivate,
+          pacingMode: (meetup.pacingMode as any) === "STRUCTURED" ? "STRUCTURED" : "FREEFORM",
         }),
       });
     } catch (error) {
@@ -375,15 +405,26 @@ export function registerModalHandlers(app: App) {
     const isPrivate = (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0;
     const saveAsTemplate = (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0;
 
+    const pacingModeAction = getModalAction(values, "pacing_mode_select")?.selected_option?.value;
+    const pacingMode: "FREEFORM" | "STRUCTURED" =
+      (pacingModeAction || metadata.pacingMode) === "STRUCTURED" ? "STRUCTURED" : "FREEFORM";
+
     const rawModules = [];
-    for (let i = 0; i < count; i++) {
-      const subTitle = getModalAction(values, `subtopic_title_input_${i}`)?.value || "";
-      const rawPct = getModalAction(values, `subtopic_pct_input_${i}`)?.value;
-      const parsedPct = Number(rawPct);
+    if (pacingMode === "FREEFORM") {
       rawModules.push({
-        title: subTitle,
-        percentage: isNaN(parsedPct) ? -1 : parsedPct,
+        title: title || "Freeform Session",
+        percentage: 100,
       });
+    } else {
+      for (let i = 0; i < count; i++) {
+        const subTitle = getModalAction(values, `subtopic_title_input_${i}`)?.value || "";
+        const rawPct = getModalAction(values, `subtopic_pct_input_${i}`)?.value;
+        const parsedPct = Number(rawPct);
+        rawModules.push({
+          title: subTitle,
+          percentage: isNaN(parsedPct) ? -1 : parsedPct,
+        });
+      }
     }
 
     const validationResult = scheduleModalInputSchema.safeParse({
@@ -396,6 +437,7 @@ export function registerModalHandlers(app: App) {
       reminderImageEnabled,
       reminderDmEnabled,
       isPrivate,
+      pacingMode,
       modules: rawModules,
     });
 
@@ -644,6 +686,10 @@ export function registerModalHandlers(app: App) {
       const reminderImageEnabled = reminderValues.includes("reminder_image");
       const reminderDmEnabled = reminderValues.includes("reminder_dm");
 
+      const pacingModeVal = values.pacing_mode_settings_block?.default_pacing_mode_select?.selected_option?.value;
+      const defaultPacingMode: "FREEFORM" | "STRUCTURED" =
+        pacingModeVal === "STRUCTURED" ? "STRUCTURED" : "FREEFORM";
+
       const flexMode = values.flexibility_settings_block?.flexibility_mode_select?.selected_option?.value as any;
       const flexibilityMode = flexMode === "STRICT" || flexMode === "RELAXED" ? flexMode : "STANDARD";
 
@@ -654,6 +700,7 @@ export function registerModalHandlers(app: App) {
         reminderTextEnabled,
         reminderImageEnabled,
         reminderDmEnabled,
+        defaultPacingMode,
         flexibilityMode,
         timezone,
         managerUserIds: managerSelected,

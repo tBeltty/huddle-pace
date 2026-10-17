@@ -10,6 +10,7 @@ interface TrackerData {
   currentModuleName: string;
   moduleRemainingMinutes: number;
   nextModuleName: string | null;
+  pacingMode?: "FREEFORM" | "STRUCTURED";
   isOvertime?: boolean;
   isChatting?: boolean;
   chattingElapsedMinutes?: number;
@@ -147,21 +148,30 @@ export function buildLiveTrackerBlocks(data: TrackerData): any[] {
           type: "mrkdwn",
           text: `👤 *Speaker(s)*\n${speakerDisplay}`,
         },
-        {
-          type: "mrkdwn",
-          text: `*Active Module*\n*${data.currentModuleName}* (${data.moduleRemainingMinutes}m left)`,
-        },
+        data.pacingMode === "FREEFORM"
+          ? {
+              type: "mrkdwn",
+              text: `*Pacing Mode*\n⏱️ Freeform Session (${formatMinutes(remainingMinutes)} remaining)`,
+            }
+          : {
+              type: "mrkdwn",
+              text: `*Active Module*\n*${data.currentModuleName}* (${data.moduleRemainingMinutes}m left)`,
+            },
       ],
     },
-    {
-      type: "context",
-      elements: [
-        {
-          type: "mrkdwn",
-          text: `⏭️ *Next Up:* ${nextModuleDisplay}`,
-        },
-      ],
-    },
+    ...(data.pacingMode !== "FREEFORM"
+      ? [
+          {
+            type: "context",
+            elements: [
+              {
+                type: "mrkdwn",
+                text: `⏭️ *Next Up:* ${nextModuleDisplay}`,
+              },
+            ],
+          },
+        ]
+      : []),
     {
       type: "divider",
     },
