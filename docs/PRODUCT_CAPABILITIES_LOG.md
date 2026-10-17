@@ -4,6 +4,11 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-17] DMs Silenciados por Defecto al Detectar Huddle y Filtro Estricto de Huddles Activos (v1.12.2)
+* **Silenciamiento de DMs al inicio**: eliminado el mensaje directo de bienvenida que se enviaba incondicionalmente a los speakers al iniciar un pace. Si la casilla *Send reminders via DM* está desactivada, el bot no envía ningún DM en absoluto durante la detección ni el inicio de la llamada.
+* **Filtro de Huddles activos**: el selector de destino en el modal de agendar y en la selección manual excluye los Huddles que ya concluyeron y solo muestra llamadas actualmente activas (`🟢 Active Huddle`).
+* **Detección robusta de Huddles**: la detección de llamadas ignora mensajes de bots y notificaciones de HuddlePace, y agrupa el hilo completo para identificar si cualquier mensaje declara el Huddle como finalizado.
+
 ## [2026-10-17] Mensajes de Ritmo y Transición Más Breves y Concisos (v1.12.1)
 * **Reducción de longitud**: simplificados los avisos de 1 minuto restante y de inicio de módulo para evitar mensajes verbosos en el hilo del Huddle y en los DMs a speakers.
 * **Formato de aviso de 1 minuto**: `:stopwatch: 1 Minute Remaining: Wrapping up "[Módulo]".` seguido de `next up is "[Siguiente]" ([X]m).` (o solo el aviso de cierre para el módulo final).

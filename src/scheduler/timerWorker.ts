@@ -79,7 +79,7 @@ export class TimerWorker {
             if (alreadyTracked) continue;
 
             console.info(`⏱️ Timer worker detected active Huddle in channel ${scheduled.channelId}. Auto-launching scheduled meetup ${scheduled.id}.`);
-            if (await launchMeetupInThread(this.app.client, scheduled.id, activeHuddle.ts)) {
+            if (await launchMeetupInThread(this.app.client, scheduled.id, activeHuddle.ts, { skipSpeakerDm: true })) {
               await notifySpeakersOfAutoLaunch(this.app.client, scheduled, botToken);
             }
           }

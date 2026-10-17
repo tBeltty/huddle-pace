@@ -99,7 +99,12 @@ export async function notifyCreatorOfMissedHuddle(client: SlackClient, meetup: M
  * Launches a SCHEDULED or MANUAL_START meetup and attaches its live tracker to the Huddle thread (or channel feed). Returns false when it was not launched
  * (missing, already running, or claimed by another caller a moment earlier).
  */
-export async function launchMeetupInThread(client: any, meetupId: string, threadTs?: string): Promise<boolean> {
+export async function launchMeetupInThread(
+  client: any,
+  meetupId: string,
+  threadTs?: string,
+  options?: { skipSpeakerDm?: boolean }
+): Promise<boolean> {
   const meetup = await MeetupService.getMeetupById(meetupId);
   if (!meetup) {
     console.error(`Meetup ${meetupId} not found.`);
@@ -151,20 +156,28 @@ export async function launchMeetupInThread(client: any, meetupId: string, thread
     threadTs || (trackerMsg.ts as string)
   );
 
-  // 3. Send private introductory pacing DM to all assigned speakers and refresh their App Home
+  // 3. Send private introductory pacing DM to all assigned speakers (only if reminderDmEnabled) and refresh their App Home
   const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
   for (const spkId of speakerIds) {
-    await client.chat.postMessage({
-      channel: spkId,
-      text: `🚀 *Meetup Started: ${meetup.title}*\nYour live tracker is running in <#${meetup.channelId}>${threadTs ? " inside the selected Huddle chat" : ""}.\nYou will receive private pacing alerts here as you transition between modules.`,
-    }).catch((err: any) => {
-      console.warn(`Failed to send start DM to speaker ${spkId}:`, err);
-    });
+    if (meetup.reminderDmEnabled && !options?.skipSpeakerDm) {
+      try {
+        const res = await client.chat.postMessage({
+          channel: spkId,
+          text: `🚀 *Meetup Started: ${meetup.title}*\nYour live tracker is running in <#${meetup.channelId}>${threadTs ? " inside the selected Huddle chat" : ""}.\nYou will receive private pacing alerts here as you transition between modules.`,
+        });
+        if (res?.ts && res?.channel) {
+          await MeetupService.recordDmMessage(meetup.id, res.channel as string, res.ts as string);
+        }
+      } catch (err: any) {
+        console.warn(`Failed to send start DM to speaker ${spkId}:`, err);
+      }
+    }
 
     publishHomeTab(client, spkId, meetup.teamId).catch(() => {});
   }
   return true;
 }
+
 
 export function registerActionHandlers(app: App) {
   // Action: Start a scheduled meetup

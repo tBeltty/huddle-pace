@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.2] - 2026-10-17
+
+### Fixed
+- Launching a pace sends no direct messages when direct message reminders are disabled.
+- The destination picker in the schedule modal and manual start modal only lists currently active Huddles and ignores concluded ones.
+
 ## [1.12.1] - 2026-10-17
 
 ### Changed
@@ -188,7 +194,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Support Chat Widget**: Embedded bi-directional support chat on `huddlepace.com` integrating with the customer support backend.
 - **Multi-Lingual Landing Page**: High-performance SSR landing page in English and Spanish with automated language negotiation (`Accept-Language`, query param, and cookie fallback).
 
-[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.12.1...HEAD
+[Unreleased]: https://github.com/tBeltty/huddle-pace/compare/v1.12.2...HEAD
+[1.12.2]: https://github.com/tBeltty/huddle-pace/compare/v1.12.1...v1.12.2
 [1.12.1]: https://github.com/tBeltty/huddle-pace/compare/v1.12.0...v1.12.1
 [1.12.0]: https://github.com/tBeltty/huddle-pace/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/tBeltty/huddle-pace/compare/v1.10.2...v1.11.0

@@ -92,7 +92,7 @@ export function registerHuddleHandlers(app: App) {
           if (!greetedHuddleThreads.has(rootTs)) {
             greetedHuddleThreads.add(rootTs);
             console.info(`Active Huddle detected in channel ${channelId}. Auto-launching scheduled meetup ${scheduled.id}.`);
-            if (await launchMeetupInThread(client, scheduled.id, rootTs)) {
+            if (await launchMeetupInThread(client, scheduled.id, rootTs, { skipSpeakerDm: true })) {
               await notifySpeakersOfAutoLaunch(client, scheduled);
             }
           }
@@ -286,7 +286,7 @@ export function registerHuddleHandlers(app: App) {
           const activeHuddle = huddles.find((h) => h.isActive);
           const threadTs = activeHuddle ? activeHuddle.ts : undefined;
 
-          if (await launchMeetupInThread(client, meetup.id, threadTs)) {
+          if (await launchMeetupInThread(client, meetup.id, threadTs, { skipSpeakerDm: true })) {
             await notifySpeakersOfAutoLaunch(client, meetup);
           }
         }

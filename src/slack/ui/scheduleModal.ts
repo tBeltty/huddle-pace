@@ -134,21 +134,21 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
     speakerElement.initial_users = initialSpeakers;
   }
 
-  // Construct Huddle selector options
+  // Construct Huddle selector options (only currently active Huddles)
   const detectedHuddles = isTemplateEdit ? [] : initialState?.availableHuddles || [];
+  const activeHuddles = detectedHuddles.filter((h) => h.isActive);
   const huddleOptions: any[] = [];
 
-  // 1. Detected Huddles in this channel
-  if (detectedHuddles.length > 0) {
-    detectedHuddles.forEach((h, index) => {
-      const statusIcon = h.isActive ? "🟢 Active" : "⚪ Recent";
+  // 1. Detected Active Huddles in this channel
+  if (activeHuddles.length > 0) {
+    activeHuddles.forEach((h, index) => {
       const timePart = h.timeFormatted ? ` (${h.timeFormatted})` : "";
       const namePart = h.roomName
         ? `"${h.roomName}"`
         : h.createdBy
         ? `by <@${h.createdBy}>`
         : `Huddle #${index + 1}`;
-      const labelText = `${statusIcon} ${namePart}${timePart}`.slice(0, 75);
+      const labelText = `🟢 Active Huddle #${index + 1}: ${namePart}${timePart}`.slice(0, 75);
       huddleOptions.push({
         text: { type: "plain_text", text: labelText, emoji: true },
         value: `huddle_${h.ts}`,
@@ -179,7 +179,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
   // Select initial option
   let initialHuddleOption = huddleOptions.find((o) => o.value === initialState?.selectedHuddleChoice);
   if (!initialHuddleOption) {
-    const firstActive = detectedHuddles.find((h) => h.isActive);
+    const firstActive = activeHuddles[0];
     if (firstActive) {
       initialHuddleOption = huddleOptions.find((o) => o.value === `huddle_${firstActive.ts}`) || huddleOptions[0];
     } else {

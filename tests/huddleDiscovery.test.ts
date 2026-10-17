@@ -147,5 +147,46 @@ describe("Huddle Discovery & Multi-Lingual Thread Binding", () => {
       const activeThread = await findActiveHuddleThread(mockClient, "C_TEST_CHANNEL");
       assert.strictEqual(activeThread, null);
     });
+
+    test("rejects bot and HuddlePace notifications from being treated as Huddles", () => {
+      assert.strictEqual(isHuddleMessage({ bot_id: "B123", text: "HuddlePace Standby: Huddle Active" }), false);
+      assert.strictEqual(isHuddleMessage({ subtype: "bot_message", text: "Started Huddle Sync (15m)" }), false);
+      assert.strictEqual(isHuddleMessage({ text: "Can we huddle tomorrow morning?" }), false);
+    });
+
+    test("marks Huddle as ended when any thread message indicates completion", async () => {
+      const rootTs = "1726000100.000100";
+      const mockClient = {
+        conversations: {
+          join: async () => ({ ok: true }),
+          history: async () => ({
+            messages: [
+              {
+                ts: "1726000900.000300",
+                thread_ts: rootTs,
+                text: "huddle ended",
+              },
+              {
+                ts: "1726000200.000200",
+                thread_ts: rootTs,
+                text: "joined the huddle",
+              },
+              {
+                ts: rootTs,
+                text: "started a huddle: Retro",
+              },
+            ],
+          }),
+        },
+      };
+
+      const huddles = await findChannelHuddles(mockClient, "C_TEST_CHANNEL");
+      assert.strictEqual(huddles.length, 1);
+      assert.strictEqual(huddles[0].ts, rootTs);
+      assert.strictEqual(huddles[0].isActive, false);
+
+      const active = await findActiveHuddleThread(mockClient, "C_TEST_CHANNEL");
+      assert.strictEqual(active, null);
+    });
   });
 });
