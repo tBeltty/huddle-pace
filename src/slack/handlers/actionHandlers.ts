@@ -36,6 +36,7 @@ export function isUserAuthorizedForMeetup(speakerUserId: string, userId?: string
  * up automatically once the session concludes.
  */
 export async function notifySpeakersOfAutoLaunch(client: any, meetup: any, botToken?: string) {
+  if (!meetup.reminderDmEnabled) return;
   const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
   const text = `🛫 *Huddle Detected!* HuddlePace bot has automatically launched your scheduled session: *"${meetup.title}"* (${meetup.totalMinutes}m).\nLive pacing has started in the Huddle thread!`;
 
@@ -337,14 +338,33 @@ export function registerActionHandlers(app: App) {
         }).catch(() => {});
       }
 
-      // 2. Notify speakers privately about the transition
+      // 2. Notify about the transition
       if (currentStatus?.module) {
-        const speakerIds = MeetupService.parseSpeakerIds(updated.speakerUserId);
         const transitionNotice = `⏭️ *Advanced to Next Module:* Switched to "*${currentStatus.module.title}*" (${currentStatus.module.durationMinutes}m allocated).`;
-        for (const spkId of speakerIds) {
+        if (updated.reminderDmEnabled) {
+          const speakerIds = MeetupService.parseSpeakerIds(updated.speakerUserId);
+          for (const spkId of speakerIds) {
+            await client.chat.postMessage({
+              channel: spkId,
+              text: transitionNotice,
+            }).catch(() => {});
+          }
+        } else {
           await client.chat.postMessage({
-            channel: spkId,
+            channel: updated.channelId,
+            thread_ts: updated.threadTs || updated.trackerMessageTs || undefined,
             text: transitionNotice,
+            blocks: [
+              {
+                type: "context",
+                elements: [
+                  {
+                    type: "mrkdwn",
+                    text: transitionNotice,
+                  },
+                ],
+              },
+            ],
           }).catch(() => {});
         }
       }
@@ -407,12 +427,32 @@ export function registerActionHandlers(app: App) {
         });
       }
 
-      // Notify speakers that formal pacing is now complete
+      // Notify that formal pacing is now complete
       const speakerIds = MeetupService.parseSpeakerIds(meetup.speakerUserId);
-      for (const spkId of speakerIds) {
+      const chattingNotice = `☕ *Formal Agenda Finished:* '${meetup.title}' wrapped up at *${elapsedMinutes}m* (budget: ${meetup.totalMinutes}m). The session is now in casual chat mode. Pacing alerts are complete!`;
+      if (meetup.reminderDmEnabled) {
+        for (const spkId of speakerIds) {
+          await client.chat.postMessage({
+            channel: spkId,
+            text: chattingNotice,
+          }).catch(() => {});
+        }
+      } else {
         await client.chat.postMessage({
-          channel: spkId,
-          text: `☕ *Formal Agenda Finished:* '${meetup.title}' wrapped up at *${elapsedMinutes}m* (budget: ${meetup.totalMinutes}m). The session is now in casual chat mode. Pacing alerts are complete!`,
+          channel: meetup.channelId,
+          thread_ts: meetup.threadTs || meetup.trackerMessageTs || undefined,
+          text: chattingNotice,
+          blocks: [
+            {
+              type: "context",
+              elements: [
+                {
+                  type: "mrkdwn",
+                  text: chattingNotice,
+                },
+              ],
+            },
+          ],
         }).catch(() => {});
       }
 

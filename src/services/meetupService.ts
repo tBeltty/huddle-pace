@@ -20,6 +20,7 @@ export interface CreateMeetupDTO {
   manualStart?: boolean;
   reminderTextEnabled?: boolean;
   reminderImageEnabled?: boolean;
+  reminderDmEnabled?: boolean;
   modules: SubtopicInput[];
 }
 
@@ -33,6 +34,7 @@ export interface SaveTemplateDTO {
   threadTs?: string | null;
   reminderTextEnabled: boolean;
   reminderImageEnabled: boolean;
+  reminderDmEnabled?: boolean;
   isShared?: boolean;
   modules: SubtopicInput[];
 }
@@ -48,6 +50,7 @@ export interface MeetupTemplateData {
   destination: "auto" | "main";
   reminderTextEnabled: boolean;
   reminderImageEnabled: boolean;
+  reminderDmEnabled: boolean;
   modules: SubtopicInput[];
 }
 
@@ -168,6 +171,7 @@ export class MeetupService {
   static async getWorkspaceSettings(teamId = "default"): Promise<{
     reminderTextEnabled: boolean;
     reminderImageEnabled: boolean;
+    reminderDmEnabled: boolean;
     flexibilityMode: "STRICT" | "STANDARD" | "RELAXED";
     managerUserIds: string[];
     timezone: string;
@@ -187,6 +191,7 @@ export class MeetupService {
         return {
           reminderTextEnabled: settings.reminderTextEnabled,
           reminderImageEnabled: settings.reminderImageEnabled,
+          reminderDmEnabled: settings.reminderDmEnabled ?? false,
           flexibilityMode: (settings.flexibilityMode as any) || "STANDARD",
           managerUserIds: managers,
           timezone: normalizeTimezoneSetting(settings.timezone),
@@ -198,6 +203,7 @@ export class MeetupService {
     return {
       reminderTextEnabled: true,
       reminderImageEnabled: false,
+      reminderDmEnabled: false,
       flexibilityMode: "STANDARD",
       managerUserIds: [],
       timezone: "PT",
@@ -212,6 +218,7 @@ export class MeetupService {
     settings: {
       reminderTextEnabled?: boolean;
       reminderImageEnabled?: boolean;
+      reminderDmEnabled?: boolean;
       flexibilityMode?: "STRICT" | "STANDARD" | "RELAXED";
       managerUserIds?: string[] | string | null;
       timezone?: string;
@@ -233,6 +240,7 @@ export class MeetupService {
       update: {
         ...(settings.reminderTextEnabled !== undefined ? { reminderTextEnabled: settings.reminderTextEnabled } : {}),
         ...(settings.reminderImageEnabled !== undefined ? { reminderImageEnabled: settings.reminderImageEnabled } : {}),
+        ...(settings.reminderDmEnabled !== undefined ? { reminderDmEnabled: settings.reminderDmEnabled } : {}),
         ...(settings.flexibilityMode !== undefined ? { flexibilityMode: settings.flexibilityMode } : {}),
         ...(settings.timezone !== undefined ? { timezone: normalizeTimezoneSetting(settings.timezone) } : {}),
         ...(normalizedManagers !== undefined ? { managerUserIds: normalizedManagers || null } : {}),
@@ -241,6 +249,7 @@ export class MeetupService {
         teamId,
         reminderTextEnabled: settings.reminderTextEnabled ?? true,
         reminderImageEnabled: settings.reminderImageEnabled ?? false,
+        reminderDmEnabled: settings.reminderDmEnabled ?? false,
         flexibilityMode: settings.flexibilityMode || "STANDARD",
         timezone: normalizeTimezoneSetting(settings.timezone),
         managerUserIds: normalizedManagers || null,
@@ -336,11 +345,13 @@ export class MeetupService {
 
     let textEnabled = data.reminderTextEnabled;
     let imageEnabled = data.reminderImageEnabled;
+    let dmEnabled = data.reminderDmEnabled;
 
-    if (textEnabled === undefined || imageEnabled === undefined) {
+    if (textEnabled === undefined || imageEnabled === undefined || dmEnabled === undefined) {
       const wsSettings = await this.getWorkspaceSettings(data.teamId || "default");
       if (textEnabled === undefined) textEnabled = wsSettings.reminderTextEnabled;
       if (imageEnabled === undefined) imageEnabled = wsSettings.reminderImageEnabled;
+      if (dmEnabled === undefined) dmEnabled = wsSettings.reminderDmEnabled;
     }
 
     return await prisma.meetup.create({
@@ -358,6 +369,7 @@ export class MeetupService {
         manualStartCode: data.manualStart ? await this.nextManualStartCode(data.channelId, data.teamId) : null,
         reminderTextEnabled: textEnabled,
         reminderImageEnabled: imageEnabled,
+        reminderDmEnabled: dmEnabled,
         modules: {
           create: computedModules,
         },
@@ -389,6 +401,7 @@ export class MeetupService {
     destination: string;
     reminderTextEnabled: boolean;
     reminderImageEnabled: boolean;
+    reminderDmEnabled?: boolean;
     modulesJson: string;
   }): MeetupTemplateData {
     let modules: SubtopicInput[] = [];
@@ -414,6 +427,7 @@ export class MeetupService {
       destination: row.destination === "main" ? "main" : "auto",
       reminderTextEnabled: row.reminderTextEnabled,
       reminderImageEnabled: row.reminderImageEnabled,
+      reminderDmEnabled: row.reminderDmEnabled ?? false,
       modules,
     };
   }
@@ -430,6 +444,7 @@ export class MeetupService {
       destination: this.templateDestination(data.threadTs),
       reminderTextEnabled: data.reminderTextEnabled,
       reminderImageEnabled: data.reminderImageEnabled,
+      reminderDmEnabled: data.reminderDmEnabled ?? false,
       modulesJson: JSON.stringify(data.modules.map((m) => ({ title: m.title.trim(), percentage: m.percentage }))),
     };
     // Overwriting a template by name must not change who can see it unless the caller says so.
@@ -472,6 +487,7 @@ export class MeetupService {
         destination: this.templateDestination(data.threadTs),
         reminderTextEnabled: data.reminderTextEnabled,
         reminderImageEnabled: data.reminderImageEnabled,
+        reminderDmEnabled: data.reminderDmEnabled ?? false,
         modulesJson: JSON.stringify(data.modules.map((m) => ({ title: m.title.trim(), percentage: m.percentage }))),
       },
     });
@@ -527,6 +543,7 @@ export class MeetupService {
         destination: source.destination,
         reminderTextEnabled: source.reminderTextEnabled,
         reminderImageEnabled: source.reminderImageEnabled,
+        reminderDmEnabled: source.reminderDmEnabled,
         modulesJson: source.modulesJson,
         isShared: false,
       },
@@ -592,6 +609,7 @@ export class MeetupService {
           ...(data.isPrivate !== undefined ? { isPrivate: data.isPrivate } : {}),
           reminderTextEnabled: data.reminderTextEnabled ?? true,
           reminderImageEnabled: data.reminderImageEnabled ?? false,
+          reminderDmEnabled: data.reminderDmEnabled ?? false,
         },
       });
       if (claimed.count === 0) return null;

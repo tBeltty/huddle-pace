@@ -4,6 +4,7 @@ import { COMMON_ZONES, normalizeTimezoneSetting } from "../../utils/timezone.js"
 export interface SettingsModalOptions {
   reminderTextEnabled: boolean;
   reminderImageEnabled: boolean;
+  reminderDmEnabled?: boolean;
   flexibilityMode?: "STRICT" | "STANDARD" | "RELAXED";
   managerUserIds?: string[];
   /** "PT" (default), "USER" or an IANA zone id. */
@@ -104,10 +105,12 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*Thread Reminders (Approaching Finish Line)*\n• *Finish-line text checkpoint:* ${
+            text: `*Pacing & Thread Reminders*\n• *Finish-line text checkpoint:* ${
               options.reminderTextEnabled ? "*Active*" : "*Disabled*"
             }\n• *Visual illustration banner:* ${
               options.reminderImageEnabled ? "*Active*" : "*Disabled*"
+            }\n• *Speaker DM reminders:* ${
+              options.reminderDmEnabled ? "*Active*" : "*Disabled*"
             }`,
           },
         },
@@ -173,11 +176,22 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
     value: "reminder_image",
   };
 
+  const dmOption = {
+    text: {
+      type: "mrkdwn" as const,
+      text: "*Send reminders via DM*\nDeliver module transitions and warnings privately to speakers instead of the thread.",
+    },
+    value: "reminder_dm",
+  };
+
   if (options.reminderTextEnabled) {
     initialOptions.push(textOption);
   }
   if (options.reminderImageEnabled) {
     initialOptions.push(imageOption);
+  }
+  if (options.reminderDmEnabled) {
+    initialOptions.push(dmOption);
   }
 
   const flexibilityOptions = [
@@ -228,7 +242,7 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: "*Thread Reminders (Approaching Finish Line)*\nConfigure default checkpoints dispatched when ~16.7% of meeting time remains (e.g. 10m before close on 1-hour sessions, 2–3m on shorter calls).",
+          text: "*Thread & Pacing Reminders*\nConfigure default checkpoints dispatched during meetings and when approaching the finish line.",
         },
       },
       {
@@ -242,12 +256,12 @@ export function buildSettingsModal(options: SettingsModalOptions): ModalView {
         element: {
           type: "checkboxes",
           action_id: "reminder_checkboxes",
-          options: [textOption, imageOption],
+          options: [textOption, imageOption, dmOption],
           ...(initialOptions.length > 0 ? { initial_options: initialOptions } : {}),
         },
         hint: {
           type: "plain_text",
-          text: "Uncheck both options to disable automated finish-line reminders entirely.",
+          text: "By default, pacing checkpoints post directly to the Huddle thread.",
         },
       },
       {

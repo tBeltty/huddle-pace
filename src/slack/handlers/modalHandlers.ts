@@ -55,6 +55,7 @@ function readScheduleModalState(values: Record<string, any>, metadata: any): Par
     customSubtopics,
     reminderTextEnabled: reminderValues.includes("reminder_text"),
     reminderImageEnabled: reminderValues.includes("reminder_image"),
+    reminderDmEnabled: reminderValues.includes("reminder_dm"),
     isPrivate: (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0,
     saveAsTemplate: (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0,
     editTemplateId: metadata.templateId,
@@ -237,6 +238,7 @@ export function registerModalHandlers(app: App) {
           customSubtopics: meetup.modules.map((m) => ({ title: m.title, pct: String(m.percentage) })),
           reminderTextEnabled: meetup.reminderTextEnabled,
           reminderImageEnabled: meetup.reminderImageEnabled,
+          reminderDmEnabled: meetup.reminderDmEnabled,
           isPrivate: meetup.isPrivate,
         }),
       });
@@ -369,6 +371,7 @@ export function registerModalHandlers(app: App) {
     const reminderValues = reminderSelected.map((o: any) => o.value);
     const reminderTextEnabled = reminderValues.includes("reminder_text");
     const reminderImageEnabled = reminderValues.includes("reminder_image");
+    const reminderDmEnabled = reminderValues.includes("reminder_dm");
     const isPrivate = (getModalAction(values, "private_huddle_checkbox")?.selected_options || []).length > 0;
     const saveAsTemplate = (getModalAction(values, "save_template_checkbox")?.selected_options || []).length > 0;
 
@@ -391,6 +394,7 @@ export function registerModalHandlers(app: App) {
       threadTs,
       reminderTextEnabled,
       reminderImageEnabled,
+      reminderDmEnabled,
       isPrivate,
       modules: rawModules,
     });
@@ -638,6 +642,7 @@ export function registerModalHandlers(app: App) {
 
       const reminderTextEnabled = reminderValues.includes("reminder_text");
       const reminderImageEnabled = reminderValues.includes("reminder_image");
+      const reminderDmEnabled = reminderValues.includes("reminder_dm");
 
       const flexMode = values.flexibility_settings_block?.flexibility_mode_select?.selected_option?.value as any;
       const flexibilityMode = flexMode === "STRICT" || flexMode === "RELAXED" ? flexMode : "STANDARD";
@@ -648,6 +653,7 @@ export function registerModalHandlers(app: App) {
       await MeetupService.updateWorkspaceSettings(teamId, {
         reminderTextEnabled,
         reminderImageEnabled,
+        reminderDmEnabled,
         flexibilityMode,
         timezone,
         managerUserIds: managerSelected,

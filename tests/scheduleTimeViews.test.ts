@@ -105,9 +105,51 @@ describe("settings timezone selector", () => {
     assert.strictEqual(select("Mars/Olympus")?.initial_option.value, "PT");
   });
 
-  test("read-only members see the active timezone", () => {
-    const modal = buildSettingsModal({ reminderTextEnabled: true, reminderImageEnabled: false, timezone: "USER", canEdit: false });
+  test("read-only members see the active timezone and reminder settings", () => {
+    const modal = buildSettingsModal({
+      reminderTextEnabled: true,
+      reminderImageEnabled: false,
+      reminderDmEnabled: false,
+      timezone: "USER",
+      canEdit: false,
+    });
     assert.match(JSON.stringify(modal.blocks), /My timezone/);
+    assert.match(JSON.stringify(modal.blocks), /Speaker DM reminders/);
+    assert.match(JSON.stringify(modal.blocks), /Disabled/);
+  });
+
+  test("offers reminder_dm option in editable settings", () => {
+    const modal = buildSettingsModal({
+      reminderTextEnabled: true,
+      reminderImageEnabled: false,
+      reminderDmEnabled: true,
+      timezone: "PT",
+      canEdit: true,
+    });
+    const block = findInput(modal, "reminder_settings_block");
+    const options = block?.element?.options ?? [];
+    assert.ok(options.some((o: any) => o.value === "reminder_dm"));
+    const initial = block?.element?.initial_options ?? [];
+    assert.ok(initial.some((o: any) => o.value === "reminder_dm"));
+  });
+});
+
+describe("schedule modal reminder options", () => {
+  test("defaults reminder_dm to unchecked and offers it in options", () => {
+    const modal = buildScheduleModal({});
+    const block = findInput(modal, "reminder_options_block");
+    const options = block?.element?.options ?? [];
+    assert.ok(options.some((o: any) => o.value === "reminder_dm"));
+    const initial = block?.element?.initial_options ?? [];
+    assert.strictEqual(initial.some((o: any) => o.value === "reminder_dm"), false);
+    assert.strictEqual(initial.some((o: any) => o.value === "reminder_text"), true);
+  });
+
+  test("preselects reminder_dm when reminderDmEnabled is true", () => {
+    const modal = buildScheduleModal({ reminderDmEnabled: true });
+    const block = findInput(modal, "reminder_options_block");
+    const initial = block?.element?.initial_options ?? [];
+    assert.strictEqual(initial.some((o: any) => o.value === "reminder_dm"), true);
   });
 });
 

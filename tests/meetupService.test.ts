@@ -241,13 +241,15 @@ describe("MeetupService calculations and parsing", () => {
       const defaultSettings = await MeetupService.getWorkspaceSettings(teamId);
       assert.strictEqual(defaultSettings.reminderTextEnabled, true);
       assert.strictEqual(defaultSettings.reminderImageEnabled, false);
+      assert.strictEqual(defaultSettings.reminderDmEnabled, false);
       assert.strictEqual(defaultSettings.flexibilityMode, "STANDARD");
       assert.deepStrictEqual(defaultSettings.managerUserIds, []);
 
-      // Update settings with delegated managers
+      // Update settings with delegated managers and reminderDmEnabled
       await MeetupService.updateWorkspaceSettings(teamId, {
         reminderTextEnabled: false,
         reminderImageEnabled: true,
+        reminderDmEnabled: true,
         flexibilityMode: "STRICT",
         managerUserIds: ["U_MGR1", "U_MGR2"],
       });
@@ -255,6 +257,7 @@ describe("MeetupService calculations and parsing", () => {
       const updatedSettings = await MeetupService.getWorkspaceSettings(teamId);
       assert.strictEqual(updatedSettings.reminderTextEnabled, false);
       assert.strictEqual(updatedSettings.reminderImageEnabled, true);
+      assert.strictEqual(updatedSettings.reminderDmEnabled, true);
       assert.strictEqual(updatedSettings.flexibilityMode, "STRICT");
       assert.deepStrictEqual(updatedSettings.managerUserIds, ["U_MGR1", "U_MGR2"]);
     });

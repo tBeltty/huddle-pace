@@ -60,6 +60,7 @@ export interface ModalStateData {
   customDuration?: string;
   reminderTextEnabled?: boolean;
   reminderImageEnabled?: boolean;
+  reminderDmEnabled?: boolean;
   isPrivate?: boolean;
   templates?: ModalTemplateOption[];
   selectedTemplateId?: string;
@@ -95,6 +96,7 @@ export function templateToModalState(
     customSubtopics: template.modules.slice(0, MAX_SUBTOPICS).map((m) => ({ title: m.title, pct: String(m.percentage) })),
     reminderTextEnabled: template.reminderTextEnabled,
     reminderImageEnabled: template.reminderImageEnabled,
+    reminderDmEnabled: template.reminderDmEnabled,
     availableHuddles: isOwn ? huddles : [],
   };
 }
@@ -210,6 +212,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
 
   const reminderTextEnabled = initialState?.reminderTextEnabled ?? true;
   const reminderImageEnabled = initialState?.reminderImageEnabled ?? false;
+  const reminderDmEnabled = initialState?.reminderDmEnabled ?? false;
   const initialReminderOptions: any[] = [];
   if (reminderTextEnabled) {
     initialReminderOptions.push({
@@ -227,6 +230,15 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
         text: "*Send reminder image* (Vector illustration banner)",
       },
       value: "reminder_image",
+    });
+  }
+  if (reminderDmEnabled) {
+    initialReminderOptions.push({
+      text: {
+        type: "mrkdwn" as const,
+        text: "*Send reminders via DM* (private pacing alerts to speakers instead of thread)",
+      },
+      value: "reminder_dm",
     });
   }
 
@@ -434,7 +446,7 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
       optional: true,
       label: {
         type: "plain_text",
-        text: "Finish-Line Reminders",
+        text: "Pacing Reminders",
       },
       element: {
         type: "checkboxes",
@@ -454,12 +466,19 @@ export function buildScheduleModal(initialState?: Partial<ModalStateData>): Moda
             },
             value: "reminder_image",
           },
+          {
+            text: {
+              type: "mrkdwn",
+              text: "*Send reminders via DM* (private pacing alerts to speakers instead of thread)",
+            },
+            value: "reminder_dm",
+          },
         ],
         ...(initialReminderOptions.length > 0 ? { initial_options: initialReminderOptions } : {}),
       },
       hint: {
         type: "plain_text",
-        text: "Dispatched once when ~16.7% time remains to wrap up action items.",
+        text: "By default, pacing checkpoints post directly to the Huddle thread.",
       },
     },
     {

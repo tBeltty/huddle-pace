@@ -93,6 +93,7 @@ export function registerCommandHandlers(app: App) {
             teamId,
             reminderTextEnabled: settings.reminderTextEnabled,
             reminderImageEnabled: settings.reminderImageEnabled,
+            reminderDmEnabled: settings.reminderDmEnabled,
             flexibilityMode: settings.flexibilityMode,
             timezone: settings.timezone,
             managerUserIds: settings.managerUserIds,
@@ -288,10 +289,13 @@ export function registerCommandHandlers(app: App) {
           await launchMeetupInThread(client, newMeetup.id, threadTs);
 
           const locationText = threadTs ? "inside this live Huddle thread" : "in the channel feed";
+          const pacingNotice = newMeetup.reminderDmEnabled
+            ? "I will provide private pacing checkpoints as you progress through each module."
+            : "I will provide pacing checkpoints in the thread as you progress through each module.";
           await client.chat.postEphemeral({
             channel: command.channel_id,
             user: command.user_id,
-            text: `🛫 *Flight Initiated!* HuddlePace bot is now tracking *"${title}"* (${parsedMinutes}m) ${locationText}.\nI will provide private pacing checkpoints as you progress through each module.`,
+            text: `🛫 *Flight Initiated!* HuddlePace bot is now tracking *"${title}"* (${parsedMinutes}m) ${locationText}.\n${pacingNotice}`,
           });
           return;
         }

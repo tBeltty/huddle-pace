@@ -257,7 +257,7 @@ export class TimerWorker {
         // If in Just Chatting mode, skip pacing DMs and formal exit ramp
         if (isChatting) continue;
 
-        // 3. 1-Minute Early Warning DM to speakers
+        // 3. 1-Minute Early Warning
         if (status && status.module && status.remainingMinutes <= 1 && !this.moduleWarningsSent.has(status.module.id)) {
           this.moduleWarningsSent.add(status.module.id);
           const nextMod = status.nextModule;
@@ -265,23 +265,48 @@ export class TimerWorker {
             ? `⏱️ *1 Minute Remaining:* Wrapping up "*${status.module.title}*". Start rounding out your points; next up is "*${nextMod.title}*" (${nextMod.durationMinutes}m).`
             : `⏱️ *1 Minute Remaining:* Wrapping up final module "*${status.module.title}*". Prepare for open Q&A or conclusion.`;
 
-          for (const speakerId of speakerIds) {
-            try {
-              const res = await this.app.client.chat.postMessage({
-                token: botToken,
-                channel: speakerId,
-                text: warningText,
-              });
-              if (res?.ts && res?.channel) {
-                await MeetupService.recordDmMessage(meetup.id, res.channel as string, res.ts as string);
+          const reminderDmEnabled = (meetup as any).reminderDmEnabled ?? false;
+          if (reminderDmEnabled) {
+            for (const speakerId of speakerIds) {
+              try {
+                const res = await this.app.client.chat.postMessage({
+                  token: botToken,
+                  channel: speakerId,
+                  text: warningText,
+                });
+                if (res?.ts && res?.channel) {
+                  await MeetupService.recordDmMessage(meetup.id, res.channel as string, res.ts as string);
+                }
+              } catch (err) {
+                console.warn(`Failed to send 1-minute warning DM to speaker ${speakerId}:`, err);
               }
+            }
+          } else {
+            try {
+              await this.app.client.chat.postMessage({
+                token: botToken,
+                channel: meetup.channelId,
+                thread_ts: meetup.threadTs || meetup.trackerMessageTs,
+                text: warningText,
+                blocks: [
+                  {
+                    type: "context",
+                    elements: [
+                      {
+                        type: "mrkdwn",
+                        text: warningText,
+                      },
+                    ],
+                  },
+                ],
+              });
             } catch (err) {
-              console.warn(`Failed to send 1-minute warning DM to speaker ${speakerId}:`, err);
+              console.warn(`Failed to send 1-minute warning in thread for meetup ${meetup.id}:`, err);
             }
           }
         }
 
-        // 4. Natural Vector Speaker Transition / Takeoff DM
+        // 4. Natural Vector Speaker Transition / Takeoff
         if (status && status.module && !status.module.isNotified) {
           const isTakeoff = status.module.startOffsetMin === 0;
           let messageText: string;
@@ -295,18 +320,43 @@ export class TimerWorker {
             messageText = `🧭 *Module Transition:* Time is up for "*${prevTitle}*". Move to "*${status.module.title}*" (${status.module.durationMinutes}m allocated) to keep our flight path on schedule.`;
           }
 
-          for (const speakerId of speakerIds) {
-            try {
-              const res = await this.app.client.chat.postMessage({
-                token: botToken,
-                channel: speakerId,
-                text: messageText,
-              });
-              if (res?.ts && res?.channel) {
-                await MeetupService.recordDmMessage(meetup.id, res.channel as string, res.ts as string);
+          const reminderDmEnabled = (meetup as any).reminderDmEnabled ?? false;
+          if (reminderDmEnabled) {
+            for (const speakerId of speakerIds) {
+              try {
+                const res = await this.app.client.chat.postMessage({
+                  token: botToken,
+                  channel: speakerId,
+                  text: messageText,
+                });
+                if (res?.ts && res?.channel) {
+                  await MeetupService.recordDmMessage(meetup.id, res.channel as string, res.ts as string);
+                }
+              } catch (err) {
+                console.warn(`Failed to send pacing DM to speaker ${speakerId}:`, err);
               }
+            }
+          } else {
+            try {
+              await this.app.client.chat.postMessage({
+                token: botToken,
+                channel: meetup.channelId,
+                thread_ts: meetup.threadTs || meetup.trackerMessageTs,
+                text: messageText,
+                blocks: [
+                  {
+                    type: "context",
+                    elements: [
+                      {
+                        type: "mrkdwn",
+                        text: messageText,
+                      },
+                    ],
+                  },
+                ],
+              });
             } catch (err) {
-              console.warn(`Failed to send pacing DM to speaker ${speakerId}:`, err);
+              console.warn(`Failed to send module transition in thread for meetup ${meetup.id}:`, err);
             }
           }
 
@@ -430,35 +480,38 @@ export class TimerWorker {
             console.warn(`Failed to post timebox alert for meetup ${meetup.id}:`, err);
           }
 
-          // Private nudge to the speakers, so the end of the scheduled time reaches them even when
-          // the thread is busy. Just Chatting keeps the extra minutes out of the overtime stats.
-          const timeUpText = `⏱️ *Time is up for "${meetup.title}".* The scheduled ${meetup.totalMinutes}m are over. If the conversation keeps going, switch to Just Chatting so the extra time stays out of your overtime stats.`;
-          for (const speakerId of speakerIds) {
-            try {
-              const res = await this.app.client.chat.postMessage({
-                token: botToken,
-                channel: speakerId,
-                text: timeUpText,
-                blocks: [
-                  { type: "section", text: { type: "mrkdwn", text: timeUpText } },
-                  {
-                    type: "actions",
-                    elements: [
-                      {
-                        type: "button",
-                        text: { type: "plain_text", text: "☕ Just Chatting", emoji: true },
-                        value: meetup.id,
-                        action_id: "switch_to_chatting_action",
-                      },
-                    ],
-                  },
-                ],
-              });
-              if (res?.ts && res?.channel) {
-                await MeetupService.recordDmMessage(meetup.id, res.channel as string, res.ts as string);
+          const reminderDmEnabled = (meetup as any).reminderDmEnabled ?? false;
+          if (reminderDmEnabled) {
+            // Private nudge to the speakers, so the end of the scheduled time reaches them even when
+            // the thread is busy. Just Chatting keeps the extra minutes out of the overtime stats.
+            const timeUpText = `⏱️ *Time is up for "${meetup.title}".* The scheduled ${meetup.totalMinutes}m are over. If the conversation keeps going, switch to Just Chatting so the extra time stays out of your overtime stats.`;
+            for (const speakerId of speakerIds) {
+              try {
+                const res = await this.app.client.chat.postMessage({
+                  token: botToken,
+                  channel: speakerId,
+                  text: timeUpText,
+                  blocks: [
+                    { type: "section", text: { type: "mrkdwn", text: timeUpText } },
+                    {
+                      type: "actions",
+                      elements: [
+                        {
+                          type: "button",
+                          text: { type: "plain_text", text: "☕ Just Chatting", emoji: true },
+                          value: meetup.id,
+                          action_id: "switch_to_chatting_action",
+                        },
+                      ],
+                    },
+                  ],
+                });
+                if (res?.ts && res?.channel) {
+                  await MeetupService.recordDmMessage(meetup.id, res.channel as string, res.ts as string);
+                }
+              } catch (err) {
+                console.warn(`Failed to send time-is-up DM to speaker ${speakerId}:`, err);
               }
-            } catch (err) {
-              console.warn(`Failed to send time-is-up DM to speaker ${speakerId}:`, err);
             }
           }
         }
