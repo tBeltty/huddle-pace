@@ -2,6 +2,8 @@
 
 This directory contains the normative engineering standards for HuddlePace, designed to match HuddlePace's TypeScript, Prisma, and Slack Socket Mode architecture.
 
+> 📚 **[Master Knowledge & Skills Index](KNOWLEDGE_INDEX.md)**: Mapa unificado de todas las habilidades (`skills`), manuales de operación, perfiles de marca y guías normativas del proyecto.
+
 ---
 
 ## The Guidelines
