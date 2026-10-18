@@ -4,6 +4,10 @@
 > Este registro se mantiene estrictamente en **orden cronológico inverso (del más reciente al más antiguo)**.
 > Toda nueva funcionalidad, modificación arquitectónica, cambio de diseño o ajuste técnico **debe escribirse ARRIBA**, de modo que lo más nuevo siempre sea lo primero que se lee.
 
+## [2026-10-18] Índice Maestro de Conocimiento y Habilidades (`KNOWLEDGE_INDEX.md`)
+* **Mapa de navegación centralizado**: nuevo documento `docs/KNOWLEDGE_INDEX.md` que unifica los enlaces a las 10 habilidades (`skills`) en `.agents/skills/` y la totalidad del corpus de conocimiento de HuddlePace (arquitectura, guidelines normativas, perfiles de marca, playbooks de copia y tutoriales).
+* **Acceso y trazabilidad**: referenciado en `docs/README.md` como punto de entrada estructurado para desarrolladores y agentes autónomos.
+
 ## [2026-10-17] Reducción de Alarmismo en Tiempo Adicional (Extra Time) (v1.14.1)
 * **Etiqueta Extra Time des-alarmizada**: el indicador de estado al cumplirse el tiempo programado pasa de `🔴 Session Overtime` a `🟠 Extra Time`, reduciendo la sensación de urgencia punitiva.
 * **Mensaje de contexto directo y cooperativo**: la cita de acompañamiento elimina el término alarmista *"Holding Pattern"* y el emoji repetido, simplificándose a `Scheduled time complete (Xm). Wrap up or switch to Just Chatting.`
