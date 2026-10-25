@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "HuddlePace: Real-Time Meeting Pacing and Speaker Participation Telemetry for Slack"
+type: software
+authors:
+  - family-names: Correa
+    given-names: Jhonatan
+    orcid: "https://orcid.org/0009-0006-7779-8729"
+    affiliation: "tBelt"
+version: "1.14.1"
+license-url: "https://github.com/tBeltty/huddle-pace/blob/main/LICENSE"
+repository-code: "https://github.com/tBeltty/huddle-pace"
