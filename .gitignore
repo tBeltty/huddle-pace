@@ -28,3 +28,13 @@ npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Local tooling and assistant files
+AGENTS.md
+CLAUDE.md
+.agents/
+.claude/
+.impeccable/
+audit/
+docs/KNOWLEDGE_INDEX.md
+docs/PRODUCT_CAPABILITIES_LOG.md

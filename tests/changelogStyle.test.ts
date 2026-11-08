@@ -6,7 +6,7 @@ import path from "node:path";
 // CHANGELOG.md sections are published verbatim as GitHub release notes, so they are about the
 // HuddlePace Slack app only and have to pass docs/guidelines/EDITORIAL_STANDARDS.md before the
 // commit and the tag. Website, SEO, docs, tests and tooling changes are not release material;
-// they go in docs/PRODUCT_CAPABILITIES_LOG.md. Entries up to 1.4.0 predate this gate.
+// they stay out of the changelog. Entries up to 1.4.0 predate this gate.
 
 const BANNED = [
   "delve", "foster", "leverage", "utilize", "facilitate", "empower", "streamline", "robust",

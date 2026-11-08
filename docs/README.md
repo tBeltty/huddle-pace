@@ -2,8 +2,6 @@
 
 This directory contains the normative engineering standards for HuddlePace, designed to match HuddlePace's TypeScript, Prisma, and Slack Socket Mode architecture.
 
-> 📚 **[Master Knowledge & Skills Index](KNOWLEDGE_INDEX.md)**: Mapa unificado de todas las habilidades (`skills`), manuales de operación, perfiles de marca y guías normativas del proyecto.
-
 ---
 
 ## The Guidelines
@@ -24,6 +22,5 @@ This directory contains the normative engineering standards for HuddlePace, desi
 
 - **[Pace Guide for Tutorials & Support](guides/PACE_GUIDE.md)**: Verified, step-by-step reference for scheduling, starting, running and rescheduling a pace through the App Home and `/pace`. Source for tutorials, help articles and video scripts.
 - **[Brand Identity & System Guide](BRAND.md)**: Master reference for colors (Aerospace Telemetry), typography, Vector mascot specifications, voice, and visual assets.
-- **[Product Capabilities & Changes Log](PRODUCT_CAPABILITIES_LOG.md)**: Master reverse-chronological record of everything HuddlePace does and recent feature updates.
 - **[Target Niches & Market Personas](TARGET_NICHES.md)**: Market segments, Scrum Masters, pain points, and commercial opportunities.
 
